@@ -50,6 +50,7 @@ Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backe
 ### Plano Premium
 
 ![Modal Premium](screenshots/premium.png)
+
 *Modal de upgrade com benefícios do plano Premium (notas ilimitadas, workspaces de grupo, CRM)*
 
 ---
