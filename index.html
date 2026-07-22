@@ -15,9 +15,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="/js/firebase-init.js"></script>
+<script src="js/firebase-init.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="css/main.css">
 <script>
 // Auth guard — redirect to /login.html if not authenticated
 (function() {
@@ -26,7 +26,7 @@
   function check() {
     if (!window._fbInitDone) { setTimeout(check, 80); return; }
     window._fbAuth.onAuthStateChanged(function(user) {
-      if (!user) window.location.replace('/login.html');
+      if (!user) window.location.replace('login.html');
     });
   }
   check();
@@ -352,6 +352,6 @@
 <div id="fb-setup-banner">
   ⚠ <strong>Firebase não configurado.</strong> O sistema social não funcionar
 <div id="chat-lightbox" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;cursor:zoom-out;"><img id="chat-lightbox-img" src="" alt="" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain;"></div>
-<script src="/js/app.js" defer></script>
+<script src="js/app.js" defer></script>
 </body>
 </html>

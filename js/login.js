@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 /* ── Utilitários mínimos necessários para auth ── */
 function $(id) { return document.getElementById(id); }
@@ -77,7 +77,7 @@ function goToApp(userData) {
   if (userData && userData.uid.startsWith('demo_')) {
     localStorage.setItem('md_sess_demo', JSON.stringify(userData));
   }
-  window.location.href = '/';
+  window.location.href = 'index.html';
 }
 
 /* ── Registro ── */
@@ -315,14 +315,14 @@ window.addEventListener('DOMContentLoaded', () => {
   if (sess) {
     try {
       const u = JSON.parse(sess);
-      if (u?.username) { window.location.href = '/'; return; }
+      if (u?.username) { window.location.href = 'index.html'; return; }
     } catch(_) {}
   }
 
   // Verificar Firebase Auth
   if (window._fbInitDone && window._fbAuth) {
     window._fbAuth.onAuthStateChanged(user => {
-      if (user) window.location.href = '/';
+      if (user) window.location.href = 'index.html';
     });
   }
 
