@@ -1,188 +1,427 @@
 ﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MyDesk — Workspace de Notas Inteligente</title>
-<meta name="description" content="MyDesk é um workspace de notas colaborativo com CRM financeiro, workspaces em grupo, chat em tempo real e muito mais. Grátis para começar.">
-<meta name="keywords" content="notas, workspace, CRM, colaboração, organização, produtividade">
-<meta property="og:title" content="MyDesk — Workspace de Notas Inteligente">
-<meta property="og:description" content="Organize suas notas, gerencie clientes e colabore em tempo real.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://jvalvim-bit.github.io/mydesk/">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text y='22' x='5' font-size='20'>📋</text></svg>">
-<meta name="theme-color" content="#6366f1">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="js/firebase-init.js?v=4"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=4">
-<script>
-// Auth guard — redirect to login.html if not authenticated
-(function() {
-  // Skip if user just came from login (avoids race condition with Firebase session load)
-  if (sessionStorage.getItem('_md_just_logged_in')) {
-    sessionStorage.removeItem('_md_just_logged_in');
-    return;
-  }
-  // Demo session
-  var sess = localStorage.getItem('md_sess_demo');
-  if (sess) { try { var u = JSON.parse(sess); if (u && u.username) return; } catch(_) {} }
-  function check() {
-    if (!window._fbInitDone) { setTimeout(check, 80); return; }
-    // Unsubscribe immediately — one-time check, don't react to later signOut events
-    var unsub = window._fbAuth.onAuthStateChanged(function(user) {
-      unsub();
-      if (!user) window.location.replace('login.html');
-    });
-  }
-  check();
-})();
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyDesk — Workspace de Notas Inteligente</title>
+  <meta name="description" content="MyDesk é um workspace de notas colaborativo com CRM financeiro, workspaces em grupo, chat em tempo real e muito mais. Grátis para começar.">
+  <meta name="keywords" content="notas, workspace, CRM, colaboração, organização, produtividade">
+  <meta property="og:title" content="MyDesk — Workspace de Notas Inteligente">
+  <meta property="og:description" content="Organize suas notas, gerencie clientes e colabore em tempo real.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jvalvim-bit.github.io/mydesk/">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text y='22' x='5' font-size='20'>📋</text></svg>">
+  <meta name="theme-color" content="#6366f1">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-init.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
+
+<div id="auth-screen" class="landing-scroll">
+  <!-- HERO -->
+  <div class="auth-hero">
+    <div class="auth-left">
+      <div class="auth-grid"></div>
+      <canvas id="pixel-canvas"></canvas>
+      <div class="auth-shape sh1"></div>
+      <div class="auth-shape sh2"></div>
+      <div class="auth-shape sh3"></div>
+      <div class="auth-brand-wrap">
+        <div class="auth-brand-logo"><div class="logo-dot"></div>MyDesk</div>
+        <div class="auth-brand-sub">workspace de notas corporativo</div>
+      </div>
+      <div style="position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;">
+        <div style="position:relative;width:420px;height:320px;">
+          <div class="mock-note mock-note-pulse" style="top:10px;left:0;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.3);">
+            <div class="mock-note-bar" style="background:#6366f1;"></div>
+            <div class="mock-note-head"><div class="mock-note-chip-row"><div class="mock-note-chip" style="background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.28);color:#a5b4fc;"><span style="width:5px;height:5px;border-radius:50%;background:#6366f1;display:inline-block;"></span>Indigo</div><div class="mock-note-status" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.22);color:#6ee7b7;"><span class="mock-note-status-dot" style="background:#10b981;"></span>Concluido</div></div></div>
+            <div class="mock-note-title">Redesign do dashboard</div>
+            <div class="mock-note-body">Atualizar componentes e revisar tipografia do sistema.</div>
+            <div class="mock-note-sep"></div>
+            <div class="mock-note-dates"><div class="mock-note-date-row"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Prazo: 15/07/2025</div></div>
+          </div>
+          <div class="mock-note" style="top:18px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.28);">
+            <div class="mock-note-bar" style="background:#10b981;"></div>
+            <div class="mock-note-head"><div class="mock-note-chip-row"><div class="mock-note-chip" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;"><span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Emerald</div><div class="mock-note-status" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.22);color:#a5b4fc;"><span class="mock-note-status-dot" style="background:#6366f1;box-shadow:0 0 4px rgba(99,102,241,.6);"></span>Andamento</div></div></div>
+            <div class="mock-note-title">Reuniao com cliente</div>
+            <div class="mock-note-body">Apresentar prototipo e coletar feedback.</div>
+            <div class="mock-note-sep"></div>
+            <div class="mock-note-dates"><div class="mock-note-date-row"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Prazo: 18/07/2025</div></div>
+          </div>
+          <div class="mock-note" style="top:190px;left:100px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.3);">
+            <div class="mock-note-bar" style="background:#f43f5e;"></div>
+            <div class="mock-note-head"><div class="mock-note-chip-row"><div class="mock-note-chip" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.25);color:#fda4af;"><span style="width:5px;height:5px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>Rose</div><div class="mock-note-status" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;"><span class="mock-note-status-dot" style="background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);"></span>Encerrado</div></div></div>
+            <div class="mock-note-title">Bug critico #482</div>
+            <div class="mock-note-body">Corrigir falha em producao no modulo de pagamentos.</div>
+            <div class="mock-note-sep"></div>
+            <div class="mock-note-dates"><div class="mock-note-date-row"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vencido ha 2d</div></div>
+          </div>
+          <div class="mock-badge-float" style="bottom:10px;right:0;"><div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>3 notas ativas</div>
+        </div>
+      </div>
+      <div class="lp-scroll-hint" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">
+        <span>Saiba mais</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-welcome" id="auth-welcome">
+        <div class="auth-welcome-eyebrow"><span>MyDesk</span><div class="auth-welcome-eyebrow-line"></div></div>
+        <div class="auth-welcome-heading" id="auth-welcome-heading">Seu workspace<br><span class="hl" id="auth-typewriter"></span><span class="auth-cursor" id="auth-cursor"></span></div>
+        <div class="auth-welcome-desc" id="auth-welcome-desc">Entre com sua conta para acessar seu painel pessoal de notas.</div>
+        <div class="auth-stats">
+          <div class="auth-stat"><div class="auth-stat-dot" style="background:#6366f1;box-shadow:0 0 6px rgba(99,102,241,.6)"></div><span class="auth-stat-txt">Notas ilimitadas</span></div>
+          <div class="auth-stat"><div class="auth-stat-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.5)"></div><span class="auth-stat-txt">Contas isoladas</span></div>
+          <div class="auth-stat"><div class="auth-stat-dot" style="background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,.5)"></div><span class="auth-stat-txt">Arquivos anexados</span></div>
+        </div>
+      </div>
+      <div class="auth-card" id="auth-card">
+        <div class="auth-card-title" id="auth-title"></div>
+        <div class="auth-card-sub" id="auth-sub"></div>
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login">Entrar</button>
+          <button class="auth-tab" id="tab-reg">Criar conta</button>
+        </div>
+        <div id="form-login" class="auth-form">
+          <div class="auth-error" id="login-err"></div>
+          <div class="a-lbl">E-mail</div>
+          <input class="a-inp" id="l-email" type="email" placeholder="seu@email.com" autocomplete="email">
+          <div class="a-lbl">Senha</div>
+          <input class="a-inp" id="l-pass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password">
+          <div style="text-align:right;margin-bottom:12px;"><a id="forgot-pass" style="font-size:.72rem;color:rgba(165,180,252,.6);cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Esqueci minha senha</a></div>
+          <div class="a-hint">Autenticado com seguranca via Firebase.</div>
+          <button class="auth-btn" id="btn-login">Entrar</button>
+          <div class="auth-divider">ou</div>
+          <button class="btn-google" id="btn-google-login">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continuar com Google
+          </button>
+          <div class="auth-switch">Sem conta? <a id="goto-reg">Criar agora</a></div>
+        </div>
+        <div id="form-reg" class="auth-form" style="display:none">
+          <div class="auth-error" id="reg-err"></div>
+          <div class="a-row">
+            <div class="a-grp"><div class="a-lbl">Nome</div><input class="a-inp" id="r-name" type="text" placeholder="Seu nome" autocomplete="off"></div>
+            <div class="a-grp"><div class="a-lbl">Usuario</div><input class="a-inp" id="r-user" type="text" placeholder="@login" autocomplete="username"></div>
+          </div>
+          <div class="a-lbl">E-mail</div>
+          <input class="a-inp" id="r-email" type="email" placeholder="seu@email.com" autocomplete="email">
+          <div class="a-lbl">Funcao</div>
+          <input class="a-inp" id="r-role" type="text" placeholder="designer · dev · gerente...">
+          <div class="a-lbl">Senha</div>
+          <input class="a-inp" id="r-pass" type="password" placeholder="minimo 6 caracteres" autocomplete="new-password">
+          <div class="a-lbl">Confirmar senha</div>
+          <input class="a-inp" id="r-pass2" type="password" placeholder="repita a senha" autocomplete="new-password">
+          <button class="auth-btn" id="btn-register">Criar conta</button>
+          <div class="auth-divider">ou</div>
+          <button class="btn-google" id="btn-google-reg">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continuar com Google
+          </button>
+          <div class="auth-switch">Ja tem conta? <a id="goto-login">Entrar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
+  <!-- 1. O QUE E O MYDESK -->
+  <div class="lp-section" id="lp-about">
+    <div class="lp-cols">
+      <div class="lp-col-text">
+        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>O que e o MyDesk</div>
+        <div class="lp-title">Seu workspace.<br><span class="hl">Redefinido.</span></div>
+        <div class="lp-subtitle">Um ambiente onde organizacao e clareza se encontram. O MyDesk centraliza tudo o que importa em uma experiencia fluida, elegante e sem distracoes.</div>
+        <div class="lp-stats-row">
+          <div class="lp-stat-box"><div class="lp-stat-num"><span class="hl">&#8734;</span></div><div class="lp-stat-label">Notas ilimitadas</div></div>
+          <div class="lp-stat-box"><div class="lp-stat-num"><span class="hl">19</span></div><div class="lp-stat-label">Paletas de cor</div></div>
+          <div class="lp-stat-box"><div class="lp-stat-num"><span class="hl">100%</span></div><div class="lp-stat-label">Privado e local</div></div>
+        </div>
+        <div class="lp-feats">
+          <div class="lp-feat"><div class="lp-feat-icon fi1">&#128193;</div><div><div class="lp-feat-title">Cards de notas livres</div><div class="lp-feat-desc">Arraste, redimensione e posicione suas notas em qualquer lugar. Cada card tem titulo, descricao, datas, cor e arquivos.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon fi3">&#128276;</div><div><div class="lp-feat-title">Alertas automaticos de prazo</div><div class="lp-feat-desc">Configure lembretes antes do vencimento e receba avisos visuais diretamente nos cards.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon fi2">&#128206;</div><div><div class="lp-feat-title">Arquivos e visualizador embutido</div><div class="lp-feat-desc">Anexe PDFs, imagens e documentos. Abra um visualizador lateral sem sair do board.</div></div></div>
+        </div>
+      </div>
+      <div class="lp-col-visual">
+        <div class="lp-mock" style="position:relative;">
+          <div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div>
+          <div class="lp-mock-body" style="background:#0a0a0a;min-height:290px;overflow:visible;">
+            <div class="mock-note mock-note-pulse" style="top:14px;left:12px;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.28);"><div class="mock-note-bar" style="background:#6366f1"></div><div class="mock-note-title">Redesign do dashboard</div><div class="mock-note-body">Atualizar componentes e tipografia.</div></div>
+            <div class="mock-note" style="top:20px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.25);"><div class="mock-note-bar" style="background:#10b981"></div><div class="mock-note-title">Reuniao com cliente</div><div class="mock-note-body">Apresentar prototipo e coletar feedback.</div></div>
+            <div class="mock-note" style="top:180px;left:70px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.28);"><div class="mock-note-bar" style="background:#f43f5e"></div><div class="mock-note-title">Bug critico #482</div><div class="mock-note-body">Corrigir falha em producao.</div></div>
+            <div class="mock-badge-float" style="bottom:-16px;right:14px;"><div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>3 notas ativas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
+  <!-- 2. COMO FUNCIONA -->
+  <div class="lp-section">
+    <div class="lp-cols reverse">
+      <div class="lp-col-text">
+        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Como funciona</div>
+        <div class="lp-title">Status. Cores.<br><span class="hl">Fluxo.</span></div>
+        <div class="lp-subtitle">Cada elemento comunica. Acompanhe progresso com precisao, organize com logica visual e transforme complexidade em simplicidade.</div>
+        <div class="lp-how">
+          <div class="lp-how-step"><div class="lp-how-num">1</div><div><div class="lp-how-title">Crie uma nota com titulo e descricao</div><div class="lp-how-desc">Clique em "Nova nota", preencha o conteudo e escolha uma cor para aquela tarefa.</div></div></div>
+          <div class="lp-how-step"><div class="lp-how-num">2</div><div><div class="lp-how-title">Defina datas de inicio e prazo</div><div class="lp-how-desc">Adicione datas no card e ative o lembrete para avisos automaticos.</div></div></div>
+          <div class="lp-how-step"><div class="lp-how-num">3</div><div><div class="lp-how-title">Atualize o status com um clique</div><div class="lp-how-desc">O pill de status abre um menu. O card muda visualmente com efeito de glow.</div></div></div>
+          <div class="lp-how-step"><div class="lp-how-num">4</div><div><div class="lp-how-title">Reorganize com um botao</div><div class="lp-how-desc">Clique em "Reorganizar" para alinhar todos os cards em grid automaticamente.</div></div></div>
+        </div>
+        <div class="lp-quote"><div class="lp-quote-text">"Tenho tudo visivel de uma vez — sem abas, sem listas enterradas."</div><div class="lp-quote-author">— Usuario MyDesk</div></div>
+      </div>
+      <div class="lp-col-visual">
+        <div class="lp-mock">
+          <div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div>
+          <div class="lp-mock-body" style="padding:18px;background:#0a0a0a;min-height:320px;display:flex;flex-direction:column;gap:10px;">
+            <div style="background:#16172e;border:1px solid rgba(99,102,241,.22);border-radius:10px;overflow:hidden;"><div style="height:3px;background:linear-gradient(90deg,#6366f1,#818cf8)"></div><div style="padding:10px 12px;"><div style="font-size:.78rem;font-weight:600;color:#f0f0f0;margin-bottom:4px;">Pesquisa de UX</div><div style="font-size:.67rem;color:rgba(240,240,240,.38);">Entrevistar 5 usuarios e mapear pontos de atrito.</div></div></div>
+            <div style="background:#0a2018;border:1px solid rgba(16,185,129,.22);border-radius:10px;overflow:hidden;"><div style="height:3px;background:linear-gradient(90deg,#10b981,#34d399)"></div><div style="padding:10px 12px;"><div style="font-size:.78rem;font-weight:600;color:#f0f0f0;margin-bottom:4px;">API de integracao</div><div style="font-size:.67rem;color:rgba(240,240,240,.38);">Implementar endpoints REST e documentar.</div></div></div>
+            <div style="background:#121c04;border:1px solid rgba(132,204,22,.18);border-radius:10px;overflow:hidden;"><div style="height:3px;background:linear-gradient(90deg,#84cc16,#a3e635)"></div><div style="padding:10px 12px;"><div style="font-size:.78rem;font-weight:600;color:rgba(240,240,240,.4);text-decoration:line-through;">Deploy em producao</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
+  <!-- 3. SOCIAL -->
+  <div class="lp-section">
+    <div class="lp-cols">
+      <div class="lp-col-text">
+        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Social</div>
+        <div class="lp-title">Colabore<br><span class="hl">sem friccao.</span></div>
+        <div class="lp-subtitle">Compartilhe, edite e evolua em conjunto. O MyDesk conecta pessoas e ideias em tempo real.</div>
+        <div class="lp-feats">
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);">&#128101;</div><div><div class="lp-feat-title">Amigos e pedidos</div><div class="lp-feat-desc">Adicione qualquer usuario pelo login. Aceite ou recuse pedidos com um clique.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">&#128172;</div><div><div class="lp-feat-title">Chat em tempo real</div><div class="lp-feat-desc">Janelas flutuantes com suporte a texto, imagens e arquivos.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">&#128193;</div><div><div class="lp-feat-title">Workspace compartilhado</div><div class="lp-feat-desc">Crie um board em conjunto. Sincronizado ao vivo em tempo real.</div></div></div>
+        </div>
+      </div>
+      <div class="lp-col-visual">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="lp-mock"><div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div><div class="lp-mock-body" style="padding:10px;min-height:auto;"><div class="mock-sp-row"><div class="mock-sp-av" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">A</div><div style="flex:1;"><div class="mock-sp-name">Ana Lima</div><div class="mock-sp-meta">@analima</div></div></div><div class="mock-sp-row"><div class="mock-sp-av" style="background:linear-gradient(135deg,#10b981,#0d9488)">R</div><div style="flex:1;"><div class="mock-sp-name">Rafael Dev</div><div class="mock-sp-meta">@rafaeldev</div></div></div></div></div>
+          <div class="mock-chat-win"><div class="mock-chat-hdr"><div class="mock-chat-av">A</div><div class="mock-chat-name">Ana Lima</div></div><div class="mock-chat-msgs"><div class="mock-msg theirs">Oi! Viu o card de bug?</div><div class="mock-msg mine">Sim, ja estou olhando</div><div class="mock-msg theirs">Cria um workspace comigo?</div><div class="mock-msg mine">Claro! Manda o convite</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
+  <!-- 4. PERSONALIZACAO -->
+  <div class="lp-section">
+    <div class="lp-cols reverse">
+      <div class="lp-col-text">
+        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Personalizacao</div>
+        <div class="lp-title">Seu board,<br><span class="hl">sua identidade.</span></div>
+        <div class="lp-subtitle">Estruture do seu jeito. Crie, adapte e refine seu espaco com liberdade total.</div>
+        <div class="lp-feats">
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.22);">&#127912;</div><div><div class="lp-feat-title">19 paletas coordenadas</div><div class="lp-feat-desc">De indigo a esmeralda, cada paleta coordena fundo, barra e chip.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">&#128444;</div><div><div class="lp-feat-title">Fundo personalizado por usuario</div><div class="lp-feat-desc">Suba sua imagem ou escolha entre 11 cores e 13 gradientes.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">&#8596;</div><div><div class="lp-feat-title">Redimensionamento livre</div><div class="lp-feat-desc">Arraste o canto de qualquer nota para ajustar largura e altura.</div></div></div>
+        </div>
+      </div>
+      <div class="lp-col-visual">
+        <div class="lp-mock"><div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div><div style="padding:20px;background:#111;min-height:200px;"><div style="font-size:.5rem;color:rgba(240,240,240,.22);margin-bottom:6px;letter-spacing:.8px;text-transform:uppercase;">Gradientes</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"><div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#1a1a2e,#0d0d0d);"></div><div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#0d1b4d,#1a1a3e);border:2px solid rgba(99,102,241,.4)"></div><div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#0a2018,#0d1f0d)"></div><div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#1a0a0a,#2d0a0a)"></div></div><div style="font-size:.5rem;color:rgba(240,240,240,.22);margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;">Paletas de nota</div><div style="display:flex;gap:7px;flex-wrap:wrap;"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4f46e5);box-shadow:0 0 6px rgba(99,102,241,.4)"></div><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#7c3aed)"></div><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#e11d48)"></div><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706)"></div><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669)"></div><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7)"></div></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
+  <!-- 5. PILHAS -->
+  <div class="lp-section">
+    <div class="lp-cols">
+      <div class="lp-col-text">
+        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Organizacao inteligente</div>
+        <div class="lp-title">Pilhas que<br><span class="hl">pensam por voce.</span></div>
+        <div class="lp-subtitle">Agrupe notas em pilhas compactas com um simples arrastar. Expanda, recolha e reorganize tudo com um clique.</div>
+        <div class="lp-feats">
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);">&#128218;</div><div><div class="lp-feat-title">Pilhas automaticas</div><div class="lp-feat-desc">Arraste uma nota sobre outra e elas formam uma pilha. Titulo editavel, cor personalizavel.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">&#9889;</div><div><div class="lp-feat-title">Reorganizar com um clique</div><div class="lp-feat-desc">O botao Reorganizar posiciona pilhas e notas em colunas limpas com animacao suave.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">&#128204;</div><div><div class="lp-feat-title">Pin e visualizador de arquivos</div><div class="lp-feat-desc">Fixe notas para mante-las expandidas. Visualize PDFs e imagens em painel lateral.</div></div></div>
+        </div>
+      </div>
+      <div class="lp-col-visual">
+        <div class="lp-mock"><div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div><div style="padding:16px;background:#111;min-height:200px;display:flex;flex-direction:column;gap:8px;"><div style="background:#1a1a2e;border:1px solid rgba(99,102,241,.3);border-radius:10px;overflow:hidden;"><div style="background:rgba(99,102,241,.15);padding:9px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:.68rem;font-weight:600;color:#f0f0f0;flex:1;">Projeto Alpha</span><span style="font-size:.6rem;color:rgba(240,240,240,.3);">3 &#9660;</span></div><div style="padding:6px 12px;"><div style="font-size:.65rem;color:rgba(240,240,240,.7);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">Briefing inicial</div><div style="font-size:.65rem;color:rgba(240,240,240,.7);padding:4px 0;">Wireframes</div></div></div><div style="background:#071a10;border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:10px 12px;"><div style="font-size:.72rem;font-weight:600;color:#f0f0f0;margin-bottom:3px;">Reuniao de sprint</div><div style="font-size:.62rem;color:rgba(240,240,240,.35);">Pauta: velocity, blockers e proximos entregaveis...</div></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. SEGURANCA -->
+  <div class="lp-section">
+    <div class="lp-cols reverse">
+      <div class="lp-col-text">
+        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Seguranca</div>
+        <div class="lp-title">Seus dados,<br><span class="hl">sua protecao.</span></div>
+        <div class="lp-subtitle">Autenticacao robusta, dados isolados por usuario e validacao em todas as entradas.</div>
+        <div class="lp-feats">
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);">&#128272;</div><div><div class="lp-feat-title">Autenticacao Firebase</div><div class="lp-feat-desc">Login seguro na nuvem. Senhas nunca armazenadas em texto — so tokens criptografados.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);">&#128451;</div><div><div class="lp-feat-title">Dados isolados por UID</div><div class="lp-feat-desc">Suas notas ficam em <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;">/users/{uid}/notes</code> — apenas voce acessa.</div></div></div>
+          <div class="lp-feat"><div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">&#128737;</div><div><div class="lp-feat-title">Validacao de arquivos</div><div class="lp-feat-desc">Uploads validados por tipo MIME. Executaveis e scripts sao bloqueados. Limite de 5MB.</div></div></div>
+        </div>
+      </div>
+      <div class="lp-col-visual">
+        <div class="lp-mock"><div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div><div style="padding:20px;background:#111;min-height:200px;display:flex;flex-direction:column;gap:8px;"><div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #6366f1;"><span style="font-size:.85rem;">&#128273;</span><div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Firebase Auth JWT</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);">Token renovado automaticamente</div></div></div><div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #10b981;"><span style="font-size:.85rem;">&#128451;</span><div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Regras do Database</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);">Leitura/escrita por UID</div></div></div><div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #f59e0b;"><span style="font-size:.85rem;">&#10003;</span><div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Validacao de input</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);">XSS bloqueado em todas as entradas</div></div></div><div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #14b8a6;"><span style="font-size:.85rem;">&#128274;</span><div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Dados por usuario</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);">Isolamento total entre contas</div></div></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. FAQ -->
+  <div class="lp-section">
+    <div style="max-width:680px;margin:0 auto;width:100%;">
+      <div class="lp-eyebrow" style="justify-content:center;margin-bottom:16px;"><div class="lp-eyebrow-dot"></div>Duvidas frequentes</div>
+      <div class="lp-title" style="text-align:center;margin-bottom:40px;">Perguntas<br><span class="hl">e Respostas.</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;" id="lp-faq">
+        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);"><span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Meus dados ficam salvos se eu fechar o navegador?</span><span style="font-size:.7rem;color:rgba(240,240,240,.3);flex-shrink:0;margin-left:12px;">&#9662;</span></div><div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;"><div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. As notas sao salvas na nuvem em tempo real. Ao voltar, tudo estara exatamente como voce deixou.</div></div></div>
+        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);"><span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Posso usar em varios dispositivos ao mesmo tempo?</span><span style="font-size:.7rem;color:rgba(240,240,240,.3);flex-shrink:0;margin-left:12px;">&#9662;</span></div><div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;"><div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. Faca login com a mesma conta em qualquer navegador. As notas sincronizam automaticamente pela nuvem.</div></div></div>
+        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);"><span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Como funcionam os workspaces compartilhados?</span><span style="font-size:.7rem;color:rgba(240,240,240,.3);flex-shrink:0;margin-left:12px;">&#9662;</span></div><div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;"><div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Voce pode criar um workspace 1:1 com um amigo ou de grupo. As notas sao sincronizadas em tempo real para todos.</div></div></div>
+        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);"><span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">E possivel anexar arquivos nas notas?</span><span style="font-size:.7rem;color:rgba(240,240,240,.3);flex-shrink:0;margin-left:12px;">&#9662;</span></div><div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;"><div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. Cada nota aceita imagens, PDFs e outros arquivos ate 5MB. Ha um visualizador embutido.</div></div></div>
+        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);"><span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">O MyDesk funciona offline?</span><span style="font-size:.7rem;color:rgba(240,240,240,.3);flex-shrink:0;margin-left:12px;">&#9662;</span></div><div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;"><div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Parcialmente. O board carrega normalmente, mas sincronizacao e chat precisam de conexao com a internet.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+  <div class="lp-divider"></div>
+
+  <!-- PRICING -->
+  <div class="lp-section" id="lp-pricing">
+    <div style="max-width:900px;margin:0 auto;">
+      <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Planos</div>
+      <div class="lp-title">Simples e <span class="hl">transparente.</span></div>
+      <div class="lp-subtitle">Comece gratis. Assine quando precisar de mais.</div>
+      <div style="display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:260px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:0;">
+          <div style="font-size:.65rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(240,240,240,.35);margin-bottom:14px;">Gratuito</div>
+          <div style="font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;color:var(--clr-text);letter-spacing:-2px;line-height:1;margin-bottom:4px;">R$ 0</div>
+          <div style="font-size:.78rem;color:rgba(240,240,240,.35);margin-bottom:24px;">para sempre</div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;margin-bottom:24px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.65);"><span style="color:var(--clr-success);">&#10003;</span>30 notas por mes</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.65);"><span style="color:var(--clr-success);">&#10003;</span>Workspaces pessoais</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.65);"><span style="color:var(--clr-success);">&#10003;</span>Chat com amigos</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.65);"><span style="color:var(--clr-success);">&#10003;</span>19 cores de notas</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.35);"><span style="opacity:.35;">&#10007;</span>CRM Financeiro</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.35);"><span style="opacity:.35;">&#10007;</span>Workspaces de grupo</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.35);"><span style="opacity:.35;">&#10007;</span>Suporte prioritario</div>
+          </div>
+          <button onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-reg').click();" style="width:100%;padding:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Inter',sans-serif;font-size:.86rem;font-weight:600;color:rgba(240,240,240,.7);cursor:pointer;">Comecar gratis</button>
+        </div>
+        <div style="flex:1;min-width:260px;background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(79,70,229,.08));border:1px solid rgba(99,102,241,.35);border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:0;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:16px;right:16px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:20px;padding:3px 10px;font-size:.62rem;font-weight:700;color:#fff;letter-spacing:.5px;text-transform:uppercase;">Mais popular</div>
+          <div style="font-size:.65rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--clr-indigo-light);margin-bottom:14px;">Premium</div>
+          <div style="font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;color:var(--clr-text);letter-spacing:-2px;line-height:1;margin-bottom:4px;">R$ 10</div>
+          <div style="font-size:.78rem;color:rgba(240,240,240,.35);margin-bottom:24px;">por mes · via Pix</div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;margin-bottom:24px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span><b>Notas ilimitadas</b></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span>Workspaces pessoais ilimitados</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span>Chat com amigos</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span>19 cores de notas</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span><b>CRM Financeiro completo</b></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span><b>Workspaces de grupo</b></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(240,240,240,.85);"><span style="color:var(--clr-indigo-light);">&#10003;</span>Suporte prioritario</div>
+          </div>
+          <button onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-reg').click();" style="width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:.86rem;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 18px rgba(99,102,241,.35);">Assinar Premium</button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px;font-size:.72rem;color:rgba(240,240,240,.2);">Pix · R$ 0,80 de taxa por transacao (AbacatePay) · Sem mensalidade oculta · Cancele quando quiser</div>
+    </div>
+  </div>
+
+  <!-- CTA FINAL -->
+  <div class="lp-cta">
+    <div class="lp-eyebrow" style="justify-content:center;margin-bottom:20px;"><div class="lp-eyebrow-dot"></div>Comece agora</div>
+    <div class="lp-cta-title">Comece gratis.<br><span style="background:linear-gradient(135deg,#818cf8,#6366f1,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Evolua quando quiser.</span></div>
+    <div class="lp-cta-desc">Crie sua conta gratuitamente. Nenhum cartao de credito necessario.<br>Seus dados ficam sincronizados com seguranca na nuvem.</div>
+    <button class="lp-cta-btn" onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-reg').click();">Criar conta gratis<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    <div style="display:flex;gap:24px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
+      <span style="font-size:.72rem;color:rgba(240,240,240,.25);">&#10003; Gratuito para sempre</span>
+      <span style="font-size:.72rem;color:rgba(240,240,240,.25);">&#10003; Sem cartao de credito</span>
+      <span style="font-size:.72rem;color:rgba(240,240,240,.25);">&#10003; Multi-dispositivo</span>
+      <span style="font-size:.72rem;color:rgba(240,240,240,.25);">&#10003; Dados na nuvem</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="lp-footer" style="display:flex;flex-direction:column;gap:8px;align-items:center;">
+    <div style="display:flex;gap:6px;align-items:center;font-size:.78rem;color:rgba(240,240,240,.4);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.5px;"><span style="width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>MyDesk</div>
+    <div style="color:rgba(240,240,240,.18);">Workspace de notas · CRM Financeiro · Colaboracao em tempo real</div>
+    <div style="color:rgba(240,240,240,.1);font-size:.65rem;">&#169; 2025 MyDesk · Todos os dados protegidos com autenticacao segura na nuvem</div>
+  </div>
+</div>
+
 <!-- TOOLBAR -->
 <div id="toolbar" style="display:none">
   <div class="t-logo"><div class="t-logo-dot"></div>MyDesk</div>
   <div class="t-pill" id="t-pill-ws" style="cursor:pointer;user-select:none;" title="Workspaces pessoais"><span class="t-dot" id="t-ws-dot"></span><span id="t-user-label"></span><svg id="t-ws-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.4;margin-left:3px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg></div>
   <div class="t-sep"></div>
-  <button class="t-btn primary" id="btn-new">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova nota
-  </button>
-  <button class="t-btn" id="btn-shuffle">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Reorganizar
-  </button>
-
-  <button class="t-btn" id="btn-clear">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Limpar tudo
-  </button>
-  <button class="t-btn" id="btn-restore" style="display:none;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.28);color:#6ee7b7;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Restaurar
-  </button>
-  <button class="t-btn" id="btn-wallpaper">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Fundo
-  </button>
+  <button class="t-btn primary" id="btn-new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova nota</button>
+  <button class="t-btn" id="btn-shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Reorganizar</button>
+  <button class="t-btn" id="btn-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Limpar tudo</button>
+  <button class="t-btn" id="btn-restore" style="display:none;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.28);color:#6ee7b7;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Restaurar</button>
+  <button class="t-btn" id="btn-wallpaper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Fundo</button>
   <div class="t-sep"></div>
-  <button class="t-btn" id="btn-crm-view" title="Alternar: Notas / CRM Financeiro" onclick="toggleCRMView()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
-    <span id="crm-view-label">Clientes</span>
-  </button>
+  <button class="t-btn" id="btn-crm-view" title="Alternar: Notas / CRM Financeiro" onclick="toggleCRMView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg><span id="crm-view-label">Clientes</span></button>
   <div class="t-spacer"></div>
   <span class="t-count" id="t-count">0 notas</span>
   <div class="t-sep"></div>
-  <button class="t-btn" id="btn-social" title="Amigos &amp; Chat">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    Amigos
-    <span class="t-notif-badge" id="social-badge"></span>
-  </button>
+  <button class="t-btn" id="btn-social" title="Amigos &amp; Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Amigos<span class="t-notif-badge" id="social-badge"></span></button>
   <div class="t-sep"></div>
   <div id="ws-toolbar-btn"></div>
   <div class="t-sep"></div>
-  <!-- Lo-Fi Player -->
-  <button id="lofi-btn" onclick="toggleLofi()" title="Lo-Fi Radio">
-    <span id="lofi-icon">🎵</span>
-    <span id="lofi-label">Lo-Fi</span>
-    <span id="lofi-track" style="display:none"></span>
-  </button>
+  <button id="lofi-btn" onclick="toggleLofi()" title="Lo-Fi Radio"><span id="lofi-icon">&#127925;</span><span id="lofi-label">Lo-Fi</span><span id="lofi-track" style="display:none"></span></button>
   <div class="t-sep"></div>
-  <button id="my-status-btn" onclick="toggleStatusMenu()">
-    <div id="my-status-dot"></div>
-    <span id="my-status-lbl">Disponível</span>
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.4"><polyline points="6 9 12 15 18 9"/></svg>
-  </button>
-  <button class="t-btn" id="btn-exit">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair
-  </button>
+  <button id="my-status-btn" onclick="toggleStatusMenu()"><div id="my-status-dot"></div><span id="my-status-lbl">Disponivel</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.4"><polyline points="6 9 12 15 18 9"/></svg></button>
+  <button class="t-btn" id="btn-exit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair</button>
 </div>
 
 <!-- PERSONAL WORKSPACE PANEL -->
 <div id="pw-panel">
   <div class="pw-header">Workspaces <span id="pw-current-label">pessoal</span></div>
   <div class="pw-list" id="pw-list"></div>
-  <div class="pw-add-row">
-    <input class="pw-add-inp" id="pw-add-inp" placeholder="Nome do workspace…" maxlength="30" autocomplete="off">
-    <button class="pw-add-btn" id="pw-add-btn">＋</button>
-  </div>
+  <div class="pw-add-row"><input class="pw-add-inp" id="pw-add-inp" placeholder="Nome do workspace..." maxlength="30" autocomplete="off"><button class="pw-add-btn" id="pw-add-btn">&#65291;</button></div>
   <div class="pw-divider" id="pw-action-divider" style="display:none"></div>
-  <div class="pw-leave-row" id="pw-action-row" style="display:none">
-    <button class="pw-leave-btn" id="pw-leave-btn">↩ Sair temporariamente</button>
-    <button class="pw-leave-btn danger" id="pw-delete-btn">🗑 Excluir</button>
-  </div>
+  <div class="pw-leave-row" id="pw-action-row" style="display:none"><button class="pw-leave-btn" id="pw-leave-btn">&#8617; Sair temporariamente</button><button class="pw-leave-btn danger" id="pw-delete-btn">&#128465; Excluir</button></div>
 </div>
 
 <!-- CRM DASHBOARD BAR -->
 <div id="crm-dashboard">
-  <div class="crm-dash-card">
-    <div class="crm-dash-icon" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);">💰</div>
-    <div>
-      <div class="crm-dash-label">Total Esperado</div>
-      <div class="crm-dash-value" id="crm-total-all">R$ 0</div>
-    </div>
-  </div>
-  <div class="crm-dash-card">
-    <div class="crm-dash-icon" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22);">✅</div>
-    <div>
-      <div class="crm-dash-label">Total Recebido</div>
-      <div class="crm-dash-value" id="crm-total-paid" style="color:#6ee7b7;">R$ 0</div>
-    </div>
-  </div>
-  <div class="crm-dash-card">
-    <div class="crm-dash-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);">⏳</div>
-    <div>
-      <div class="crm-dash-label">Total Pendente</div>
-      <div class="crm-dash-value" id="crm-total-pending" style="color:#fcd34d;">R$ 0</div>
-    </div>
-  </div>
-  <div class="crm-dash-card">
-    <div class="crm-dash-icon" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);">🔴</div>
-    <div>
-      <div class="crm-dash-label">Atrasados</div>
-      <div class="crm-dash-value" id="crm-total-overdue" style="color:#fca5a5;">0</div>
-    </div>
-  </div>
+  <div class="crm-dash-card"><div class="crm-dash-icon" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);">&#128176;</div><div><div class="crm-dash-label">Total Esperado</div><div class="crm-dash-value" id="crm-total-all">R$ 0</div></div></div>
+  <div class="crm-dash-card"><div class="crm-dash-icon" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22);">&#10003;</div><div><div class="crm-dash-label">Total Recebido</div><div class="crm-dash-value" id="crm-total-paid" style="color:#6ee7b7;">R$ 0</div></div></div>
+  <div class="crm-dash-card"><div class="crm-dash-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);">&#9203;</div><div><div class="crm-dash-label">Total Pendente</div><div class="crm-dash-value" id="crm-total-pending" style="color:#fcd34d;">R$ 0</div></div></div>
+  <div class="crm-dash-card"><div class="crm-dash-icon" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);">&#128308;</div><div><div class="crm-dash-label">Atrasados</div><div class="crm-dash-value" id="crm-total-overdue" style="color:#fca5a5;">0</div></div></div>
   <div class="crm-dash-spacer"></div>
-  <div class="crm-dash-card">
-    <button class="t-btn primary" onclick="openNewRecordModal()" style="white-space:nowrap;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Novo Cliente
-    </button>
-  </div>
+  <div class="crm-dash-card"><button class="t-btn primary" onclick="openNewRecordModal()" style="white-space:nowrap;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Cliente</button></div>
 </div>
 
-<!-- CRM BOARD (TABLE VIEW) -->
+<!-- CRM BOARD -->
 <div id="crm-board">
   <div class="crm-table-toolbar">
     <span style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--clr-text);">Clientes</span>
     <span id="crm-count-badge" style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:rgba(240,240,240,.3);background:var(--clr-border-faint);border-radius:20px;padding:2px 8px;"></span>
     <div class="crm-table-toolbar-spacer"></div>
-    <button class="crm-clear-btn" onclick="confirmClearAllRecords()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      Apagar tudo
-    </button>
+    <button class="crm-clear-btn" onclick="confirmClearAllRecords()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Apagar tudo</button>
   </div>
   <div class="crm-table-wrap">
     <table class="crm-table">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Valor</th>
-          <th>Status</th>
-          <th>Vencimento</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="crm-table-body">
-      </tbody>
+      <thead><tr><th>Cliente</th><th>Valor</th><th>Status</th><th>Vencimento</th><th></th></tr></thead>
+      <tbody id="crm-table-body"></tbody>
     </table>
     <div id="crm-empty-state" class="crm-empty">
-      <div class="crm-empty-icon">📋</div>
+      <div class="crm-empty-icon">&#128203;</div>
       <div class="crm-empty-title">Nenhum cliente ainda</div>
       <div class="crm-empty-desc">Adicione seu primeiro cliente ou converta uma nota existente em registro financeiro.</div>
-      <button class="crm-empty-btn" onclick="openNewRecordModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Adicionar Cliente
-      </button>
+      <button class="crm-empty-btn" onclick="openNewRecordModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar Cliente</button>
     </div>
   </div>
 </div>
@@ -192,174 +431,80 @@
   <div id="board-bg"></div>
   <canvas id="board-pixel-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;display:none;z-index:0;"></canvas>
   <div id="board-dots"></div>
-  <div id="empty-hint">
-    <div class="ei-box">＋</div>
-    <div class="ei-txt">Clique em "Nova nota" para começar</div>
-  </div>
+  <div id="empty-hint"><div class="ei-box">&#65291;</div><div class="ei-txt">Clique em "Nova nota" para comecar</div></div>
 </div>
 
 <!-- SOCIAL PANEL -->
 <div id="social-panel">
-  <div class="sp-header">
-    <span class="sp-title">👥 Social</span>
-    <div class="sp-tabs">
-      <button class="sp-tab active" data-stab="friends">Amigos</button>
-      <button class="sp-tab" data-stab="requests">Pedidos</button>
-      <button class="sp-tab" data-stab="groups">Grupos</button>
-    </div>
-  </div>
+  <div class="sp-header"><span class="sp-title">&#128101; Social</span><div class="sp-tabs"><button class="sp-tab active" data-stab="friends">Amigos</button><button class="sp-tab" data-stab="requests">Pedidos</button><button class="sp-tab" data-stab="groups">Grupos</button></div></div>
   <div class="sp-body" id="sp-body"></div>
 </div>
 
-<!-- WALLPAPER PANEL -->
-<!-- SORT / REORGANIZE PANEL -->
+<!-- SORT PANEL -->
 <div id="sort-panel">
-  <div class="sort-panel-title">
-    ⚡ Reorganizar por
-    <span id="sort-active-label">padrão</span>
-    <button class="sort-reset" id="sort-reset-btn" style="margin-left:auto;">↺ Resetar</button>
-  </div>
-  <!-- Ordem -->
-  <div class="sort-section">
-    <div class="sort-section-lbl">Ordem</div>
-    <div class="sort-chips" id="sort-order-chips">
-      <div class="sort-chip active" data-sort="default">🕐 Criação (padrão)</div>
-      <div class="sort-chip" data-sort="creation-asc">↑ Mais antigas primeiro</div>
-      <div class="sort-chip" data-sort="creation-desc">↓ Mais recentes primeiro</div>
-      <div class="sort-chip" data-sort="alpha-asc">A→Z Título</div>
-      <div class="sort-chip" data-sort="alpha-desc">Z→A Título</div>
-      <div class="sort-chip" data-sort="deadline-asc">📅 Prazo mais próximo</div>
-      <div class="sort-chip" data-sort="deadline-desc">📅 Prazo mais distante</div>
-      <div class="sort-chip" data-sort="by-status">● Por status</div>
-      <div class="sort-chip" data-sort="by-color">🎨 Por cor</div>
-    </div>
-  </div>
+  <div class="sort-panel-title">&#9889; Reorganizar por<span id="sort-active-label">padrao</span><button class="sort-reset" id="sort-reset-btn" style="margin-left:auto;">&#8634; Resetar</button></div>
+  <div class="sort-section"><div class="sort-section-lbl">Ordem</div><div class="sort-chips" id="sort-order-chips"><div class="sort-chip active" data-sort="default">&#128336; Criacao (padrao)</div><div class="sort-chip" data-sort="creation-asc">&#8593; Mais antigas primeiro</div><div class="sort-chip" data-sort="creation-desc">&#8595; Mais recentes primeiro</div><div class="sort-chip" data-sort="alpha-asc">A&#8594;Z Titulo</div><div class="sort-chip" data-sort="alpha-desc">Z&#8594;A Titulo</div><div class="sort-chip" data-sort="deadline-asc">&#128197; Prazo mais proximo</div><div class="sort-chip" data-sort="deadline-desc">&#128197; Prazo mais distante</div><div class="sort-chip" data-sort="by-status">&#9679; Por status</div><div class="sort-chip" data-sort="by-color">&#127912; Por cor</div></div></div>
 </div>
 
+<!-- WALLPAPER PANEL -->
 <div id="wp-panel">
-  <div class="wp-title">🎨 Fundo do painel</div>
-  <div class="wp-section">Cores sólidas</div>
-  <div class="wp-colors" id="wp-colors"></div>
-  <div class="wp-section">Gradientes</div>
-  <div class="wp-gradients" id="wp-gradients"></div>
-  <div class="wp-section">Pixel Art</div>
-  <div class="wp-pixels" id="wp-pixels"></div>
+  <div class="wp-title">&#127912; Fundo do painel</div>
+  <div class="wp-section">Cores solidas</div><div class="wp-colors" id="wp-colors"></div>
+  <div class="wp-section">Gradientes</div><div class="wp-gradients" id="wp-gradients"></div>
+  <div class="wp-section">Pixel Art</div><div class="wp-pixels" id="wp-pixels"></div>
   <div class="wp-section">Imagem Animada</div>
-  <label class="wp-upload-btn">
-    <input type="file" id="wp-file" accept="image/*">
-    📂 Escolher imagem do computador
-  </label>
-  <button class="wp-reset" id="wp-reset">↺ Restaurar padrão</button>
+  <label class="wp-upload-btn"><input type="file" id="wp-file" accept="image/*">&#128194; Escolher imagem do computador</label>
+  <button class="wp-reset" id="wp-reset">&#8634; Restaurar padrao</button>
 </div>
 
 <!-- MODAL -->
 <div id="modal" class="modal-bg" style="display:none">
   <div class="modal">
-    <!-- ── Seletor de tipo de nota ── -->
     <div id="modal-type-picker">
       <div class="m-h1">Nova nota</div>
       <div class="m-sub">Escolha o tipo de nota que deseja criar</div>
       <div class="note-type-grid">
-        <div class="note-type-card" id="pick-personal" onclick="pickNoteType('personal')">
-          <div class="note-type-icon">📝</div>
-          <div class="note-type-title">Nota Pessoal</div>
-          <div class="note-type-desc">Texto livre, tarefas, links e prazos</div>
-        </div>
-        <div class="note-type-card" id="pick-client" onclick="pickNoteType('client')">
-          <div class="note-type-icon">💼</div>
-          <div class="note-type-title">Nota de Cliente</div>
-          <div class="note-type-desc">Nome, valor a pagar e status de pagamento</div>
-          <div class="note-type-badge">CRM</div>
-        </div>
+        <div class="note-type-card" id="pick-personal" onclick="pickNoteType('personal')"><div class="note-type-icon">&#128221;</div><div class="note-type-title">Nota Pessoal</div><div class="note-type-desc">Texto livre, tarefas, links e prazos</div></div>
+        <div class="note-type-card" id="pick-client" onclick="pickNoteType('client')"><div class="note-type-icon">&#128188;</div><div class="note-type-title">Nota de Cliente</div><div class="note-type-desc">Nome, valor a pagar e status de pagamento</div><div class="note-type-badge">CRM</div></div>
       </div>
     </div>
-
-    <!-- ── Formulário nota pessoal ── -->
     <div id="modal-personal" style="display:none">
-      <div class="m-back-row">
-        <button class="m-back-btn" onclick="backToTypePicker()">← Voltar</button>
-        <div class="m-h1" style="margin:0">📝 Nota Pessoal</div>
-      </div>
-      <div class="m-sub">Título obrigatório · demais campos opcionais</div>
-      <div class="m-lbl">Título</div>
+      <div class="m-back-row"><button class="m-back-btn" onclick="backToTypePicker()">&#8592; Voltar</button><div class="m-h1" style="margin:0">&#128221; Nota Pessoal</div></div>
+      <div class="m-sub">Titulo obrigatorio · demais campos opcionais</div>
+      <div class="m-lbl">Titulo</div>
       <input class="m-inp" id="m-title" type="text" placeholder="Do que se trata esta nota?" maxlength="80" autocomplete="off">
-      <div class="m-lbl">Conteúdo</div>
-      <textarea class="m-inp" id="m-body" rows="3" placeholder="Anotações, links, tarefas…"></textarea>
+      <div class="m-lbl">Conteudo</div>
+      <textarea class="m-inp" id="m-body" rows="3" placeholder="Anotacoes, links, tarefas..."></textarea>
       <div class="m-div"></div>
       <div class="m-sec">Prazos</div>
-      <div class="m-dates">
-        <div class="m-dw"><div class="m-dlbl">Data de início</div><input class="m-dinp" id="m-start" type="date"></div>
-        <div class="m-dw"><div class="m-dlbl">Prazo final</div><input class="m-dinp" id="m-end" type="date"></div>
-      </div>
-      <div class="m-rem-box">
-        <div class="m-rem-row">
-          <label class="m-toggle"><input type="checkbox" id="m-rem-chk"><span class="m-slider"></span></label>
-          <span class="m-rem-lbl">Ativar lembrete de prazo</span>
-        </div>
-        <div class="m-rem-sub" id="m-rem-sub" style="opacity:.3;pointer-events:none">
-          <input class="m-rem-days" id="m-rem-days" type="number" min="1" max="365" value="3">
-          <span class="m-rem-unit">dias antes do prazo</span>
-        </div>
-      </div>
+      <div class="m-dates"><div class="m-dw"><div class="m-dlbl">Data de inicio</div><input class="m-dinp" id="m-start" type="date"></div><div class="m-dw"><div class="m-dlbl">Prazo final</div><input class="m-dinp" id="m-end" type="date"></div></div>
+      <div class="m-rem-box"><div class="m-rem-row"><label class="m-toggle"><input type="checkbox" id="m-rem-chk"><span class="m-slider"></span></label><span class="m-rem-lbl">Ativar lembrete de prazo</span></div><div class="m-rem-sub" id="m-rem-sub" style="opacity:.3;pointer-events:none"><input class="m-rem-days" id="m-rem-days" type="number" min="1" max="365" value="3"><span class="m-rem-unit">dias antes do prazo</span></div></div>
       <div class="m-div"></div>
       <div class="m-sec">Cor do card</div>
-      <div class="m-color-row">
-        <div class="m-color-grid" id="m-colors"></div>
-      </div>
-      <div class="m-btns">
-        <button class="m-cancel" id="m-cancel">Cancelar</button>
-        <button class="m-confirm" id="m-ok">Criar nota</button>
-      </div>
+      <div class="m-color-row"><div class="m-color-grid" id="m-colors"></div></div>
+      <div class="m-btns"><button class="m-cancel" id="m-cancel">Cancelar</button><button class="m-confirm" id="m-ok">Criar nota</button></div>
     </div>
-
-    <!-- ── Formulário nota de cliente ── -->
     <div id="modal-client" style="display:none">
-      <div class="m-back-row">
-        <button class="m-back-btn" onclick="backToTypePicker()">← Voltar</button>
-        <div class="m-h1" style="margin:0">💼 Nota de Cliente</div>
-      </div>
+      <div class="m-back-row"><button class="m-back-btn" onclick="backToTypePicker()">&#8592; Voltar</button><div class="m-h1" style="margin:0">&#128188; Nota de Cliente</div></div>
       <div class="m-sub">Cria uma nota no board e registra automaticamente em Clientes</div>
-
       <div class="m-lbl">Nome do cliente</div>
-      <input class="m-inp" id="mc-name" type="text" placeholder="Ex: João Silva" maxlength="80" autocomplete="off">
-
-      <div class="m-lbl">Descrição do serviço (opcional)</div>
-      <textarea class="m-inp" id="mc-desc" rows="2" placeholder="Desenvolvimento web, consultoria, design…"></textarea>
-
-      <div class="crm-modal-row">
-        <div class="crm-modal-col">
-          <div class="crm-modal-lbl">Valor (R$)</div>
-          <input type="number" class="m-inp" id="mc-value" min="0" step="0.01" placeholder="0,00" style="margin:0">
-        </div>
-        <div class="crm-modal-col">
-          <div class="crm-modal-lbl">Vencimento</div>
-          <input type="date" class="m-inp" id="mc-due" style="margin:0;color-scheme:dark">
-        </div>
-      </div>
-
+      <input class="m-inp" id="mc-name" type="text" placeholder="Ex: Joao Silva" maxlength="80" autocomplete="off">
+      <div class="m-lbl">Descricao do servico (opcional)</div>
+      <textarea class="m-inp" id="mc-desc" rows="2" placeholder="Desenvolvimento web, consultoria, design..."></textarea>
+      <div class="crm-modal-row"><div class="crm-modal-col"><div class="crm-modal-lbl">Valor (R$)</div><input type="number" class="m-inp" id="mc-value" min="0" step="0.01" placeholder="0,00" style="margin:0"></div><div class="crm-modal-col"><div class="crm-modal-lbl">Vencimento</div><input type="date" class="m-inp" id="mc-due" style="margin:0;color-scheme:dark"></div></div>
       <div class="m-lbl" style="margin-top:14px">Status do pagamento</div>
-      <div class="crm-status-select" id="mc-status-row">
-        <div class="crm-status-opt sel-pending" data-status="pending" onclick="selectCRMStatus(this,'pending')">⏳ Pendente</div>
-        <div class="crm-status-opt" data-status="paid" onclick="selectCRMStatus(this,'paid')">✅ Pago</div>
-      </div>
-
+      <div class="crm-status-select" id="mc-status-row"><div class="crm-status-opt sel-pending" data-status="pending" onclick="selectCRMStatus(this,'pending')">&#9203; Pendente</div><div class="crm-status-opt" data-status="paid" onclick="selectCRMStatus(this,'paid')">&#10003; Pago</div></div>
       <div class="m-div"></div>
       <div class="m-sec">Cor do card</div>
-      <div class="m-color-row">
-        <div class="m-color-grid" id="mc-colors"></div>
-      </div>
-      <div class="m-btns">
-        <button class="m-cancel" onclick="closeModal()">Cancelar</button>
-        <button class="m-confirm" id="mc-ok">Criar cliente</button>
-      </div>
+      <div class="m-color-row"><div class="m-color-grid" id="mc-colors"></div></div>
+      <div class="m-btns"><button class="m-cancel" onclick="closeModal()">Cancelar</button><button class="m-confirm" id="mc-ok">Criar cliente</button></div>
     </div>
   </div>
 </div>
 
+<!-- TOAST -->
 <div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
-<div id="fb-setup-banner">
-  ⚠ <strong>Firebase não configurado.</strong> O sistema social não funcionar
-<div id="chat-lightbox" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;cursor:zoom-out;"><img id="chat-lightbox-img" src="" alt="" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain;"></div>
-<script src="js/app.js?v=5" defer></script>
+
+<script src="/js/app.js" defer></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-﻿// Scripts above are blocking — firebase is guaranteed available here
+// Firebase initialization — loaded before all other scripts
+// Scripts above are blocking — firebase is guaranteed available here
 (function() {
   var cfg = {
     apiKey:            "AIzaSyC0nlYRrsbHtXoGX69iG0h0_Y2jHqXhdfM",
