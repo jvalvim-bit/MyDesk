@@ -33,30 +33,59 @@ Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backe
 
 ## Screenshots
 
-> **Página de entrada — Login & Landing**
+<table>
+<tr>
+<td align="center" width="50%">
 
-![Landing Page](https://i.imgur.com/placeholder-landing.png)
-*Tela inicial com typewriter animado, acesso rápido por e-mail/senha ou Google OAuth*
+**Landing Page & Login**
 
-> **Board principal — Notas no workspace**
+[![Landing](https://placehold.co/600x340/0d0d0d/6366f1?text=Landing+Page+%2B+Login)](https://jvalvim-bit.github.io/MyDesk/)
 
-![Board de Notas](https://i.imgur.com/placeholder-board.png)
-*Notas coloridas posicionáveis no board com pilhas, status, datas e anexos*
+*Typewriter animado, login por e-mail/senha ou Google OAuth*
 
-> **CRM Financeiro — Dashboard de clientes**
+</td>
+<td align="center" width="50%">
 
-![CRM](https://i.imgur.com/placeholder-crm.png)
-*Totalizadores de receita esperada, recebida, pendente e atrasada*
+**Board de Notas**
 
-> **Chat em tempo real**
+[![Board](https://placehold.co/600x340/0a0a0a/10b981?text=Board+de+Notas)](https://jvalvim-bit.github.io/MyDesk/)
 
-![Chat](https://i.imgur.com/placeholder-chat.png)
-*Janelas flutuantes de chat 1:1 com suporte a arquivos e imagens*
+*Notas coloridas com drag-and-drop, pilhas, status e anexos*
 
-> **Painel Social — Amigos & Workspaces**
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
 
-![Social](https://i.imgur.com/placeholder-social.png)
+**CRM Financeiro** *(Premium)*
+
+[![CRM](https://placehold.co/600x340/111111/f59e0b?text=CRM+Financeiro)](https://jvalvim-bit.github.io/MyDesk/)
+
+*Dashboard com totalizadores de receita e gestão de clientes*
+
+</td>
+<td align="center" width="50%">
+
+**Chat em Tempo Real**
+
+[![Chat](https://placehold.co/600x340/111111/a5b4fc?text=Chat+em+Tempo+Real)](https://jvalvim-bit.github.io/MyDesk/)
+
+*Janelas flutuantes 1:1 com envio de arquivos e imagens*
+
+</td>
+</tr>
+<tr>
+<td align="center" colspan="2">
+
+**Painel Social — Amigos & Workspaces**
+
+[![Social](https://placehold.co/600x200/0d0d0d/14b8a6?text=Painel+Social+%E2%80%94+Amigos+%26+Workspaces)](https://jvalvim-bit.github.io/MyDesk/)
+
 *Gerenciamento de amigos, pedidos pendentes, workspaces e grupos*
+
+</td>
+</tr>
+</table>
 
 ---
 
