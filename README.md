@@ -33,59 +33,31 @@ Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backe
 
 ## Screenshots
 
-<table>
-<tr>
-<td align="center" width="50%">
+### Landing Page & Login
 
-**Landing Page & Login**
+![Landing Page](screenshots/landing.png)
+*Typewriter animado com notas de demonstração ao fundo, login por e-mail/senha ou Google OAuth*
 
-[![Landing](https://placehold.co/600x340/0d0d0d/6366f1?text=Landing+Page+%2B+Login)](https://jvalvim-bit.github.io/MyDesk/)
+---
 
-*Typewriter animado, login por e-mail/senha ou Google OAuth*
+### Board Principal — Notas & Workspace
 
-</td>
-<td align="center" width="50%">
+![Board de Notas](screenshots/board.png)
+*Board com pilhas de notas, wallpaper personalizado e nota de cliente (CRM) aberta com valor e anexo*
 
-**Board de Notas**
+---
 
-[![Board](https://placehold.co/600x340/0a0a0a/10b981?text=Board+de+Notas)](https://jvalvim-bit.github.io/MyDesk/)
+### Plano Premium
 
-*Notas coloridas com drag-and-drop, pilhas, status e anexos*
+![Modal Premium](screenshots/premium.png)
+*Modal de upgrade com benefícios do plano Premium (notas ilimitadas, workspaces de grupo, CRM)*
 
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
+---
 
-**CRM Financeiro** *(Premium)*
+### CRM Financeiro *(Premium)*
 
-[![CRM](https://placehold.co/600x340/111111/f59e0b?text=CRM+Financeiro)](https://jvalvim-bit.github.io/MyDesk/)
-
-*Dashboard com totalizadores de receita e gestão de clientes*
-
-</td>
-<td align="center" width="50%">
-
-**Chat em Tempo Real**
-
-[![Chat](https://placehold.co/600x340/111111/a5b4fc?text=Chat+em+Tempo+Real)](https://jvalvim-bit.github.io/MyDesk/)
-
-*Janelas flutuantes 1:1 com envio de arquivos e imagens*
-
-</td>
-</tr>
-<tr>
-<td align="center" colspan="2">
-
-**Painel Social — Amigos & Workspaces**
-
-[![Social](https://placehold.co/600x200/0d0d0d/14b8a6?text=Painel+Social+%E2%80%94+Amigos+%26+Workspaces)](https://jvalvim-bit.github.io/MyDesk/)
-
-*Gerenciamento de amigos, pedidos pendentes, workspaces e grupos*
-
-</td>
-</tr>
-</table>
+![CRM Financeiro](screenshots/crm.png)
+*Dashboard com totalizadores de receita esperada, recebida, pendente e clientes em atraso*
 
 ---
 
