@@ -1602,7 +1602,7 @@ async function doRegister() {
   if (user.length < 2) return showErr('reg-err', 'Usuário deve ter ao menos 2 caracteres.');
   if (!email) return showErr('reg-err', 'Informe seu e-mail.');
   if (!pass)  return showErr('reg-err', 'Informe uma senha.');
-  if (pass.length < 6) return showErr('reg-err', 'Senha deve ter ao menos 6 caracteres.');
+  if (pass.length < 8 || !/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass)) return showErr('reg-err', 'Senha deve ter ao menos 8 caracteres com letras e números.');
   if (pass !== pass2) return showErr('reg-err', 'As senhas não coincidem.');
 
   const btn = $('btn-register');
@@ -1612,7 +1612,8 @@ async function doRegister() {
   if (!window._fbInitDone) {
     const accs = JSON.parse(localStorage.getItem('md_acc') || '{}');
     if (accs[user]) { showErr('reg-err', 'Usuário já existe.'); btn.textContent = 'Criar conta →'; btn.disabled = false; return; }
-    accs[user] = { username: user, name, role, email, passDemo: pass };
+    const passHash = await _demoHashPass(pass);
+    accs[user] = { username: user, name, role, email, passHash };
     localStorage.setItem('md_acc', JSON.stringify(accs));
     CU = { uid: 'demo_' + user, username: user, name, role, email };
     btn.textContent = 'Criar conta →'; btn.disabled = false;
@@ -1718,16 +1719,26 @@ async function doLogin() {
     // Find account by email
     const acc = Object.values(accs).find(a => a.email === email);
     if (acc) {
-      if (acc.passDemo !== pass) {
+      const inputHash = await _demoHashPass(pass);
+      // Support migration from old plaintext passDemo storage
+      const match = acc.passHash ? (acc.passHash === inputHash) : (acc.passDemo === pass);
+      if (!match) {
         showErr('login-err', 'Senha incorreta.');
         btn.textContent = 'Entrar →'; btn.disabled = false;
         return;
+      }
+      // Migrate plaintext to hash on successful login
+      if (!acc.passHash) {
+        acc.passHash = inputHash;
+        delete acc.passDemo;
+        localStorage.setItem('md_acc', JSON.stringify(accs));
       }
       CU = { uid: 'demo_' + acc.username, username: acc.username, name: acc.name, role: acc.role || '', email };
     } else {
       // Auto-create demo account on first login attempt
       const newUser = username;
-      const newAcc = { username: newUser, name: newUser, role: '', email, passDemo: pass };
+      const passHash = await _demoHashPass(pass);
+      const newAcc = { username: newUser, name: newUser, role: '', email, passHash };
       accs[newUser] = newAcc;
       localStorage.setItem('md_acc', JSON.stringify(accs));
       CU = { uid: 'demo_' + newUser, username: newUser, name: newUser, role: '', email };
@@ -1873,6 +1884,12 @@ async function doForgotPassword() {
   } catch(e) {
     showErr('login-err', authErrMsg(e.code));
   }
+}
+
+async function _demoHashPass(pass) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode('mydesk-demo-v1:' + pass));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Legacy helpers kept for compatibility (no longer used for auth)
@@ -2492,8 +2509,6 @@ function confirmClearAllRecords() {
 ═══════════════════════════════════════════════════════ */
 
 const PLAN_FREE_LIMIT = 30;
-const PIX_CODE = '00020126510014br.gov.bcb.pix0111989330054170214MyDesk Premium520400005303986540510.005802BR5914MyDesk Premium6008Sao Luis62070503***6304E610';
-const PIX_KEY  = '98933005417'; // chave telefone
 
 let _userPlan  = null; // { plan, planExpiresAt, notesCreatedThisMonth, lastReset }
 let _planLoaded = false;
@@ -2738,42 +2753,27 @@ async function showPremiumModal() {
         }
         if (qrWrap) _drawPixQR(qrWrap, data.pixCode);
         if (data.url) {
-          const linkDiv = document.createElement('div');
-          linkDiv.style.cssText = 'text-align:center;margin-top:10px;';
-          linkDiv.innerHTML = `<a href="${data.url}" target="_blank" style="font-size:.75rem;color:var(--clr-indigo-light);text-decoration:underline;text-underline-offset:3px;">Abrir página de pagamento →</a>`;
-          bg.querySelector('.pm-pix-box')?.appendChild(linkDiv);
+          const safeUrl = (typeof data.url === 'string' && /^https:\/\//.test(data.url)) ? data.url : null;
+          if (safeUrl) {
+            const linkDiv = document.createElement('div');
+            linkDiv.style.cssText = 'text-align:center;margin-top:10px;';
+            const anchor = document.createElement('a');
+            anchor.href = safeUrl;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            anchor.style.cssText = 'font-size:.75rem;color:var(--clr-indigo-light);text-decoration:underline;text-underline-offset:3px;';
+            anchor.textContent = 'Abrir página de pagamento →';
+            linkDiv.appendChild(anchor);
+            bg.querySelector('.pm-pix-box')?.appendChild(linkDiv);
+          }
         }
       }
       // se data.ok === false, cai pro fallback abaixo
     } catch(err) {
-      // Erro de rede, 500, timeout, JSON inválido — silencioso, usa fallback
-      console.warn('[Premium] API indisponível, usando Pix estático:', err.message || err);
-    }
-
-    // ── Fallback: Pix estático hardcoded ──
-    // Usado quando a API Vercel não está disponível ou retorna erro
-    if (!usedAPI) {
-      const qrWrap    = bg.querySelector('#pm-qr-wrap');
-      const pixLabel  = bg.querySelector('#pm-pix-label');
-      const copyLabel = bg.querySelector('#pm-copy-label');
-      const copyEl    = bg.querySelector('#pm-pix-copy');
-      const copiedEl  = bg.querySelector('#pm-pix-copied');
-
-      if (pixLabel) pixLabel.textContent = 'Escaneie o QR Code com o app do seu banco';
-      if (copyLabel) copyLabel.style.display = '';
-      if (copyEl) {
-        copyEl.style.display  = '';
-        copyEl.textContent    = PIX_CODE;
-        copyEl.addEventListener('click', () => {
-          navigator.clipboard.writeText(PIX_CODE).catch(() => {
-            const ta = document.createElement('textarea');
-            ta.value = PIX_CODE; document.body.appendChild(ta);
-            ta.select(); document.execCommand('copy'); ta.remove();
-          });
-          if (copiedEl) { copiedEl.style.display = 'block'; setTimeout(() => copiedEl.style.display = 'none', 2500); }
-        });
-      }
-      if (qrWrap) _drawPixQR(qrWrap, PIX_CODE);
+      console.warn('[Premium] API indisponível:', err.message || err);
+      // Exibe mensagem de erro ao usuário em vez de fallback com dados sensíveis
+      const pixLabel = bg.querySelector('#pm-pix-label');
+      if (pixLabel) pixLabel.textContent = 'Serviço de pagamento temporariamente indisponível. Tente novamente em instantes.';
     }
   }
 }

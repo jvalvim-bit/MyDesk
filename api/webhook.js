@@ -1,4 +1,5 @@
 // api/webhook.js
+const crypto = require('crypto');
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
 
@@ -16,19 +17,35 @@ function getFirebase() {
   return getDatabase();
 }
 
+function timingSafeEqual(a, b) {
+  const aBuf = Buffer.from(String(a));
+  const bBuf = Buffer.from(String(b));
+  if (aBuf.length !== bBuf.length) {
+    // still run comparison to avoid length-based timing leak
+    crypto.timingSafeEqual(aBuf, aBuf);
+    return false;
+  }
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
 const handler = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Webhook não precisa de CORS — é chamado server-to-server pelo AbacatePay
+  res.setHeader('Access-Control-Allow-Origin', 'https://api.abacatepay.com');
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const token = req.headers['x-webhook-secret'] || req.query.secret;
-  if (token !== process.env.WEBHOOK_SECRET) {
-    console.warn('Token inválido');
+  // Secret apenas via header, nunca via query string (evita vazamento em logs)
+  const token = req.headers['x-webhook-secret'];
+  const secret = process.env.WEBHOOK_SECRET;
+
+  if (!token || !secret || !timingSafeEqual(token, secret)) {
+    console.warn('Webhook: token inválido ou ausente');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const event = req.body;
-  console.log('Webhook:', JSON.stringify(event));
+  const eventType = event?.event || event?.data?.status || 'unknown';
+  console.log('Webhook recebido:', eventType, 'id:', event?.data?.id || 'N/A');
 
   const isPaid = (
     event?.event === 'billing.paid' ||
@@ -56,12 +73,12 @@ const handler = async (req, res) => {
       lastReset: currentYM,
     });
 
-    console.log(`Premium ativado: ${uid}`);
-    return res.status(200).json({ ok: true, uid, planExpiresAt });
+    console.log('Premium ativado para uid:', uid.slice(0, 8) + '...');
+    return res.status(200).json({ ok: true, planExpiresAt });
 
   } catch (err) {
-    console.error('Firebase error:', err);
-    return res.status(500).json({ error: 'Erro Firebase', message: err.message });
+    console.error('Firebase error:', err.message);
+    return res.status(500).json({ error: 'Erro Firebase' });
   }
 };
 

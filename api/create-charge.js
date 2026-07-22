@@ -1,16 +1,28 @@
 // api/create-charge.js
-const handler = async (req, res) => {
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(200).end();
+const ALLOWED_ORIGINS = [
+  'https://jvalvim-bit.github.io',
+  'https://mydesk-eta.vercel.app',
+];
+
+function setCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
   }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+const handler = async (req, res) => {
+  setCors(req, res);
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const origin = req.headers.origin || '';
+  if (!ALLOWED_ORIGINS.includes(origin)) {
+    return res.status(403).json({ error: 'Forbidden' });
   }
 
   const { uid, email, name } = req.body || {};
@@ -34,10 +46,10 @@ const handler = async (req, res) => {
       }),
     });
     const customerData = await customerRes.json();
-    console.log('Customer:', JSON.stringify(customerData));
     if (!customerRes.ok) return res.status(500).json({ error: 'Erro cliente', details: customerData });
 
     const customerId = customerData.data?.id;
+    console.log('Customer created:', customerId);
 
     // 2. Criar cobrança
     const chargeRes = await fetch(`${BASE}/billing/create`, {
@@ -59,11 +71,11 @@ const handler = async (req, res) => {
       }),
     });
     const chargeData = await chargeRes.json();
-    console.log('Charge:', JSON.stringify(chargeData));
     if (!chargeRes.ok) return res.status(500).json({ error: 'Erro cobrança', details: chargeData });
 
     const billId  = chargeData.data?.id;
     const billUrl = chargeData.data?.url;
+    console.log('Charge created:', billId);
 
     // 3. QR Code Pix
     let pixCode = null;
@@ -73,15 +85,14 @@ const handler = async (req, res) => {
         body: JSON.stringify({ billingId: billId }),
       });
       const qrData = await qrRes.json();
-      console.log('QR:', JSON.stringify(qrData));
       pixCode = qrData.data?.brCode || qrData.data?.pixCode || qrData.data?.qrCode || null;
     } catch(e) { console.warn('QR failed:', e.message); }
 
     return res.status(200).json({ ok: true, url: billUrl, pixCode, chargeId: billId });
 
   } catch (err) {
-    console.error('Error:', err);
-    return res.status(500).json({ error: 'Erro interno', message: err.message });
+    console.error('Error creating charge:', err.message);
+    return res.status(500).json({ error: 'Erro interno' });
   }
 };
 
