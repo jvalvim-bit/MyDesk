@@ -541,9 +541,7 @@ async function launchApp() {
     localStorage.removeItem('md_n_' + CU.username);
   }
   const as = $('auth-screen');
-  as.classList.remove('landing-scroll');
-  as.style.display = 'none';
-  as.scrollTop = 0;
+  if (as) { as.classList.remove('landing-scroll'); as.style.display = 'none'; as.scrollTop = 0; }
   $('toolbar').style.display = 'flex';
   $('board').style.display   = 'block';
 
@@ -676,9 +674,8 @@ function doLogout() {
   $('toolbar').style.display     = 'none';
   $('board').style.display       = 'none';
   const as2 = $('auth-screen');
-  as2.classList.add('landing-scroll'); // restore mobile scroll layout
-  as2.style.display = 'flex';
-  as2.style.overflow = '';
+  if (as2) { as2.classList.add('landing-scroll'); as2.style.display = 'flex'; as2.style.overflow = ''; }
+  else { window.location.replace('login.html'); }
   as2.scrollTop = 0;
 
   // re-trigger animations
@@ -3626,20 +3623,17 @@ window.addEventListener('DOMContentLoaded', () => {
   /* detect language in background — never blocks UI */
   detectLanguage().catch(() => {});
 
-  /* auth tabs */
-  $('tab-login').addEventListener('click', ()=>switchTab('login'));
-  $('tab-reg').addEventListener('click',   ()=>switchTab('reg'));
-  $('goto-reg').addEventListener('click',  ()=>switchTab('reg'));
-  $('goto-login').addEventListener('click',()=>switchTab('login'));
+  /* auth tabs — only present on login.html, not on index.html */
+  $('tab-login')?.addEventListener('click', ()=>switchTab('login'));
+  $('tab-reg')?.addEventListener('click',   ()=>switchTab('reg'));
+  $('goto-reg')?.addEventListener('click',  ()=>switchTab('reg'));
+  $('goto-login')?.addEventListener('click',()=>switchTab('login'));
 
-  /* auth buttons */
-  $('btn-login').addEventListener('click',    doLogin);
-  $('btn-register').addEventListener('click', doRegister);
-  // Google sign-in (both login and register forms share the same flow)
-  const gLogin = document.getElementById('btn-google-login');
-  const gReg   = document.getElementById('btn-google-reg');
-  if (gLogin) gLogin.addEventListener('click', doGoogleLogin);
-  if (gReg)   gReg.addEventListener('click',   doGoogleLogin);
+  /* auth buttons — only present on login.html */
+  $('btn-login')?.addEventListener('click',    doLogin);
+  $('btn-register')?.addEventListener('click', doRegister);
+  document.getElementById('btn-google-login')?.addEventListener('click', doGoogleLogin);
+  document.getElementById('btn-google-reg')?.addEventListener('click',   doGoogleLogin);
 
   /* toolbar */
   $('btn-new').addEventListener('click',     openModal);
@@ -3695,13 +3689,15 @@ window.addEventListener('DOMContentLoaded', () => {
     $('m-rem-sub').style.pointerEvents = this.checked ? 'all' : 'none';
   });
 
-  /* Enter shortcut on auth */
-  document.addEventListener('keydown', e => {
-    if (e.key!=='Enter') return;
-    if ($('auth-screen').style.display==='none') return;
-    if ($('form-login').style.display!=='none') doLogin();
-    else doRegister();
-  });
+  /* Enter shortcut on auth — only active on login.html */
+  if ($('auth-screen')) {
+    document.addEventListener('keydown', e => {
+      if (e.key!=='Enter') return;
+      if ($('auth-screen').style.display==='none') return;
+      if ($('form-login')?.style.display!=='none') doLogin();
+      else doRegister();
+    });
+  }
 
   /* wallpaper */
   buildWpPanel();
@@ -3844,12 +3840,15 @@ function initPixelCanvas() {
   draw();
 
   // Stop animation when auth screen is hidden to save resources
-  const obs = new MutationObserver(() => {
-    const hidden = document.getElementById('auth-screen').style.display === 'none';
-    if (hidden && rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    else if (!hidden && !rafId) draw();
-  });
-  obs.observe(document.getElementById('auth-screen'), { attributes: true, attributeFilter: ['style'] });
+  const _authScreenEl = document.getElementById('auth-screen');
+  if (_authScreenEl) {
+    const obs = new MutationObserver(() => {
+      const hidden = _authScreenEl.style.display === 'none';
+      if (hidden && rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      else if (!hidden && !rafId) draw();
+    });
+    obs.observe(_authScreenEl, { attributes: true, attributeFilter: ['style'] });
+  }
 }
 
 /* ═══ TYPEWRITER (auth screen) ══════════════════════ */
