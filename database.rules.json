@@ -1,0 +1,127 @@
+{
+  "rules": {
+    ".read":  "auth != null && auth.token.admin === true",
+    ".write": "auth != null && auth.token.admin === true",
+
+    "users": {
+      "$key": {
+        "profile": {
+          ".read":  "auth != null",
+          ".write": "auth != null && (auth.uid === $key || root.child('uids').child(auth.uid).val() === $key)"
+        },
+        "notes": {
+          ".read":  "auth != null && auth.uid === $key",
+          ".write": "auth != null && auth.uid === $key"
+        },
+        "online": {
+          ".read":  "auth != null",
+          ".write": "auth != null && (auth.uid === $key || root.child('uids').child(auth.uid).val() === $key)"
+        },
+        "groups": {
+          ".read":  "auth != null && auth.uid === $key",
+          ".write": "auth != null && auth.uid === $key"
+        },
+        "personalBoards": {
+          ".read":  "auth != null && auth.uid === $key",
+          ".write": "auth != null && auth.uid === $key"
+        },
+        "personalBoardsMeta": {
+          ".read":  "auth != null && auth.uid === $key",
+          ".write": "auth != null && auth.uid === $key"
+        },
+        "plan": {
+          ".read":  "auth != null && auth.uid === $key",
+          ".write": "auth != null && auth.uid === $key"
+        }
+      }
+    },
+
+    "presence": {
+      "$uid": {
+        ".read":  "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "usernames": {
+      "$username": {
+        ".read":  true,
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid)"
+      }
+    },
+
+    "uids": {
+      "$uid": {
+        ".read":  "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "friends": {
+      "$username": {
+        ".read":  "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "inbox": {
+      "$username": {
+        ".read":  "auth != null && root.child('uids').child(auth.uid).val() === $username",
+        ".write": "auth != null"
+      }
+    },
+
+    "groupInbox": {
+      "$username": {
+        ".read":  "auth != null && root.child('uids').child(auth.uid).val() === $username",
+        ".write": "auth != null"
+      }
+    },
+
+    "chats": {
+      "$chatKey": {
+        ".read":  "auth != null && $chatKey.contains(root.child('uids').child(auth.uid).val())",
+        ".write": "auth != null && $chatKey.contains(root.child('uids').child(auth.uid).val())",
+        "messages": {
+          ".indexOn": "ts"
+        }
+      }
+    },
+
+    "groups": {
+      "$groupId": {
+        ".read":  "auth != null",
+        ".write": "auth != null && (!data.exists() || data.child('owner').val() === root.child('uids').child(auth.uid).val() || data.child('members').child(root.child('uids').child(auth.uid).val()).exists())"
+      }
+    },
+
+    "groupChats": {
+      "$groupId": {
+        ".read":  "auth != null && root.child('groups').child($groupId).child('members').child(root.child('uids').child(auth.uid).val()).exists()",
+        ".write": "auth != null && root.child('groups').child($groupId).child('members').child(root.child('uids').child(auth.uid).val()).exists()",
+        "messages": {
+          ".indexOn": "ts"
+        }
+      }
+    },
+
+    "shared_boards": {
+      "$boardKey": {
+        ".read":  "auth != null && $boardKey.contains(root.child('uids').child(auth.uid).val())",
+        ".write": "auth != null && $boardKey.contains(root.child('uids').child(auth.uid).val())"
+      }
+    },
+
+    "group_boards": {
+      "$groupId": {
+        ".read":  "auth != null && root.child('groups').child($groupId).child('members').child(root.child('uids').child(auth.uid).val()).exists()",
+        ".write": "auth != null && root.child('groups').child($groupId).child('members').child(root.child('uids').child(auth.uid).val()).exists()"
+      }
+    },
+
+    "$other": {
+      ".read":  false,
+      ".write": false
+    }
+  }
+}

@@ -1,3 +1,32 @@
+/* ── Admin Panel ─────────────────────────────────────────── */
+.t-btn-admin{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.35);color:#a5b4fc;}
+.t-btn-admin:hover{background:rgba(99,102,241,.28);border-color:#6366f1;color:#fff;}
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-lightbox,500);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.admin-panel{background:#111;border:1px solid rgba(255,255,255,.09);border-radius:16px;width:min(96vw,1100px);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6);}
+.admin-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);gap:12px;flex-wrap:wrap;}
+.admin-title{font-size:.95rem;font-weight:700;color:#f0f0f0;display:flex;align-items:center;gap:8px;}
+.admin-badge-icon{font-size:1.1rem;}
+.admin-search{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;color:#f0f0f0;font-size:.8rem;font-family:'Inter',sans-serif;width:200px;outline:none;}
+.admin-search:focus{border-color:rgba(99,102,241,.5);}
+.admin-refresh-btn,.admin-close-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#a0a0a0;cursor:pointer;padding:6px 10px;font-size:.85rem;transition:.15s;}
+.admin-refresh-btn:hover,.admin-close-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
+.admin-stats{display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.07);flex-wrap:wrap;}
+.admin-stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 16px;flex:1;min-width:100px;}
+.admin-stat-n{font-size:1.4rem;font-weight:700;color:#a5b4fc;}
+.admin-stat-l{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px;}
+.admin-table-wrap{overflow:auto;flex:1;}
+.admin-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.admin-table th{padding:10px 14px;text-align:left;color:rgba(255,255,255,.4);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;background:#111;z-index:1;}
+.admin-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(240,240,240,.85);vertical-align:middle;}
+.admin-table tr:hover td{background:rgba(255,255,255,.03);}
+.admin-loading{text-align:center;padding:32px;color:rgba(255,255,255,.3);font-size:.82rem;}
+.admin-plan-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.admin-plan-badge.prem{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24;}
+.admin-plan-badge.free{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);}
+.admin-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.2);}
+.admin-dot.online{background:#10b981;border-color:#34d399;box-shadow:0 0 6px rgba(16,185,129,.5);}
+.admin-footer{padding:10px 20px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:rgba(255,255,255,.3);}
+
 /* ═══════════════════════════════════════════════════════
  CSS CUSTOM PROPERTIES (DESIGN TOKENS)
  Cores,espaçamentos e efeitos centralizados aqui.

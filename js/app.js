@@ -548,6 +548,10 @@ async function launchApp() {
   const label = CU.role ? CU.name + ' · ' + CU.role : CU.name;
   $('t-user-label').textContent = label;
 
+  // Exibir botão admin apenas para administradores
+  const adminBtn = document.getElementById('btn-admin');
+  if (adminBtn) adminBtn.style.display = window.authState?.isAdmin ? 'flex' : 'none';
+
   notes = []; zTop = 10;
   document.querySelectorAll('.note').forEach(e => e.remove());
   _soundReady = false;
@@ -1037,6 +1041,7 @@ function _currentYM() {
 }
 
 function isPremium() {
+  if (window.authState?.isAdmin) return true; // admins ignoram todos os limites de plano
   if (!_userPlan) return false;
   if (_userPlan.plan !== 'premium') return false;
   if (_userPlan.planExpiresAt && Date.now() > _userPlan.planExpiresAt) return false;
@@ -3739,6 +3744,19 @@ window.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
       if (user && !CU && !window._registering) {
         try {
+          // Resolve admin claim ANTES de launchApp para que isPremium() já enxergue isAdmin
+          try {
+            const tokenResult = await user.getIdTokenResult();
+            window.authState = {
+              user,
+              isAuthenticated: true,
+              isAdmin:         tokenResult.claims.admin === true,
+              loading:         false,
+            };
+          } catch(_) {
+            window.authState = { user, isAuthenticated: true, isAdmin: false, loading: false };
+          }
+
           // Ensure Firebase DB SDK is loaded before reading
           await loadFirebase();
           const uid = user.uid;
@@ -8874,5 +8892,185 @@ window.addEventListener('load', function crmInit() {
       origLogout.apply(this, arguments);
     };
   }
-});
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAINEL ADMINISTRATIVO
+   Acessível apenas quando window.authState.isAdmin === true.
+   A proteção existe em três camadas:
+     1. Botão oculto para não-admins no DOM
+     2. Guard na função openAdminPanel()
+     3. Regras do Firebase Realtime Database (token.admin === true)
+═══════════════════════════════════════════════════════════════════════════ */
+
+function openAdminPanel() {
+  if (!window.authState?.isAdmin) {
+    toast('🚫', 'Acesso restrito a administradores.');
+    return;
+  }
+
+  // Evita abrir duplo
+  if (document.getElementById('admin-panel-overlay')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'admin-panel-overlay';
+  overlay.className = 'admin-overlay';
+  overlay.innerHTML = `
+    <div class="admin-panel">
+      <div class="admin-header">
+        <div class="admin-title">
+          <span class="admin-badge-icon">🛡️</span> Painel Administrativo
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="admin-search" class="admin-search" placeholder="Buscar usuário…" autocomplete="off">
+          <button class="admin-refresh-btn" onclick="adminLoadUsers()" title="Atualizar">↻</button>
+          <button class="admin-close-btn" onclick="closeAdminPanel()">✕</button>
+        </div>
+      </div>
+      <div class="admin-stats" id="admin-stats">
+        <div class="admin-stat-card"><div class="admin-stat-n" id="astat-total">—</div><div class="admin-stat-l">Total de usuários</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-n" id="astat-premium">—</div><div class="admin-stat-l">Premium ativos</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-n" id="astat-online">—</div><div class="admin-stat-l">Online agora</div></div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Função</th>
+              <th>Plano</th>
+              <th>Notas/mês</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-tbody">
+            <tr><td colspan="7" class="admin-loading">Carregando usuários…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-footer">
+        <span id="admin-user-count"></span>
+        <span style="font-size:.7rem;color:rgba(255,255,255,.3);">Dados do Firebase Realtime Database</span>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeAdminPanel(); });
+  document.getElementById('admin-search').addEventListener('input', adminFilter);
+
+  adminLoadUsers();
+}
+
+function closeAdminPanel() {
+  document.getElementById('admin-panel-overlay')?.remove();
+}
+
+let _adminUsers = [];
+
+async function adminLoadUsers() {
+  if (!window.authState?.isAdmin) return;
+  const tbody = document.getElementById('admin-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" class="admin-loading">Carregando…</td></tr>';
+
+  try {
+    await loadFirebase();
+
+    // 1. Obter mapa uid → username
+    const uidsSnap = await fbGet('uids');
+    if (!uidsSnap) {
+      tbody.innerHTML = '<tr><td colspan="7" class="admin-loading">Nenhum usuário encontrado.</td></tr>';
+      return;
+    }
+
+    // 2. Carregar perfis, planos e presença em paralelo
+    const [presenceSnap] = await Promise.all([fbGet('presence')]);
+    const presence = presenceSnap || {};
+
+    const uids = Object.keys(uidsSnap);
+    const profiles = await Promise.all(
+      uids.map(uid => fbGet('users/' + uid + '/profile').catch(() => null))
+    );
+    const plans = await Promise.all(
+      uids.map(uid => fbGet('users/' + uid + '/plan').catch(() => null))
+    );
+
+    _adminUsers = uids.map((uid, i) => ({
+      uid,
+      username:  uidsSnap[uid] || '—',
+      profile:   profiles[i]  || {},
+      plan:      plans[i]     || { plan: 'free', notesCreatedThisMonth: 0 },
+      online:    !!presence[uid]?.online,
+    }));
+
+    // Stats
+    const totalPremium = _adminUsers.filter(u => u.plan?.plan === 'premium').length;
+    const totalOnline  = _adminUsers.filter(u => u.online).length;
+    const statsTotal   = document.getElementById('astat-total');
+    const statsPrem    = document.getElementById('astat-premium');
+    const statsOnline  = document.getElementById('astat-online');
+    if (statsTotal)  statsTotal.textContent  = _adminUsers.length;
+    if (statsPrem)   statsPrem.textContent   = totalPremium;
+    if (statsOnline) statsOnline.textContent = totalOnline;
+
+    adminRender(_adminUsers);
+
+  } catch(e) {
+    console.error('[admin] Erro ao carregar usuários:', e);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="admin-loading" style="color:#f87171;">Erro: ' + (e.message || 'falha ao carregar') + '</td></tr>';
+  }
+}
+
+function adminRender(users) {
+  const tbody = document.getElementById('admin-tbody');
+  if (!tbody) return;
+
+  const count = document.getElementById('admin-user-count');
+  if (count) count.textContent = users.length + ' usuário(s)';
+
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="admin-loading">Nenhum resultado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = users.map(u => {
+    const p       = u.profile;
+    const plan    = u.plan?.plan || 'free';
+    const notes   = u.plan?.notesCreatedThisMonth || 0;
+    const isPrem  = plan === 'premium';
+    const planExp = u.plan?.planExpiresAt;
+    const expired = isPrem && planExp && Date.now() > planExp;
+    const planLabel = expired ? 'premium (exp.)' : plan;
+    const onlineDot = u.online
+      ? '<span class="admin-dot online" title="Online"></span>'
+      : '<span class="admin-dot" title="Offline"></span>';
+
+    return `<tr>
+      <td><b>@${adminEsc(u.username)}</b><br><small style="opacity:.4;font-size:.65rem;">${adminEsc(u.uid.slice(0,12))}…</small></td>
+      <td>${adminEsc(p.name || '—')}</td>
+      <td style="font-size:.75rem;">${adminEsc(p.email || '—')}</td>
+      <td>${adminEsc(p.role || '—')}</td>
+      <td><span class="admin-plan-badge ${isPrem && !expired ? 'prem' : 'free'}">${planLabel}</span></td>
+      <td style="text-align:center;">${notes}</td>
+      <td>${onlineDot}</td>
+    </tr>`;
+  }).join('');
+}
+
+function adminFilter() {
+  const q = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
+  if (!q) { adminRender(_adminUsers); return; }
+  const filtered = _adminUsers.filter(u =>
+    (u.username || '').toLowerCase().includes(q) ||
+    (u.profile?.name  || '').toLowerCase().includes(q) ||
+    (u.profile?.email || '').toLowerCase().includes(q)
+  );
+  adminRender(filtered);
+}
+
+function adminEsc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
