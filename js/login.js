@@ -73,10 +73,10 @@ async function _demoHashPass(pass) {
 
 /* ── Redirecionar para o app após login ── */
 function goToApp(userData) {
-  // Salvar sessão demo se necessário
-  if (userData && userData.uid.startsWith('demo_')) {
+  if (userData && userData.uid && userData.uid.startsWith('demo_')) {
     localStorage.setItem('md_sess_demo', JSON.stringify(userData));
   }
+  sessionStorage.setItem('_md_just_logged_in', '1');
   window.location.href = 'index.html';
 }
 
@@ -216,23 +216,8 @@ async function doLogin() {
     await loadFirebase();
     const auth = getAuth();
     const cred = await auth.signInWithEmailAndPassword(email, pass);
-    const uid  = cred.user.uid;
-
-    let username = null;
-    try { username = await fbGet('uids/' + uid); } catch(_) {}
-    if (!username && cred.user.displayName) username = cred.user.displayName;
-    if (!username) {
-      try { const p = await fbGet('users/' + uid + '/profile'); if (p?.username) username = p.username; } catch(_) {}
-    }
-    if (!username) throw { code: 'auth/user-not-found' };
-
-    let profile = {};
-    try { profile = await fbGet('users/' + uid + '/profile') || {}; } catch(_) {}
-    if (!profile.name) {
-      try { profile = await fbGet('users/' + username + '/profile') || {}; } catch(_) {}
-    }
-
-    goToApp({ uid, username, name: profile.name || username, role: profile.role || '', email });
+    // Redirect immediately — app.js (tryAutoLogin) handles profile loading
+    goToApp({ uid: cred.user.uid, email });
 
   } catch(e) {
     console.error('Login error:', e.code, e.message);

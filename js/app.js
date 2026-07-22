@@ -3746,12 +3746,14 @@ window.addEventListener('DOMContentLoaded', () => {
           let username = null;
           try { username = await fbGet('uids/' + uid); } catch(_) {}
           if (!username && user.displayName) username = user.displayName;
-          if (!username) { auth.signOut(); return; }
-          // Get profile — uid path is ALWAYS source of truth
+          // Fallback: try reading profile directly by uid
           let profile = {};
           try { profile = await fbGet('users/' + uid + '/profile') || {}; } catch(_) {}
-          if (!profile.name) {
-            try { profile = await fbGet('users/' + username + '/profile') || {}; } catch(_) {}
+          if (!username && profile.username) username = profile.username;
+          // Last resort: derive from email
+          if (!username && user.email) username = user.email.split('@')[0].replace(/[^a-z0-9_]/gi, '') || 'user';
+          if (!profile.name && username) {
+            try { profile = await fbGet('users/' + username + '/profile') || profile; } catch(_) {}
           }
           CU = { uid, username, name: profile.name || username, role: profile.role || '', email: user.email };
           launchApp();
