@@ -59,22 +59,50 @@ function switchTab(t) {
 
 let _auth = null; // firebase.auth() instance
 
-// Map Firebase error codes to friendly PT-BR messages
-function authErrMsg(code, fallback) {
-  const map = {
-    'auth/email-already-in-use':    'Este e-mail já está cadastrado.',
-    'auth/invalid-email':            'E-mail inválido.',
-    'auth/weak-password':            'Senha muito fraca. Use pelo menos 6 caracteres.',
-    'auth/user-not-found':           'E-mail não encontrado.',
-    'auth/wrong-password':           'Senha incorreta.',
-    'auth/invalid-credential':       'E-mail ou senha incorretos.',
-    'auth/too-many-requests':        'Muitas tentativas. Tente novamente mais tarde.',
-    'auth/network-request-failed':   'Sem conexão com a internet.',
-    'auth/user-disabled':            'Esta conta foi desativada.',
-    'auth/operation-not-allowed':    'Registro desativado. Contate o administrador.',
-    'auth/configuration-not-found':  'Firebase não configurado corretamente.',
-  };
-  return map[code] || fallback || 'Erro ao autenticar. Tente novamente.';
+// Map Firebase error codes to friendly PT-BR / EN messages, picked by the
+// user's detected language (T / LANGS, see detectLanguage() below).
+// Never falls back to e.message — that's the raw Firebase SDK string
+// (e.g. "Firebase: Error (auth/invalid-login-credentials).") and must
+// never reach the UI untranslated.
+const AUTH_ERR = {
+  pt: {
+    'auth/email-already-in-use':      'Este e-mail já está cadastrado.',
+    'auth/invalid-email':             'E-mail inválido.',
+    'auth/weak-password':             'Senha muito fraca. Use pelo menos 6 caracteres.',
+    'auth/user-not-found':            'E-mail não encontrado.',
+    'auth/wrong-password':            'Senha incorreta.',
+    'auth/invalid-credential':        'E-mail ou senha incorretos.',
+    'auth/invalid-login-credentials': 'E-mail ou senha incorretos.',
+    'auth/missing-password':          'Informe a senha.',
+    'auth/too-many-requests':         'Muitas tentativas. Tente novamente mais tarde.',
+    'auth/network-request-failed':    'Sem conexão com a internet.',
+    'auth/user-disabled':             'Esta conta foi desativada.',
+    'auth/operation-not-allowed':     'Registro desativado. Contate o administrador.',
+    'auth/configuration-not-found':   'Firebase não configurado corretamente.',
+    default:                          'Erro ao autenticar. Tente novamente.',
+  },
+  en: {
+    'auth/email-already-in-use':      'This email is already registered.',
+    'auth/invalid-email':             'Invalid email.',
+    'auth/weak-password':             'Password too weak. Use at least 6 characters.',
+    'auth/user-not-found':            'Email not found.',
+    'auth/wrong-password':            'Incorrect password.',
+    'auth/invalid-credential':        'Incorrect email or password.',
+    'auth/invalid-login-credentials': 'Incorrect email or password.',
+    'auth/missing-password':          'Enter your password.',
+    'auth/too-many-requests':         'Too many attempts. Try again later.',
+    'auth/network-request-failed':    'No internet connection.',
+    'auth/user-disabled':             'This account has been disabled.',
+    'auth/operation-not-allowed':     'Registration disabled. Contact the administrator.',
+    'auth/configuration-not-found':   'Firebase is not configured correctly.',
+    default:                          'Authentication error. Please try again.',
+  },
+};
+
+function authErrMsg(code) {
+  const langKey = Object.keys(LANGS).find(k => LANGS[k] === T);
+  const dict = AUTH_ERR[langKey] || AUTH_ERR.en;
+  return dict[code] || dict.default;
 }
 
 async function doRegister() {
@@ -185,7 +213,7 @@ async function doRegister() {
 
   } catch(e) {
     console.error('Register error:', e);
-    showErr('reg-err', e.message || authErrMsg(e.code));
+    showErr('reg-err', authErrMsg(e.code));
     btn.textContent = 'Criar conta →'; btn.disabled = false;
   }
 }
@@ -284,7 +312,7 @@ async function doLogin() {
     launchApp();
   } catch(e) {
     console.error('Login error:', e.code, e.message);
-    showErr('login-err', authErrMsg(e.code, e.message));
+    showErr('login-err', authErrMsg(e.code));
     btn.textContent = 'Entrar →'; btn.disabled = false;
   }
 }
@@ -2300,8 +2328,57 @@ function unstackNote(n) {
 
 /* ═══════════════════════════════════════════════════
    LEMBRETES
-   Verificação periódica de prazos (1x/hora)
+   Verificação periódica de prazos (1x/minuto)
 ═══════════════════════════════════════════════════ */
+
+/* ── Beep de alerta via Web Audio — sem arquivo de áudio nem CDN externo,
+   respeita a CSP do projeto (nenhuma origem extra precisa ser liberada). ── */
+let _alertAudioCtx = null;
+function playOverdueAlertSound() {
+  try {
+    _alertAudioCtx = _alertAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _alertAudioCtx;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const now = ctx.currentTime;
+    [880, 660].forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t0 = now + i * 0.16;
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.3);
+    });
+  } catch (_) { /* Web Audio indisponível (autoplay bloqueado etc.) — falha silenciosa */ }
+}
+
+// Pisca uma vez (animação curta) no elemento que acabou de ficar atrasado,
+// além do estado "overdue" permanente já aplicado via classList.
+function _flashOverdueEl(el) {
+  if (!el) return;
+  el.classList.remove('overdue-flash'); void el.offsetWidth; // reinicia a animação CSS
+  el.classList.add('overdue-flash');
+  setTimeout(() => el.classList.remove('overdue-flash'), 2200);
+}
+
+// Rastreia quais notas/registros já estavam atrasados, para só alertar
+// (som + flash) em transições ao vivo — nunca no carregamento inicial,
+// senão tocaria som pra tudo que já estava vencido há dias.
+const _overdueTrack = { notes: { init: false, set: new Set() }, records: { init: false, set: new Set() } };
+function _handleOverdueTransition(track, currentIds, onNewOverdue) {
+  if (!track.init) { track.init = true; track.set = new Set(currentIds); return; }
+  const newlyOverdue = currentIds.filter(id => !track.set.has(id));
+  track.set = new Set(currentIds);
+  if (newlyOverdue.length) {
+    playOverdueAlertSound();
+    newlyOverdue.forEach(onNewOverdue);
+  }
+}
+
 function updateBadge(n) {
   const badge = document.getElementById('nb-'+n.id);
   if (!badge) return;
@@ -2324,8 +2401,33 @@ function updateBadge(n) {
     if (noteEl) noteEl.classList.remove('overdue');
   }
 }
-function checkReminders() { notes.forEach(n => updateBadge(n)); }
-function startRemCheck()  { checkReminders(); remTmr=setInterval(checkReminders,3600000); }
+
+function checkReminders() {
+  notes.forEach(n => updateBadge(n));
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdueNoteIds = notes.filter(n => n.end && new Date(n.end+'T00:00:00') < today).map(n => n.id);
+  _handleOverdueTransition(_overdueTrack.notes, overdueNoteIds, (id) => {
+    _flashOverdueEl(document.querySelector('.note[data-id="'+id+'"]'));
+    const n = notes.find(x => x.id === id);
+    toast('⏰', (n?.title ? '"' + n.title + '"' : 'Nota') + ' passou do prazo!');
+  });
+
+  checkCRMOverdueTransitions();
+}
+
+function checkCRMOverdueTransitions() {
+  if (typeof _records === 'undefined' || !_records.length) return;
+  updateCRMDashboard();
+  const overdueIds = _records.filter(r => isOverdue(r)).map(r => r.id);
+  _handleOverdueTransition(_overdueTrack.records, overdueIds, (id) => {
+    const rec = _records.find(r => r.id === id);
+    _flashOverdueEl(document.querySelector('tr[data-id="'+id+'"]'));
+    toast('⏰', (rec?.name || 'Cliente') + ' está com pagamento atrasado!');
+  });
+}
+
+function startRemCheck()  { checkReminders(); remTmr=setInterval(checkReminders,60000); }
 function stopRemCheck()   { if(remTmr){clearInterval(remTmr);remTmr=null;} }
 
 /* ═══════════════════════════════════════════════════
@@ -3568,6 +3670,24 @@ function safeDataUrl(url) {
   if (!url || typeof url !== 'string') return '';
   if (!url.startsWith('data:')) return '';
   return url;
+}
+
+// Validate + escape a user-supplied profile photo URL before use in an <img src="...">.
+// profile.photo is stored in users/$uid/profile, which any authenticated user can write
+// directly via the Firebase client SDK (see database.rules.json — the rule only checks
+// auth.uid, not content). Never trust it: only allow https:// or data:image/*, and
+// HTML-attribute-escape the result so it can't break out of the src="" attribute.
+function isSafePhotoScheme(url) {
+  return typeof url === 'string' &&
+    (/^https:\/\//i.test(url) || /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(url));
+}
+// For HTML-string contexts (innerHTML template literals) — escaped for attribute insertion.
+function safePhotoUrl(url) {
+  return isSafePhotoScheme(url) ? sanitizeAttr(url) : '';
+}
+// For direct DOM property assignment (el.src = ...) — no HTML-entity escaping (would break the URL).
+function safePhotoUrlRaw(url) {
+  return isSafePhotoScheme(url) ? url : '';
 }
 
 // Whitelist of allowed MIME types for file uploads
@@ -5645,7 +5765,7 @@ async function renderSocialPanel() {
               e.stopPropagation();
               const lb = document.getElementById('chat-lightbox');
               const lbImg = document.getElementById('chat-lb-img');
-              if (lb && lbImg) { lbImg.src = p.photo; lb.classList.add('open'); }
+              if (lb && lbImg) { lbImg.src = safePhotoUrlRaw(p.photo); lb.classList.add('open'); }
             });
           }
         }
@@ -5682,7 +5802,8 @@ async function renderSocialPanel() {
           searchResult.innerHTML = '<span style="font-size:.72rem;color:rgba(240,240,240,.35);">Usuário não encontrado.</span>';
           return;
         }
-        const photo = profile.photo ? `<img src="${profile.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0;">${(profile.name||val)[0].toUpperCase()}</div>`;
+        const photoUrl = safePhotoUrl(profile.photo);
+        const photo = photoUrl ? `<img src="${photoUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0;">${(profile.name||val)[0].toUpperCase()}</div>`;
         searchResult.innerHTML = '';
         searchResult.innerHTML = photo + `<div style="flex:1"><div style="font-size:.82rem;font-weight:600;color:#f0f0f0;">${xe(profile.name||val)}</div><div style="font-size:.68rem;color:rgba(240,240,240,.4);">@${xe(val)}</div></div>`;
         const addBtn = document.createElement('button');
@@ -5753,7 +5874,7 @@ async function renderSocialPanel() {
                 e.stopPropagation();
                 const lb = document.getElementById('chat-lightbox');
                 const img = document.getElementById('chat-lb-img');
-                if (lb && img) { img.src = profile.photo; lb.classList.add('open'); }
+                if (lb && img) { img.src = safePhotoUrlRaw(profile.photo); lb.classList.add('open'); }
               });
             }
             avEl.replaceWith(newAv);
@@ -5992,7 +6113,7 @@ function showOnlineNotif(friend, name, profile, pStatus = 'online') {
   el.style.borderLeftColor = '#10b981';
   el.innerHTML = `
     <div class="chat-notif-avatar" style="overflow:hidden;position:relative;">
-      ${profile?.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
+      ${safePhotoUrl(profile?.photo) ? `<img src="${safePhotoUrl(profile.photo)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
       <div class="chat-notif-online"></div>
     </div>
     <div class="chat-notif-body">
@@ -6159,7 +6280,7 @@ function openChatWin(friend) {
     win.style.pointerEvents = 'all';
     win.innerHTML = `
       <div class="chat-header" id="ch-hdr-${friend}">
-        <div class="chat-header-avatar" style="overflow:hidden;position:relative;">${profile?.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
+        <div class="chat-header-avatar" style="overflow:hidden;position:relative;">${safePhotoUrl(profile?.photo) ? `<img src="${safePhotoUrl(profile.photo)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
           <div class="chat-online-dot offline" id="ch-dot-${friend}"></div>
         </div>
         <span class="chat-title">${xe(name)}</span>
@@ -6319,7 +6440,7 @@ function showChatNotif(from, msg) {
     const el = document.createElement('div');
     el.className = 'chat-notif';
     el.innerHTML = `
-      <div class="chat-notif-avatar" style="overflow:hidden;position:relative;">${info?.photo ? `<img src="${info.photo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
+      <div class="chat-notif-avatar" style="overflow:hidden;position:relative;">${safePhotoUrl(info?.photo) ? `<img src="${safePhotoUrl(info.photo)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
         <div class="chat-notif-online"></div>
       </div>
       <div class="chat-notif-body">
@@ -6352,8 +6473,9 @@ function dismissNotif(el) {
 function avatarHTML(profile, username, size) {
   const s = size || 34;
   const initial = ((profile && profile.name) || username || '?')[0].toUpperCase();
-  if (profile && profile.photo) {
-    return `<img src="${profile.photo}" alt="${initial}" loading="lazy" style="width:${s}px;height:${s}px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;">`;
+  const photoUrl = profile && safePhotoUrl(profile.photo);
+  if (photoUrl) {
+    return `<img src="${photoUrl}" alt="${initial}" loading="lazy" style="width:${s}px;height:${s}px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;">`;
   }
   return initial;
 }
@@ -6890,7 +7012,7 @@ function showGroupChatNotif(groupId, gid, msg, groupName) {
     el.className = 'chat-notif';
     el.innerHTML = `
       <div class="chat-notif-avatar" style="overflow:hidden;position:relative;background:linear-gradient(135deg,#6366f1,#4f46e5);">
-        ${info?.photo ? `<img src="${info.photo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
+        ${safePhotoUrl(info?.photo) ? `<img src="${safePhotoUrl(info.photo)}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;">` : name[0].toUpperCase()}
         <div class="chat-notif-online"></div>
       </div>
       <div class="chat-notif-body">
@@ -8463,6 +8585,7 @@ function updateCRMDashboard() {
   let totalAll     = 0;
   let totalPaid    = 0;
   let totalPending = 0;
+  let totalOverdue = 0;
   let overdueCount = 0;
 
   _records.forEach(r => {
@@ -8470,17 +8593,101 @@ function updateCRMDashboard() {
     totalAll += v;
     if (r.status === 'paid') {
       totalPaid += v;
+    } else if (isOverdue(r)) {
+      totalOverdue += v;
+      overdueCount++;
     } else {
       totalPending += v;
-      if (isOverdue(r)) overdueCount++;
     }
   });
 
   const el = id => document.getElementById(id);
   if (el('crm-total-all'))     el('crm-total-all').textContent     = fmtBRL(totalAll);
   if (el('crm-total-paid'))    el('crm-total-paid').textContent    = fmtBRL(totalPaid);
-  if (el('crm-total-pending')) el('crm-total-pending').textContent = fmtBRL(totalPending);
+  if (el('crm-total-pending')) el('crm-total-pending').textContent = fmtBRL(totalPending + totalOverdue);
   if (el('crm-total-overdue')) el('crm-total-overdue').textContent = overdueCount;
+
+  renderCRMCharts({ paid: totalPaid, pending: totalPending, overdue: totalOverdue });
+}
+
+/* ─────────────────────────────────────────────
+   GRÁFICOS DO CRM (SVG gerado à mão — sem libs
+   externas, respeita a CSP do projeto)
+───────────────────────────────────────────── */
+function renderCRMCharts(totals) {
+  _renderCRMDonut(totals);
+  _renderCRMMonthlyBars();
+}
+
+function _renderCRMDonut(totals) {
+  const host = document.getElementById('crm-chart-donut');
+  if (!host) return;
+  const { paid = 0, pending = 0, overdue = 0 } = totals;
+  const sum = paid + pending + overdue;
+
+  if (!sum) {
+    host.innerHTML = '<div class="crm-chart-empty">Sem dados ainda</div>';
+    return;
+  }
+
+  const R = 46, C = 2 * Math.PI * R;
+  const segs = [
+    { v: paid,    color: '#10b981' },
+    { v: pending, color: '#f59e0b' },
+    { v: overdue, color: '#ef4444' },
+  ];
+  let offset = 0;
+  const arcs = segs.map(s => {
+    const frac = s.v / sum;
+    const len  = frac * C;
+    const dash = `${len} ${C - len}`;
+    const rot  = (offset / sum) * 360;
+    offset += s.v;
+    return `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="14"
+              stroke-dasharray="${dash}" stroke-dashoffset="0"
+              transform="rotate(${rot - 90} 60 60)" stroke-linecap="butt"/>`;
+  }).join('');
+
+  host.innerHTML = `
+    <svg width="120" height="120" viewBox="0 0 120 120" class="crm-donut-svg">${arcs}</svg>
+    <div class="crm-donut-legend">
+      <div class="crm-donut-leg-item"><span class="dot" style="background:#10b981"></span>Recebido <b>${fmtBRL(paid)}</b></div>
+      <div class="crm-donut-leg-item"><span class="dot" style="background:#f59e0b"></span>Pendente <b>${fmtBRL(pending)}</b></div>
+      <div class="crm-donut-leg-item"><span class="dot" style="background:#ef4444"></span>Atrasado <b>${fmtBRL(overdue)}</b></div>
+    </div>`;
+}
+
+function _renderCRMMonthlyBars() {
+  const host = document.getElementById('crm-chart-bars');
+  if (!host) return;
+  if (!_records.length) { host.innerHTML = '<div class="crm-chart-empty">Sem dados ainda</div>'; return; }
+
+  // Agrupa por mês (AAAA-MM) de vencimento — últimos 6 meses até 2 meses à frente
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= -2; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
+                  label: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') });
+  }
+  const totalsByMonth = Object.fromEntries(months.map(m => [m.key, 0]));
+  _records.forEach(r => {
+    if (!r.dueDate) return;
+    const key = r.dueDate.slice(0, 7);
+    if (key in totalsByMonth) totalsByMonth[key] += Number(r.value) || 0;
+  });
+
+  const max = Math.max(1, ...Object.values(totalsByMonth));
+  const bars = months.map(m => {
+    const v = totalsByMonth[m.key];
+    const h = Math.round((v / max) * 64);
+    return `<div class="crm-bar-col" title="${fmtBRL(v)}">
+        <div class="crm-bar" style="height:${Math.max(h,2)}px"></div>
+        <span class="crm-bar-lbl">${m.label}</span>
+      </div>`;
+  }).join('');
+
+  host.innerHTML = `<div class="crm-bars-wrap">${bars}</div>`;
 }
 
 /* ─────────────────────────────────────────────

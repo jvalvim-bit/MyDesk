@@ -46,22 +46,56 @@ function switchTab(t) {
   $('reg-err').textContent   = '';
 }
 
-/* ── Mapeamento de erros Firebase ── */
-function authErrMsg(code, fallback) {
-  const map = {
-    'auth/email-already-in-use':   'Este e-mail já está cadastrado.',
-    'auth/invalid-email':           'E-mail inválido.',
-    'auth/weak-password':           'Senha muito fraca. Use pelo menos 8 caracteres.',
-    'auth/user-not-found':          'E-mail não encontrado.',
-    'auth/wrong-password':          'Senha incorreta.',
-    'auth/invalid-credential':      'E-mail ou senha incorretos.',
-    'auth/too-many-requests':       'Muitas tentativas. Tente novamente mais tarde.',
-    'auth/network-request-failed':  'Sem conexão com a internet.',
-    'auth/user-disabled':           'Esta conta foi desativada.',
-    'auth/operation-not-allowed':   'Registro desativado. Contate o administrador.',
-    'auth/configuration-not-found': 'Firebase não configurado corretamente.',
-  };
-  return map[code] || fallback || 'Erro ao autenticar. Tente novamente.';
+/* ── Mapeamento de erros Firebase — PT-BR / EN, escolhido pelo idioma do usuário ──
+   Nunca repassamos e.message (texto cru do SDK do Firebase, sempre em inglês
+   técnico) para a tela — sempre uma mensagem traduzida e amigável. */
+const AUTH_ERR_MSGS = {
+  pt: {
+    'auth/email-already-in-use':      'Este e-mail já está cadastrado.',
+    'auth/invalid-email':             'E-mail inválido.',
+    'auth/weak-password':             'Senha muito fraca. Use pelo menos 8 caracteres.',
+    'auth/user-not-found':            'E-mail não encontrado.',
+    'auth/wrong-password':            'Senha incorreta.',
+    'auth/invalid-credential':        'E-mail ou senha incorretos.',
+    'auth/invalid-login-credentials': 'E-mail ou senha incorretos.',
+    'auth/missing-password':          'Informe a senha.',
+    'auth/too-many-requests':         'Muitas tentativas. Tente novamente mais tarde.',
+    'auth/network-request-failed':    'Sem conexão com a internet.',
+    'auth/user-disabled':             'Esta conta foi desativada.',
+    'auth/operation-not-allowed':     'Registro desativado. Contate o administrador.',
+    'auth/configuration-not-found':   'Firebase não configurado corretamente.',
+    default:                          'Erro ao autenticar. Tente novamente.',
+  },
+  en: {
+    'auth/email-already-in-use':      'This email is already registered.',
+    'auth/invalid-email':             'Invalid email.',
+    'auth/weak-password':             'Password too weak. Use at least 8 characters.',
+    'auth/user-not-found':            'Email not found.',
+    'auth/wrong-password':            'Incorrect password.',
+    'auth/invalid-credential':        'Incorrect email or password.',
+    'auth/invalid-login-credentials': 'Incorrect email or password.',
+    'auth/missing-password':          'Enter your password.',
+    'auth/too-many-requests':         'Too many attempts. Try again later.',
+    'auth/network-request-failed':    'No internet connection.',
+    'auth/user-disabled':             'This account has been disabled.',
+    'auth/operation-not-allowed':     'Registration disabled. Contact the administrator.',
+    'auth/configuration-not-found':   'Firebase is not configured correctly.',
+    default:                          'Authentication error. Please try again.',
+  },
+};
+
+// Mesma chave (md_lang) usada pelo detector de idioma/geolocalização em app.js,
+// para manter a preferência consistente entre login.html e index.html.
+function currentAuthLang() {
+  const saved = localStorage.getItem('md_lang');
+  if (saved && AUTH_ERR_MSGS[saved]) return saved;
+  const browserLang = (navigator.language || navigator.userLanguage || 'pt').slice(0, 2).toLowerCase();
+  return AUTH_ERR_MSGS[browserLang] ? browserLang : 'pt';
+}
+
+function authErrMsg(code) {
+  const dict = AUTH_ERR_MSGS[currentAuthLang()];
+  return dict[code] || dict.default;
 }
 
 /* ── Hash de senha para modo demo ── */
@@ -168,7 +202,7 @@ async function doRegister() {
 
   } catch(e) {
     console.error('Register error:', e);
-    showErr('reg-err', e.message || authErrMsg(e.code));
+    showErr('reg-err', authErrMsg(e.code));
     btn.textContent = 'Criar conta →'; btn.disabled = false;
   }
 }
@@ -221,7 +255,7 @@ async function doLogin() {
 
   } catch(e) {
     console.error('Login error:', e.code, e.message);
-    showErr('login-err', authErrMsg(e.code, e.message));
+    showErr('login-err', authErrMsg(e.code));
     btn.textContent = 'Entrar →'; btn.disabled = false;
   }
 }

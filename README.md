@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/MyDesk-Workspace%20Inteligente-6366f1?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHJlY3Qgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByeD0nOCcgZmlsbD0nIzYzNjZmMScvPjx0ZXh0IHk9JzIyJyB4PSc1JyBmb250LXNpemU9JzIwJz7wn5KLPHt0ZXh0Pjwvc3ZnPg==" />
+<img src="docs/screenshots/banner.svg" alt="MyDesk — Workspace de Notas Inteligente" width="100%" />
 
 # MyDesk — Workspace de Notas Inteligente
 
@@ -35,21 +35,21 @@ Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backe
 
 ### Landing Page & Login
 
-![Landing Page](screenshots/landing.png)
+![Landing Page](docs/screenshots/landing.png)
 *Typewriter animado com notas de demonstração ao fundo, login por e-mail/senha ou Google OAuth*
 
 ---
 
 ### Board Principal — Notas & Workspace
 
-![Board de Notas](screenshots/board.png)
+![Board de Notas](docs/screenshots/board.png)
 *Board com pilhas de notas, wallpaper personalizado e nota de cliente (CRM) aberta com valor e anexo*
 
 ---
 
 ### Plano Premium
 
-![Modal Premium](screenshots/premium.png)
+![Modal Premium](docs/screenshots/premium.png)
 
 *Modal de upgrade com benefícios do plano Premium (notas ilimitadas, workspaces de grupo, CRM)*
 
@@ -57,7 +57,7 @@ Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backe
 
 ### CRM Financeiro *(Premium)*
 
-![CRM Financeiro](screenshots/crm.png)
+![CRM Financeiro](docs/screenshots/crm.png)
 *Dashboard com totalizadores de receita esperada, recebida, pendente e clientes em atraso*
 
 ---
@@ -312,17 +312,17 @@ Acessível apenas para contas com custom claim `admin: true` no Firebase:
 
 ```
 mydesk/
-├── index.html              # App principal (board + toolbar)
-├── login.html              # Landing page + autenticação
-│
-├── css/
-│   └── main.css            # Todos os estilos (design tokens, componentes)
-│
-├── js/
-│   ├── firebase-init.js    # Inicialização do Firebase
-│   ├── auth-service.js     # Estado de autenticação centralizado (window.authState)
-│   ├── app.js              # Toda a lógica do app (~3500+ linhas)
-│   └── login.js            # Lógica de login, registro e typewriter
+├── docs/                   # Único diretório publicado pelo GitHub Pages
+│   ├── index.html          # App principal (board + toolbar)
+│   ├── login.html          # Landing page + autenticação
+│   ├── css/
+│   │   └── main.css        # Todos os estilos (design tokens, componentes)
+│   ├── js/
+│   │   ├── firebase-init.js  # Inicialização do Firebase
+│   │   ├── auth-service.js   # Estado de autenticação centralizado (window.authState)
+│   │   ├── app.js             # Toda a lógica do app
+│   │   └── login.js           # Lógica de login, registro e typewriter
+│   └── screenshots/        # Imagens deste README
 │
 ├── api/
 │   ├── create-charge.js    # POST /api/create-charge → AbacatePay
@@ -332,11 +332,14 @@ mydesk/
 │   ├── set-admin.js        # node scripts/set-admin.js email@x.com
 │   └── remove-admin.js     # node scripts/remove-admin.js email@x.com
 │
-├── database.rules.json     # Regras de segurança do Firebase Realtime DB
-├── firebase.json           # Config Firebase CLI
-├── vercel.json             # Config Vercel (se presente)
-└── .gitignore              # Ignora .env, serviceAccountKey.json, node_modules
+├── database.rules.json     # Regras de segurança do Firebase Realtime DB (não fica público)
+├── firebase.json           # Config Firebase CLI (não fica público)
+├── vercel.json              # Config Vercel — outputDirectory aponta pra docs/
+└── .gitignore               # Ignora .env, serviceAccountKey.json, node_modules
 ```
+
+> Só o conteúdo de `docs/` é servido publicamente pelo GitHub Pages — os arquivos de
+> configuração do Firebase/Vercel na raiz do repositório não ficam expostos no site.
 
 ---
 

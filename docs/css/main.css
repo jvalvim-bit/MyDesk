@@ -298,3 +298,29 @@
 .crm-clear-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:7px;border:1px solid rgba(239,68,68,.22);background:rgba(239,68,68,.08);color:var(--clr-danger-light);font-family:'Inter',sans-serif;font-size:.73rem;font-weight:600;cursor:pointer;transition:all .18s;}
 .crm-clear-btn:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.4);}
 .crm-clear-btn svg{width:12px;height:12px;}
+
+/* ── CRM charts (donut + barras mensais) ─────────────────────────────── */
+#crm-charts-row{display:flex;gap:14px;padding:14px 20px;flex-wrap:wrap;}
+.crm-chart-panel{background:var(--clr-bg-card);border:1px solid var(--clr-border-soft);border-radius:var(--radius-md);padding:14px 16px;flex:1;min-width:220px;}
+.crm-chart-panel-wide{flex:2;min-width:280px;}
+.crm-chart-title{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--clr-text-dim);margin-bottom:10px;}
+.crm-chart-empty{font-size:.75rem;color:var(--clr-text-faint);padding:20px 0;text-align:center;}
+.crm-chart-donut-wrap{display:flex;align-items:center;gap:16px;}
+.crm-donut-svg{flex-shrink:0;}
+.crm-donut-legend{display:flex;flex-direction:column;gap:7px;}
+.crm-donut-leg-item{font-size:.72rem;color:var(--clr-text-dim);display:flex;align-items:center;gap:6px;}
+.crm-donut-leg-item b{color:var(--clr-text);font-family:'JetBrains Mono',monospace;font-weight:600;}
+.crm-donut-leg-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.crm-chart-bars-host{min-height:96px;display:flex;align-items:flex-end;}
+.crm-bars-wrap{display:flex;align-items:flex-end;gap:10px;width:100%;height:88px;padding-top:8px;}
+.crm-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
+.crm-bar{width:100%;max-width:26px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--clr-indigo-light),var(--clr-indigo));transition:height .3s ease;}
+.crm-bar-lbl{font-size:.62rem;color:var(--clr-text-faint);text-transform:capitalize;}
+
+/* ── Alertas de atraso: pulso contínuo + flash na transição ──────────── */
+@keyframes overduePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.45);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
+@keyframes overdueFlash{0%{background:rgba(239,68,68,.55);}100%{background:transparent;}}
+.note.overdue{animation:overduePulse 1.8s ease-in-out infinite;}
+.crm-table tbody tr.overdue-row{animation:overduePulse 2.2s ease-in-out infinite;}
+.crm-status-pill.overdue{animation:overduePulse 1.6s ease-in-out infinite;}
+.note.overdue-flash,.crm-table tbody tr.overdue-flash{animation:overdueFlash 1.1s ease-out 2;}
