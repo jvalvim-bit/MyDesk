@@ -293,6 +293,27 @@ async function doForgotPassword() {
   }
 }
 
+/* ── Animação de typewriter ── */
+function startTypewriter() {
+  const el     = document.getElementById('auth-typewriter');
+  const cursor = document.getElementById('auth-cursor');
+  if (!el || !cursor) return;
+  const phrases = ['de notas.', 'colaborativo.', 'sem distrações.', 'do seu jeito.'];
+  let pi = 0, ci = 0, deleting = false;
+  function tick() {
+    const phrase = phrases[pi];
+    if (!deleting) {
+      el.textContent = phrase.slice(0, ++ci);
+      if (ci === phrase.length) { deleting = true; return setTimeout(tick, 1800); }
+    } else {
+      el.textContent = phrase.slice(0, --ci);
+      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; return setTimeout(tick, 400); }
+    }
+    setTimeout(tick, deleting ? 45 : 90);
+  }
+  tick();
+}
+
 /* ── Guard: se já autenticado, ir direto para o app ── */
 window.addEventListener('DOMContentLoaded', () => {
   // Verificar sessão demo
@@ -310,6 +331,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (user) window.location.href = 'index.html';
     });
   }
+
+  // Animação
+  startTypewriter();
 
   // Bindagem dos botões
   $('tab-login')?.addEventListener('click', () => switchTab('login'));
