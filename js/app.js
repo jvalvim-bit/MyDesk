@@ -3623,17 +3623,21 @@ window.addEventListener('DOMContentLoaded', () => {
   /* detect language in background — never blocks UI */
   detectLanguage().catch(() => {});
 
-  /* auth tabs — only present on login.html, not on index.html */
-  $('tab-login')?.addEventListener('click', ()=>switchTab('login'));
-  $('tab-reg')?.addEventListener('click',   ()=>switchTab('reg'));
-  $('goto-reg')?.addEventListener('click',  ()=>switchTab('reg'));
-  $('goto-login')?.addEventListener('click',()=>switchTab('login'));
-
-  /* auth buttons — only present on login.html */
-  $('btn-login')?.addEventListener('click',    doLogin);
-  $('btn-register')?.addEventListener('click', doRegister);
-  document.getElementById('btn-google-login')?.addEventListener('click', doGoogleLogin);
-  document.getElementById('btn-google-reg')?.addEventListener('click',   doGoogleLogin);
+  /* ── Auth UI — só existe em login.html ── */
+  if (document.getElementById('auth-card')) {
+    $('tab-login')?.addEventListener('click', ()=>switchTab('login'));
+    $('tab-reg')?.addEventListener('click',   ()=>switchTab('reg'));
+    $('goto-reg')?.addEventListener('click',  ()=>switchTab('reg'));
+    $('goto-login')?.addEventListener('click',()=>switchTab('login'));
+    $('btn-login')?.addEventListener('click',    doLogin);
+    $('btn-register')?.addEventListener('click', doRegister);
+    document.getElementById('btn-google-login')?.addEventListener('click', doGoogleLogin);
+    document.getElementById('btn-google-reg')?.addEventListener('click',   doGoogleLogin);
+    document.getElementById('forgot-pass')?.addEventListener('click', doForgotPassword);
+    $('auth-card').classList.add('anim');
+    startTypewriter();
+    initPixelCanvas();
+  }
 
   /* toolbar */
   $('btn-new').addEventListener('click',     openModal);
@@ -3689,15 +3693,6 @@ window.addEventListener('DOMContentLoaded', () => {
     $('m-rem-sub').style.pointerEvents = this.checked ? 'all' : 'none';
   });
 
-  /* Enter shortcut on auth — only active on login.html */
-  if ($('auth-screen')) {
-    document.addEventListener('keydown', e => {
-      if (e.key!=='Enter') return;
-      if ($('auth-screen').style.display==='none') return;
-      if ($('form-login')?.style.display!=='none') doLogin();
-      else doRegister();
-    });
-  }
 
   /* wallpaper */
   buildWpPanel();
@@ -3730,16 +3725,6 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { if (btn) btn.textContent = orig; }, 2500);
   });
 
-  /* pixel animation */
-  initPixelCanvas();
-
-  /* animate card on first load + start typewriter */
-  $('auth-card').classList.add('anim');
-  startTypewriter();
-
-  /* Wire forgot password */
-  const forgotBtn = document.getElementById('forgot-pass');
-  if (forgotBtn) forgotBtn.addEventListener('click', doForgotPassword);
 
   /* Firebase Auth state listener — handles auto-login & session persistence */
   function tryAutoLogin() {
