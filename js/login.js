@@ -326,6 +326,15 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Bindagem dos botões
+  $('tab-login')?.addEventListener('click', () => switchTab('login'));
+  $('tab-reg')?.addEventListener('click',   () => switchTab('reg'));
+  $('btn-login')?.addEventListener('click', doLogin);
+  $('btn-register')?.addEventListener('click', doRegister);
+  document.getElementById('btn-google-login')?.addEventListener('click', doGoogleLogin);
+  document.getElementById('btn-google-reg')?.addEventListener('click',   doGoogleLogin);
+  document.getElementById('forgot-pass')?.addEventListener('click', doForgotPassword);
+
   // Enter key para submeter
   document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
