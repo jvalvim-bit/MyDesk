@@ -5221,21 +5221,24 @@ function buildWpPanel() {
     wrap.addEventListener('click', () => applyWallpaper({ type: 'pixel', value: theme.key, key: theme.key }));
     pixelsEl.appendChild(wrap);
   });
-  // coleção de imagens/vídeos prontos
-  const galleryEl = document.getElementById('wp-gallery');
+  // coleção de imagens prontas — e vídeos em loop, em uma seção própria
+  // separada (não é uma "imagem", então não fica misturado no mesmo grid)
+  const galleryEl      = document.getElementById('wp-gallery');
+  const videoGalleryEl = document.getElementById('wp-video-gallery');
   WP_GALLERY.forEach(item => {
+    const isVideo = item.type === 'video';
     const d = document.createElement('div');
-    d.className = 'wp-gallery-swatch' + (item.type === 'video' ? ' is-video' : '');
+    d.className = 'wp-gallery-swatch' + (isVideo ? ' is-video' : '');
     d.dataset.wpKey = item.key;
     d.title = item.label;
-    if (item.type === 'video') {
+    if (isVideo) {
       // Sem preview animado no seletor (custaria banda) — só um ícone de play sobre fundo escuro
       d.innerHTML = '<span class="wp-gallery-play">&#9654;</span>';
     } else {
       d.style.backgroundImage = 'url(' + item.url + ')';
     }
     d.addEventListener('click', () => applyWallpaper({ type: item.type || 'image', value: item.url, key: item.key }));
-    galleryEl.appendChild(d);
+    (isVideo ? videoGalleryEl : galleryEl).appendChild(d);
   });
 }
 
