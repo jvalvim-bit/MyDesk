@@ -2922,11 +2922,20 @@ document.addEventListener('change', e => {
 
 /* ═══════════════════════════════════════════════════
    CONEXÃO COM OUTLOOK (Microsoft Graph, OAuth2 + PKCE)
-   Requer um App Registration próprio no Azure AD (client
-   público, sem secret — o usuário cola o Client ID uma vez).
-   Sem isso não tem como funcionar: é a Microsoft quem exige
-   um app registrado pra emitir token, não existe atalho.
+   Requer um App Registration no Azure AD (client público,
+   sem secret). Sem isso não tem como funcionar: é a Microsoft
+   quem exige um app registrado pra emitir token — não existe
+   atalho técnico, vale pra qualquer site (Notion, Slack, etc.
+   fazem o mesmo, só que uma vez só, do lado deles).
+
+   OUTLOOK_CLIENT_ID: preencha aqui o Application (client) ID
+   do App Registration do MyDesk assim que ele existir — a
+   partir daí TODOS os usuários clicam "Conectar Outlook" e
+   caem direto na tela de login da Microsoft, sem nenhum passo
+   extra (igual Notion). Enquanto ficar vazio, cada usuário
+   configura o dele uma única vez pelo modal abaixo.
 ═══════════════════════════════════════════════════ */
+const OUTLOOK_CLIENT_ID = ''; // ← cole aqui o Client ID assim que o App Registration existir
 const OUTLOOK_SCOPES = 'openid profile Calendars.Read offline_access';
 
 function _b64url(bytes) {
@@ -2940,14 +2949,53 @@ async function _pkcePair() {
 function _outlookRedirectUri() {
   return window.location.origin + window.location.pathname;
 }
+function _outlookClientId() {
+  return OUTLOOK_CLIENT_ID || localStorage.getItem('md_outlook_client_id') || '';
+}
 
 async function connectOutlook() {
-  let clientId = localStorage.getItem('md_outlook_client_id');
-  if (!clientId) {
-    clientId = (prompt('Cole o Client ID (Application ID) do seu App Registration do Azure AD:\n\nCrie um em portal.azure.com → App registrations → New registration.\nRedirect URI (tipo SPA): ' + _outlookRedirectUri()) || '').trim();
-    if (!clientId) return;
-    localStorage.setItem('md_outlook_client_id', clientId);
-  }
+  const clientId = _outlookClientId();
+  if (clientId) return _startOutlookAuth(clientId);
+  openOutlookSetupModal();
+}
+
+/* Modal de configuração única — some para sempre assim que
+   OUTLOOK_CLIENT_ID for preenchido no código. */
+function openOutlookSetupModal() {
+  document.querySelector('.outlook-modal-bg')?.remove();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg outlook-modal-bg';
+  bg.innerHTML = `
+    <div class="modal" style="max-width:440px;">
+      <div class="outlook-modal-brand">
+        <svg width="20" height="20" viewBox="0 0 23 23"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+        Microsoft
+      </div>
+      <div class="m-h1">Conectar sua conta Outlook</div>
+      <div class="m-sub">Configuração única do MyDesk. Depois disso é só clicar e entrar com sua conta — igual Notion, Slack ou Zoom.</div>
+      <div class="m-lbl">Client ID do App Registration</div>
+      <input class="m-inp" id="outlook-m-clientid" placeholder="ex: a1b2c3d4-5678-90ab-cdef-1234567890ab">
+      <div class="outlook-modal-help">Ainda não tem um? <a href="https://portal.azure.com" target="_blank" rel="noopener">Crie em portal.azure.com</a> → App registrations → New registration (~3 min, gratuito).</div>
+      <div class="m-btns">
+        <button class="m-cancel" id="outlook-m-cancel">Cancelar</button>
+        <button class="m-confirm" id="outlook-m-confirm">Continuar para Microsoft →</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  const inp = bg.querySelector('#outlook-m-clientid');
+  bg.querySelector('#outlook-m-cancel').onclick = () => bg.remove();
+  bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
+  bg.querySelector('#outlook-m-confirm').onclick = () => {
+    const id = inp.value.trim();
+    if (!id) { inp.style.borderColor = 'var(--clr-danger)'; inp.focus(); return; }
+    localStorage.setItem('md_outlook_client_id', id);
+    bg.remove();
+    _startOutlookAuth(id);
+  };
+  setTimeout(() => inp.focus(), 80);
+}
+
+async function _startOutlookAuth(clientId) {
   const { verifier, challenge } = await _pkcePair();
   sessionStorage.setItem('md_outlook_verifier', verifier);
   const params = new URLSearchParams({
@@ -2968,7 +3016,7 @@ async function _handleOutlookRedirect() {
   if (params.get('state') !== 'md_outlook' || !params.get('code')) return;
   const code     = params.get('code');
   const verifier = sessionStorage.getItem('md_outlook_verifier');
-  const clientId = localStorage.getItem('md_outlook_client_id');
+  const clientId = _outlookClientId();
   window.history.replaceState({}, '', window.location.pathname); // limpa ?code=... da URL
   if (!verifier || !clientId) return;
 
@@ -2999,7 +3047,7 @@ async function _handleOutlookRedirect() {
 
 async function _refreshOutlookToken() {
   const refreshToken = localStorage.getItem('md_outlook_refresh');
-  const clientId     = localStorage.getItem('md_outlook_client_id');
+  const clientId     = _outlookClientId();
   if (!refreshToken || !clientId) return false;
   try {
     const body = new URLSearchParams({

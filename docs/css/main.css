@@ -613,6 +613,11 @@
 .auth-hero-trust .lp-trust-logo{font-size:.74rem;}
 @media(max-width:768px){.auth-hero-title{font-size:1.6rem;}.auth-hero-sub{max-width:100%;}}
 
+/* ── Modal de conexão com Outlook ── */
+.outlook-modal-brand{display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;color:rgba(240,240,240,.5);margin-bottom:16px;}
+.outlook-modal-help{font-size:.72rem;color:rgba(240,240,240,.32);line-height:1.6;margin:-4px 0 18px;}
+.outlook-modal-help a{color:#a5b4fc;text-decoration:underline;text-underline-offset:2px;}
+
 /* ── Dashboard dinâmico + notificações + tarefas (bloco estilo "features") ── */
 .lp-dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .lp-dash-card{background:var(--clr-bg-card);border:1px solid var(--clr-border);border-radius:16px;padding:26px;transition:border-color .25s,transform .25s;}
