@@ -55,7 +55,9 @@ const handler = async (req, res) => {
 
   if (!isPaid) return res.status(200).json({ ok: true, ignored: true });
 
-  const uid = event?.data?.metadata?.firebaseUid;
+  // metadata nem sempre é ecoada de volta pelo webhook — externalId é o
+  // campo garantido pela AbacatePay no payload, então serve de fallback.
+  const uid = event?.data?.metadata?.firebaseUid || event?.data?.externalId;
   if (!uid) return res.status(400).json({ error: 'firebaseUid não encontrado' });
 
   try {

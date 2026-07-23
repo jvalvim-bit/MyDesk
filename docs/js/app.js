@@ -1202,12 +1202,9 @@ async function showPremiumModal() {
       <div class="pm-price"><div class="pm-price-val">R$&nbsp;10</div><div class="pm-price-period">/mês via Pix</div></div>
       <div class="pm-pix-box">
         <div class="pm-pix-label" id="pm-pix-label">Gerando cobrança Pix…</div>
-        <div class="pm-qr" id="pm-qr-wrap">
+        <div id="pm-pay-wrap" style="display:flex;justify-content:center;padding:12px 0;">
           <div style="font-size:1.5rem;animation:spin 1s linear infinite;display:inline-block;">⟳</div>
         </div>
-        <div class="pm-pix-label" style="display:none" id="pm-copy-label">ou copie o código Pix</div>
-        <div class="pm-pix-key" id="pm-pix-copy" style="display:none" title="Clique para copiar"></div>
-        <div class="pm-pix-copied" id="pm-pix-copied">✓ Copiado!</div>
       </div>
       <div class="pm-note">O plano é ativado automaticamente após o pagamento ser confirmado.</div>` : ''}
     </div>`;
@@ -1223,7 +1220,6 @@ async function showPremiumModal() {
 
   if (!isPremium() && CU?.uid) {
     // Tentar backend Vercel para criar cobrança real no AbacatePay
-    let usedAPI = false;
     try {
       const _ctrl = new AbortController();
       const _timer = setTimeout(() => _ctrl.abort(), 8000);
@@ -1247,46 +1243,28 @@ async function showPremiumModal() {
 
       const data = await resp.json();
 
-      const qrWrap    = bg.querySelector('#pm-qr-wrap');
-      const pixLabel  = bg.querySelector('#pm-pix-label');
-      const copyLabel = bg.querySelector('#pm-copy-label');
-      const copyEl    = bg.querySelector('#pm-pix-copy');
-      const copiedEl  = bg.querySelector('#pm-pix-copied');
+      const payWrap  = bg.querySelector('#pm-pay-wrap');
+      const pixLabel = bg.querySelector('#pm-pix-label');
+      const safeUrl  = (data.ok && typeof data.url === 'string' && /^https:\/\//.test(data.url)) ? data.url : null;
 
-      if (data.ok && data.pixCode) {
-        usedAPI = true;
-        if (pixLabel) pixLabel.textContent = 'Escaneie o QR Code com o app do seu banco';
-        if (copyLabel) copyLabel.style.display = '';
-        if (copyEl) {
-          copyEl.style.display = '';
-          copyEl.textContent = data.pixCode;
-          copyEl.addEventListener('click', () => {
-            navigator.clipboard.writeText(data.pixCode).catch(() => {
-              const ta = document.createElement('textarea');
-              ta.value = data.pixCode; document.body.appendChild(ta);
-              ta.select(); document.execCommand('copy'); ta.remove();
-            });
-            if (copiedEl) { copiedEl.style.display = 'block'; setTimeout(() => copiedEl.style.display = 'none', 2500); }
-          });
-        }
-        if (qrWrap) _drawPixQR(qrWrap, data.pixCode);
-        if (data.url) {
-          const safeUrl = (typeof data.url === 'string' && /^https:\/\//.test(data.url)) ? data.url : null;
-          if (safeUrl) {
-            const linkDiv = document.createElement('div');
-            linkDiv.style.cssText = 'text-align:center;margin-top:10px;';
-            const anchor = document.createElement('a');
-            anchor.href = safeUrl;
-            anchor.target = '_blank';
-            anchor.rel = 'noopener noreferrer';
-            anchor.style.cssText = 'font-size:.75rem;color:var(--clr-indigo-light);text-decoration:underline;text-underline-offset:3px;';
-            anchor.textContent = 'Abrir página de pagamento →';
-            linkDiv.appendChild(anchor);
-            bg.querySelector('.pm-pix-box')?.appendChild(linkDiv);
-          }
+      if (safeUrl) {
+        if (pixLabel) pixLabel.textContent = 'Cobrança gerada — finalize o pagamento:';
+        if (payWrap) {
+          payWrap.innerHTML = '';
+          const anchor = document.createElement('a');
+          anchor.href = safeUrl;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.style.cssText = 'display:inline-block;width:100%;text-align:center;padding:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:10px;font-family:Inter,sans-serif;font-size:.86rem;font-weight:600;color:#fff;text-decoration:none;box-shadow:0 4px 18px rgba(99,102,241,.35);';
+          anchor.textContent = 'Pagar com Pix →';
+          payWrap.appendChild(anchor);
+          // Abre automaticamente a página de pagamento hospedada pela AbacatePay
+          // (QR Code + copia-e-cola são exibidos lá — mais confiável do que
+          // tentar renderizar isso dentro do nosso próprio modal).
+          window.open(safeUrl, '_blank', 'noopener,noreferrer');
         }
       }
-      // se data.ok === false, cai pro fallback abaixo
+      // se não veio url válida, cai pro fallback abaixo
     } catch(err) {
       console.warn('[Premium] API indisponível:', err.message || err);
       // Exibe mensagem de erro ao usuário em vez de fallback com dados sensíveis
@@ -1294,32 +1272,6 @@ async function showPremiumModal() {
       if (pixLabel) pixLabel.textContent = 'Serviço de pagamento temporariamente indisponível. Tente novamente em instantes.';
     }
   }
-}
-
-// ── Draw QR Code on canvas ──
-function _drawPixQR(container, text) {
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-  script.onload = () => {
-    container.innerHTML = '';
-    try {
-      new QRCode(container, {
-        text,
-        width:  164,
-        height: 164,
-        colorDark:  '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M,
-      });
-    } catch(e) {
-      container.innerHTML = '<div style="font-size:.7rem;color:rgba(0,0,0,.5);padding:10px;">QR Code indisponível.<br>Copie o código abaixo.</div>';
-    }
-  };
-  script.onerror = () => {
-    container.innerHTML = '<div style="font-size:.65rem;color:#333;padding:8px;line-height:1.4;">Copie o código Pix abaixo ↓</div>';
-  };
-  if (!window.QRCode) document.head.appendChild(script);
-  else script.onload();
 }
 
 async function createNote() {

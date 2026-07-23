@@ -38,26 +38,16 @@ const handler = async (req, res) => {
   };
 
   try {
-    // 1. Criar cliente
-    const customerRes = await fetch(`${BASE}/customer/create`, {
-      method: 'POST', headers,
-      body: JSON.stringify({
-        metadata: { name: name || 'Usuário MyDesk', email, cellphone: '', taxId: '' },
-      }),
-    });
-    const customerData = await customerRes.json();
-    if (!customerRes.ok) return res.status(500).json({ error: 'Erro cliente', details: customerData });
-
-    const customerId = customerData.data?.id;
-    console.log('Customer created:', customerId);
-
-    // 2. Criar cobrança
+    // Cria a cobrança diretamente — sem etapa de cliente (customer é opcional
+    // no /billing/create, e exigiria cellphone/taxId que o app não coleta).
+    // externalId + metadata carregam o uid do Firebase pra correlacionar
+    // com o evento billing.paid recebido no webhook.
     const chargeRes = await fetch(`${BASE}/billing/create`, {
       method: 'POST', headers,
       body: JSON.stringify({
         frequency: 'ONE_TIME',
         methods: ['PIX'],
-        customerId,
+        externalId: uid,
         products: [{
           externalId: 'mydesk-premium-monthly',
           name: 'MyDesk Premium — 1 mês',
@@ -71,24 +61,14 @@ const handler = async (req, res) => {
       }),
     });
     const chargeData = await chargeRes.json();
-    if (!chargeRes.ok) return res.status(500).json({ error: 'Erro cobrança', details: chargeData });
+    if (!chargeRes.ok || chargeData.error) {
+      return res.status(500).json({ error: 'Erro cobrança', details: chargeData });
+    }
 
-    const billId  = chargeData.data?.id;
-    const billUrl = chargeData.data?.url;
-    console.log('Charge created:', billId);
+    const bill = chargeData.data;
+    console.log('Charge created:', bill?.id);
 
-    // 3. QR Code Pix
-    let pixCode = null;
-    try {
-      const qrRes  = await fetch(`${BASE}/pixQrCode/create`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ billingId: billId }),
-      });
-      const qrData = await qrRes.json();
-      pixCode = qrData.data?.brCode || qrData.data?.pixCode || qrData.data?.qrCode || null;
-    } catch(e) { console.warn('QR failed:', e.message); }
-
-    return res.status(200).json({ ok: true, url: billUrl, pixCode, chargeId: billId });
+    return res.status(200).json({ ok: true, url: bill?.url, chargeId: bill?.id });
 
   } catch (err) {
     console.error('Error creating charge:', err.message);
