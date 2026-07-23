@@ -8185,6 +8185,7 @@ function toggleCRMView() {
   const board   = document.getElementById('board');
   const crmBrd  = document.getElementById('crm-board');
   const crmDash = document.getElementById('crm-dashboard');
+  const crmChts = document.getElementById('crm-charts-row');
 
   if (_crmMode) {
     btn.classList.add('active');
@@ -8192,6 +8193,7 @@ function toggleCRMView() {
     board.style.display = 'none';
     crmBrd.classList.add('visible');
     crmDash.classList.add('visible');
+    if (crmChts) crmChts.classList.add('visible');
     // Update toolbar title with workspace context
     _updateCRMBoardTitle();
     loadRecords();
@@ -8201,6 +8203,7 @@ function toggleCRMView() {
     board.style.display = (_activeWs || _activeGroupWs) ? 'flex' : 'block';
     crmBrd.classList.remove('visible');
     crmDash.classList.remove('visible');
+    if (crmChts) crmChts.classList.remove('visible');
     _crmDetachListener();
   }
 }
@@ -9092,10 +9095,12 @@ window.addEventListener('load', function crmInit() {
       const label = document.getElementById('crm-view-label');
       const crmBd = document.getElementById('crm-board');
       const crmDs = document.getElementById('crm-dashboard');
+      const crmCh = document.getElementById('crm-charts-row');
       if (btn)   btn.classList.remove('active');
       if (label) label.textContent = 'Clientes';
       if (crmBd) crmBd.classList.remove('visible');
       if (crmDs) crmDs.classList.remove('visible');
+      if (crmCh) crmCh.classList.remove('visible');
       origLogout.apply(this, arguments);
     };
   }

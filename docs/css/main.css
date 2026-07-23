@@ -300,7 +300,8 @@
 .crm-clear-btn svg{width:12px;height:12px;}
 
 /* ── CRM charts (donut + barras mensais) ─────────────────────────────── */
-#crm-charts-row{display:flex;gap:14px;padding:14px 20px;flex-wrap:wrap;}
+#crm-charts-row{display:none;gap:14px;padding:14px 20px;flex-wrap:wrap;}
+#crm-charts-row.visible{display:flex;}
 .crm-chart-panel{background:var(--clr-bg-card);border:1px solid var(--clr-border-soft);border-radius:var(--radius-md);padding:14px 16px;flex:1;min-width:220px;}
 .crm-chart-panel-wide{flex:2;min-width:280px;}
 .crm-chart-title{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--clr-text-dim);margin-bottom:10px;}
