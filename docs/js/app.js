@@ -2765,6 +2765,38 @@ function removeNote(id) {
   saveNotes(); syncCount();
 }
 
+/* ── PDF.js self-hospedado (docs/js/vendor/pdfjs) ──
+   Antes carregava de cdnjs.cloudflare.com, mas a CSP do site só libera
+   script-src 'self' — o script nunca era executado de verdade, o visualizador
+   de PDF sempre caía no fallback de erro em produção. O worker precisa virar
+   uma blob: URL (fetch + Blob) porque worker-src da CSP só permite blob:. */
+let _pdfJsLoadPromise = null;
+function _ensurePdfJs() {
+  if (_pdfJsLoadPromise) return _pdfJsLoadPromise;
+  _pdfJsLoadPromise = new Promise((resolve, reject) => {
+    const finish = async () => {
+      const lib = window['pdfjs-dist/build/pdf'];
+      if (!lib) { reject(new Error('pdfjs global não encontrado')); return; }
+      if (!lib.GlobalWorkerOptions.workerSrc) {
+        try {
+          const res  = await fetch('js/vendor/pdfjs/pdf.worker.min.js');
+          const code = await res.text();
+          const blob = new Blob([code], { type: 'application/javascript' });
+          lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob);
+        } catch (e) { reject(e); return; }
+      }
+      resolve(lib);
+    };
+    if (window['pdfjs-dist/build/pdf']) { finish(); return; }
+    const script = document.createElement('script');
+    script.src = 'js/vendor/pdfjs/pdf.min.js';
+    script.onload = finish;
+    script.onerror = () => reject(new Error('Falha ao carregar PDF.js'));
+    document.head.appendChild(script);
+  });
+  return _pdfJsLoadPromise;
+}
+
 /* ═══════════════════════════════════════════════════
    SISTEMA DE ARQUIVOS
    Upload, validação, renderização e exclusão de anexos
@@ -3218,7 +3250,6 @@ function renderViewerContent(body, f, pdfCallback, imgCallback) {
         body.innerHTML = '<div style="padding:20px;color:rgba(240,240,240,.4);font-size:.8rem;text-align:center;">PDF.js não carregou.<br><a href="'+f.dataUrl+'" download="'+xe(f.name)+'" class="fv-dl-btn" style="margin-top:10px;display:inline-flex">↓ Baixar PDF</a></div>';
         return;
       }
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       const b64 = f.dataUrl.split(',')[1];
       const raw = atob(b64);
       const bytes = new Uint8Array(raw.length);
@@ -3254,18 +3285,9 @@ function renderViewerContent(body, f, pdfCallback, imgCallback) {
       });
     }
 
-    if (window['pdfjs-dist/build/pdf']) {
-      loading.remove();
-      doLoadPdf();
-    } else {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-      script.onload = () => { loading.remove(); doLoadPdf(); };
-      script.onerror = () => {
-        body.innerHTML = '<div style="padding:20px;color:rgba(240,240,240,.4);font-size:.8rem;text-align:center;">Sem conexão para carregar PDF.js.<br><a href="'+f.dataUrl+'" download="'+xe(f.name)+'" class="fv-dl-btn" style="margin-top:10px;display:inline-flex">↓ Baixar PDF</a></div>';
-      };
-      document.head.appendChild(script);
-    }
+    _ensurePdfJs().then(() => { loading.remove(); doLoadPdf(); }).catch(() => {
+      body.innerHTML = '<div style="padding:20px;color:rgba(240,240,240,.4);font-size:.8rem;text-align:center;">Não foi possível carregar o visualizador de PDF.<br><a href="'+f.dataUrl+'" download="'+xe(f.name)+'" class="fv-dl-btn" style="margin-top:10px;display:inline-flex">↓ Baixar PDF</a></div>';
+    });
 
   } else if (t.startsWith('text/') || t === 'application/json' || t.includes('javascript') || t.includes('xml') || t.includes('csv')) {
     // ── Text / code: decode base64, show in <pre>
@@ -8905,6 +8927,80 @@ function exportClientCard(id) {
   toast('📄', 'Ficha exportada! Abre com o Word.');
 }
 
+/* ─────────────────────────────────────────────
+   VISUALIZAR DOCUMENTO DO CLIENTE
+   Reaproveita o PDF.js self-hospedado (_ensurePdfJs)
+───────────────────────────────────────────── */
+function viewDocumentFile(doc) {
+  if (!doc) return;
+  document.querySelector('.crm-doc-viewer-bg')?.remove();
+
+  const isPdf   = doc.type === 'application/pdf';
+  const isImage = (doc.type || '').startsWith('image/');
+
+  const bg = document.createElement('div');
+  bg.className = 'crm-doc-viewer-bg';
+  bg.innerHTML = `
+    <div class="crm-doc-viewer">
+      <div class="crm-doc-viewer-head">
+        <span class="crm-doc-viewer-name" title="${xe(doc.name)}">${xe(doc.name)}</span>
+        <a href="${sanitizeAttr(doc.dataUrl || '')}" download="${sanitizeAttr(doc.name || 'documento')}" class="crm-doc-viewer-dl" title="Baixar">↓</a>
+        <button class="crm-doc-viewer-close" id="cdv-close">${iX}</button>
+      </div>
+      <div class="crm-doc-viewer-body" id="cdv-body"></div>
+    </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#cdv-close').addEventListener('click', () => bg.remove());
+  bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
+
+  const body = bg.querySelector('#cdv-body');
+
+  if (isImage) {
+    const img = document.createElement('img');
+    img.src = doc.dataUrl;
+    img.alt = doc.name;
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;';
+    body.appendChild(img);
+
+  } else if (isPdf) {
+    body.innerHTML = '<div class="crm-doc-viewer-loading"><span>⏳</span> Carregando PDF…</div>';
+    _ensurePdfJs().then(pdfjsLib => {
+      const b64   = doc.dataUrl.split(',')[1];
+      const raw   = atob(b64);
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      return pdfjsLib.getDocument({ data: bytes }).promise;
+    }).then(pdf => {
+      body.innerHTML = '';
+      body.classList.add('crm-doc-viewer-body-pdf');
+      const renderPage = (pageNum) => {
+        pdf.getPage(pageNum).then(page => {
+          const dpr       = window.devicePixelRatio || 1;
+          const bodyWidth = body.clientWidth - 28;
+          const baseVP    = page.getViewport({ scale: 1 });
+          const scale     = (bodyWidth / baseVP.width) * dpr;
+          const viewport  = page.getViewport({ scale });
+          const canvas = document.createElement('canvas');
+          canvas.width  = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.cssText = 'display:block;width:'+Math.round(viewport.width/dpr)+'px;height:'+Math.round(viewport.height/dpr)+'px;border-radius:6px;box-shadow:0 3px 14px rgba(0,0,0,.5);background:#fff;flex-shrink:0;';
+          body.appendChild(canvas);
+          page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise.then(() => {
+            if (pageNum < pdf.numPages) renderPage(pageNum + 1);
+          });
+        });
+      };
+      renderPage(1);
+    }).catch(err => {
+      console.error('Erro ao renderizar PDF:', err);
+      body.innerHTML = '<div class="crm-doc-viewer-loading">Não foi possível carregar o PDF.<br><a href="'+doc.dataUrl+'" download="'+xe(doc.name)+'">↓ Baixar arquivo</a></div>';
+    });
+
+  } else {
+    body.innerHTML = '<div class="crm-doc-viewer-loading">Pré-visualização não disponível para este tipo de arquivo.<br><a href="'+doc.dataUrl+'" download="'+xe(doc.name)+'">↓ Baixar arquivo</a></div>';
+  }
+}
+
 function renderRecordsTable() {
   const tbody  = document.getElementById('crm-table-body');
   const empty  = document.getElementById('crm-empty-state');
@@ -8963,7 +9059,7 @@ function renderRecordsTable() {
         <div class="crm-name-cell">
           <div class="crm-avatar" style="background:linear-gradient(135deg,${pal.bar},${pal.dot});">${xe(initial)}</div>
           <div>
-            <div class="crm-client-name">${xe(rec.name)}${(rec.documents||[]).length ? ` <span class="crm-doc-count" title="${(rec.documents||[]).length} documento(s) anexado(s)">📎${(rec.documents||[]).length}</span>` : ''}</div>
+            <div class="crm-client-name">${xe(rec.name)}${(rec.documents||[]).length ? ` <span class="crm-doc-count" title="Ver documentos" onclick="event.stopPropagation();openEditRecordModal('${rec.id}')">📎${(rec.documents||[]).length}</span>` : ''}</div>
             ${rec.description ? `<div class="crm-client-desc">${xe(rec.description.slice(0,50))}${rec.description.length>50?'…':''}</div>` : ''}
           </div>
         </div>
@@ -9185,10 +9281,13 @@ function _openRecordModal(rec, prefill) {
   const renderDocList = () => {
     docListEl.innerHTML = pendingDocs.map((d, i) => `
       <div class="crm-doc-item" data-i="${i}">
-        <span class="crm-doc-name">📄 ${xe(d.name)}</span>
+        <span class="crm-doc-name" title="Clique para visualizar">📄 ${xe(d.name)}</span>
         <span class="crm-doc-size">${((d.size||0)/1024).toFixed(0)}KB</span>
         <button type="button" class="crm-doc-del" title="Remover">${iX}</button>
       </div>`).join('');
+    docListEl.querySelectorAll('.crm-doc-name').forEach(el => {
+      el.addEventListener('click', () => viewDocumentFile(pendingDocs[Number(el.closest('.crm-doc-item').dataset.i)]));
+    });
     docListEl.querySelectorAll('.crm-doc-del').forEach(btn => {
       btn.addEventListener('click', () => {
         pendingDocs.splice(Number(btn.closest('.crm-doc-item').dataset.i), 1);

@@ -259,7 +259,7 @@
 .m-back-btn:hover{background:rgba(255,255,255,.06);color:rgba(240,240,240,.7);}
 
 /* ── Client Note Card — extra UI no board ── */
-.note.is-client-note{width:280px !important;}
+.note.is-client-note{width:280px;}
 /* Client block is always visible, not hidden by expand-area */
 .n-client-block{display:block !important;}
 /* Reduce min textarea height for client notes so value block shows */
@@ -401,7 +401,23 @@
 .crm-doc-add{display:block;width:100%;padding:9px;background:var(--clr-border-soft);border:1px dashed rgba(255,255,255,.15);border-radius:8px;font-family:'Inter',sans-serif;font-size:.75rem;color:rgba(240,240,240,.5);text-align:center;cursor:pointer;margin-bottom:14px;transition:all .15s;}
 .crm-doc-add:hover{border-color:var(--clr-indigo-40);color:var(--clr-indigo-light);}
 .crm-doc-add input{display:none;}
-.crm-doc-count{font-size:.6rem;color:rgba(240,240,240,.35);font-weight:500;}
+.crm-doc-count{font-size:.6rem;color:rgba(240,240,240,.35);font-weight:500;cursor:pointer;}
+.crm-doc-count:hover{color:var(--clr-indigo-light);}
+
+/* ── Visualizador de documento do cliente (imagem/PDF) ── */
+.crm-doc-viewer-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(3px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:30px;}
+.crm-doc-viewer{width:min(880px,100%);height:min(88vh,900px);background:#141414;border:1px solid var(--clr-border-strong);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+.crm-doc-viewer-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--clr-border);flex-shrink:0;}
+.crm-doc-viewer-name{flex:1;min-width:0;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;color:var(--clr-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.crm-doc-viewer-dl{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:var(--clr-border-faint);color:var(--clr-text);text-decoration:none;font-size:.9rem;flex-shrink:0;}
+.crm-doc-viewer-dl:hover{background:var(--clr-indigo-20);}
+.crm-doc-viewer-close{background:var(--clr-border-faint);border:none;color:var(--clr-text);width:26px;height:26px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.crm-doc-viewer-close svg{width:12px;height:12px;}
+.crm-doc-viewer-close:hover{background:rgba(239,68,68,.2);color:var(--clr-danger-light);}
+.crm-doc-viewer-body{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px;}
+.crm-doc-viewer-body-pdf{flex-direction:column;align-items:center;overflow-y:auto;gap:10px;padding:14px;}
+.crm-doc-viewer-loading{color:rgba(240,240,240,.4);font-size:.8rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.crm-doc-viewer-loading a{color:var(--clr-indigo-light);}
 
 /* ── Coleção de wallpapers prontos ────────────────────────────────────── */
 .wp-gallery{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
