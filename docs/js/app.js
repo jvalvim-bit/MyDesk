@@ -1221,16 +1221,15 @@ async function showPremiumModal() {
   if (!isPremium() && CU?.uid) {
     // Tentar backend Vercel para criar cobrança real no AbacatePay
     try {
+      const fbUser = window._fbAuth?.currentUser;
+      if (!fbUser) throw new Error('Sem sessão Firebase (modo demo)');
+      const idToken = await fbUser.getIdToken();
+
       const _ctrl = new AbortController();
       const _timer = setTimeout(() => _ctrl.abort(), 8000);
       const resp = await fetch(VERCEL_API + '/api/create-charge', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid:   CU.uid,
-          email: CU.email || '',
-          name:  CU.name  || CU.username || '',
-        }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
         signal: _ctrl.signal,
       }).finally(() => clearTimeout(_timer));
 
