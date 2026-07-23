@@ -18,7 +18,7 @@
   <script src="js/firebase-init.js?v=5"></script>
   <script src="js/auth-service.js?v=1"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=12">
+  <link rel="stylesheet" href="css/main.css?v=13">
 </head>
 <body>
 
@@ -466,6 +466,19 @@
   <div class="sp-body" id="sp-body"></div>
 </div>
 
+<!-- CALL OVERLAY -->
+<div id="call-overlay" style="display:none">
+  <div class="call-header">
+    <span class="call-title" id="call-title">Videochamada</span>
+  </div>
+  <div class="call-grid" id="call-grid"></div>
+  <div class="call-controls">
+    <button id="call-btn-mic" class="call-ctrl-btn" title="Mudo" onclick="toggleCallMic()">&#127908;&#65039;</button>
+    <button id="call-btn-cam" class="call-ctrl-btn" title="Camera" onclick="toggleCallCam()">&#128247;</button>
+    <button id="call-btn-leave" class="call-ctrl-btn leave" title="Sair da chamada" onclick="leaveCall()">&#128222;</button>
+  </div>
+</div>
+
 <!-- SORT PANEL -->
 <div id="sort-panel">
   <div class="sort-panel-title">&#9889; Reorganizar por<span id="sort-active-label">padrao</span><button class="sort-reset" id="sort-reset-btn" style="margin-left:auto;">&#8634; Resetar</button></div>
@@ -532,6 +545,6 @@
 <!-- TOAST -->
 <div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
 
-<script src="js/app.js?v=13" defer></script>
+<script src="js/app.js?v=14" defer></script>
 </body>
 </html>

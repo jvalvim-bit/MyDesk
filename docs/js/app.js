@@ -6384,9 +6384,11 @@ function openChatWin(friend) {
         <span class="chat-title">${xe(name)}</span>
         <span class="chat-unread" id="ch-unread-${friend}" style="display:none"></span>
         <button class="chat-ws-btn" id="ch-ws-${friend}" title="Workspace compartilhado" style="background:none;border:none;cursor:pointer;color:rgba(45,212,191,.7);font-size:.85rem;padding:0 3px;transition:color .15s;flex-shrink:0;">🗂</button>
+        <button class="chat-call-btn" id="ch-call-${friend}" title="Iniciar videochamada">📹</button>
         <button class="chat-clear-btn" id="ch-clear-${friend}" title="${T.clearChat||'Limpar conversa'}">🗑</button>
         <button class="chat-close-btn" id="ch-close-${friend}">✕</button>
       </div>
+      <div class="chat-call-invite" id="ch-invite-${friend}" style="display:none">📹 Chamada em andamento <button class="chat-call-join">Entrar</button></div>
       <div class="chat-msgs" id="ch-msgs-${friend}"></div>
       <div class="chat-input-row">
         <label class="chat-file-btn" title="Enviar arquivo">
@@ -6417,12 +6419,19 @@ function openChatWin(friend) {
     win.querySelector('#ch-ws-' + friend).addEventListener('click', (e) => {
       e.stopPropagation(); openSharedWorkspace(friend);
     });
+    win.querySelector('#ch-call-' + friend).addEventListener('click', (e) => {
+      e.stopPropagation(); startOrJoinCall('dm', chatKey(CU.username, friend), name);
+    });
     win.querySelector('#ch-clear-' + friend).addEventListener('click', (e) => {
       e.stopPropagation(); clearConversation(friend);
     });
     win.querySelector('#ch-close-' + friend).addEventListener('click', (e) => {
       e.stopPropagation(); closeChatWin(friend);
     });
+    win.querySelector('#ch-invite-' + friend + ' .chat-call-join').addEventListener('click', (e) => {
+      e.stopPropagation(); startOrJoinCall('dm', chatKey(CU.username, friend), name);
+    });
+    watchIncomingCall('dm', chatKey(CU.username, friend), friend);
 
     const sendMsg = () => {
       const inp = win.querySelector('#ch-inp-' + friend);
@@ -6968,8 +6977,10 @@ async function openGroupChat(group) {
       <div class="chat-header-avatar" style="background:linear-gradient(135deg,#6366f1,#4f46e5);font-size:.85rem;position:relative;overflow:hidden;">${gAvatar}</div>
       <span class="chat-title">${xe(group.name)}</span>
       <span class="chat-unread" id="ch-unread-${gid}" style="display:none"></span>
+      <button class="chat-call-btn" id="ch-call-${gid}" title="Iniciar videochamada em grupo">📹</button>
       <button class="chat-close-btn" id="ch-close-${gid}">✕</button>
     </div>
+    <div class="chat-call-invite" id="ch-invite-${gid}" style="display:none">📹 Chamada em andamento <button class="chat-call-join">Entrar</button></div>
     <div class="chat-msgs" id="ch-msgs-${gid}"></div>
     <div class="chat-input-row">
       <label class="chat-file-btn" title="Enviar arquivo/imagem">
@@ -6997,6 +7008,13 @@ async function openGroupChat(group) {
     win.remove(); openGroupChats.delete(group.id);
     repositionAllChatWindows();
   });
+  win.querySelector('#ch-call-' + gid).addEventListener('click', e => {
+    e.stopPropagation(); startOrJoinCall('group', group.id, group.name);
+  });
+  win.querySelector('#ch-invite-' + gid + ' .chat-call-join').addEventListener('click', e => {
+    e.stopPropagation(); startOrJoinCall('group', group.id, group.name);
+  });
+  watchIncomingCall('group', group.id, gid);
 
   const sendMsg = () => {
     const inp = win.querySelector('#ch-inp-' + gid);
@@ -7022,6 +7040,209 @@ async function openGroupChat(group) {
   // Load history + live listener
   loadGroupMessages(group.id, gid);
   listenGroupChat(group.id, gid);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIDEOCHAMADA — WebRTC mesh + sinalização via Firebase
+   Funciona pra chat 1:1 (chats/{chatKey}/call) e chat de grupo
+   (groupChats/{groupId}/call). Qualquer participante pode iniciar
+   sem precisar de aprovação de ninguém — quem ainda não entrou vê
+   um convite piscando na janela de chat até clicar em "Entrar"
+   (e só aí o próprio navegador pede a permissão de câmera/mic dela).
+   Chamadas em grupo usam topologia mesh (cada participante conecta
+   direto com todos os outros) — funciona bem até uns 4-6 participantes,
+   que é o razoável sem um servidor de mídia (SFU) dedicado.
+═══════════════════════════════════════════════════════════════ */
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+];
+
+let _call = null; // { basePath, myKey, scope, key, peers:Map, localStream, listeners:[], camOn, micOn }
+
+function _callBasePath(scope, key) {
+  return (scope === 'group' ? 'groupChats/' : 'chats/') + key + '/call';
+}
+
+function isInCall() { return !!_call; }
+
+function _callOn(path, event, fn) {
+  const r = ref(path);
+  r.on(event, fn);
+  _call.listeners.push({ r, event, fn });
+}
+
+function _getOrCreatePeer(otherKey) {
+  if (_call.peers.has(otherKey)) return _call.peers.get(otherKey);
+
+  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  _call.peers.set(otherKey, pc);
+
+  _call.localStream.getTracks().forEach(t => pc.addTrack(t, _call.localStream));
+
+  pc.onicecandidate = e => {
+    if (!e.candidate) return;
+    fbPush(_call.basePath + '/signals/' + otherKey + '/candidates/' + _call.myKey, e.candidate.toJSON());
+  };
+  pc.ontrack = e => {
+    _addVideoTile(otherKey, e.streams[0], false, otherKey);
+  };
+  pc.onconnectionstatechange = () => {
+    if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) _removeVideoTile(otherKey);
+  };
+
+  // Candidatos remotos endereçados a mim, vindos especificamente desse par
+  _callOn(_call.basePath + '/signals/' + _call.myKey + '/candidates/' + otherKey, 'child_added', snap => {
+    pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
+  });
+
+  return pc;
+}
+
+async function _createOfferTo(otherKey) {
+  const pc = _getOrCreatePeer(otherKey);
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await fbSet(_call.basePath + '/signals/' + otherKey + '/offers/' + _call.myKey, { type: offer.type, sdp: offer.sdp });
+}
+
+function _removePeer(otherKey) {
+  const pc = _call.peers.get(otherKey);
+  if (pc) { pc.close(); _call.peers.delete(otherKey); }
+  _removeVideoTile(otherKey);
+}
+
+async function startOrJoinCall(scope, key, title) {
+  if (_call) { toast('⚠', 'Você já está em uma chamada.'); return; }
+  if (!CU?.username) return;
+
+  let localStream;
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  } catch (e) {
+    toast('🚫', 'Não foi possível acessar câmera/microfone.');
+    return;
+  }
+
+  const basePath = _callBasePath(scope, key);
+  const myKey    = CU.username;
+
+  _call = { basePath, myKey, scope, key, peers: new Map(), localStream, listeners: [], camOn: true, micOn: true };
+
+  openCallOverlay(title);
+  _addVideoTile(myKey, localStream, true, (CU.name || CU.username) + ' (você)');
+
+  const myEntry = { joinedAt: Date.now(), username: CU.username, name: CU.name || CU.username };
+  await fbSet(basePath + '/participants/' + myKey, myEntry);
+  await fbUpdate(basePath, { active: true, startedBy: myKey, startedAt: Date.now() });
+  ref(basePath + '/participants/' + myKey).onDisconnect().remove();
+
+  _callOn(basePath + '/participants', 'child_added', snap => {
+    const otherKey = snap.key;
+    if (otherKey === myKey || _call.peers.has(otherKey)) return;
+    if (myKey < otherKey) _createOfferTo(otherKey);
+    else _getOrCreatePeer(otherKey); // só prepara — espera a oferta do outro lado
+  });
+
+  _callOn(basePath + '/participants', 'child_removed', snap => _removePeer(snap.key));
+
+  _callOn(basePath + '/signals/' + myKey + '/offers', 'child_added', async snap => {
+    const fromKey = snap.key;
+    const pc = _getOrCreatePeer(fromKey);
+    await pc.setRemoteDescription(new RTCSessionDescription(snap.val()));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await fbSet(basePath + '/signals/' + fromKey + '/answers/' + myKey, { type: answer.type, sdp: answer.sdp });
+  });
+
+  _callOn(basePath + '/signals/' + myKey + '/answers', 'child_added', async snap => {
+    const pc = _call.peers.get(snap.key);
+    if (pc) await pc.setRemoteDescription(new RTCSessionDescription(snap.val()));
+  });
+
+  toast('📹', 'Chamada iniciada!');
+}
+
+async function leaveCall() {
+  if (!_call) return;
+  const { basePath, myKey, peers, localStream, listeners } = _call;
+
+  listeners.forEach(({ r, event, fn }) => r.off(event, fn));
+  peers.forEach(pc => pc.close());
+  localStream.getTracks().forEach(t => t.stop());
+
+  ref(basePath + '/participants/' + myKey).onDisconnect().cancel();
+  await fbRemove(basePath + '/participants/' + myKey).catch(() => {});
+  await fbRemove(basePath + '/signals/' + myKey).catch(() => {});
+
+  closeCallOverlay();
+  _call = null;
+
+  // Se ninguém mais ficou, limpa o registro da chamada por completo
+  fbGet(basePath + '/participants').then(rest => { if (!rest) fbRemove(basePath).catch(() => {}); });
+}
+
+function toggleCallMic() {
+  if (!_call) return;
+  _call.micOn = !_call.micOn;
+  _call.localStream.getAudioTracks().forEach(t => t.enabled = _call.micOn);
+  const btn = document.getElementById('call-btn-mic');
+  if (btn) { btn.classList.toggle('off', !_call.micOn); btn.textContent = _call.micOn ? '🎙️' : '🔇'; }
+}
+
+function toggleCallCam() {
+  if (!_call) return;
+  _call.camOn = !_call.camOn;
+  _call.localStream.getVideoTracks().forEach(t => t.enabled = _call.camOn);
+  const btn = document.getElementById('call-btn-cam');
+  if (btn) btn.classList.toggle('off', !_call.camOn);
+}
+
+/* ── UI da chamada ── */
+function openCallOverlay(title) {
+  const overlay = document.getElementById('call-overlay');
+  if (!overlay) return;
+  document.getElementById('call-title').textContent = title || 'Videochamada';
+  document.getElementById('call-grid').innerHTML = '';
+  overlay.style.display = 'flex';
+}
+
+function closeCallOverlay() {
+  const overlay = document.getElementById('call-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  document.getElementById('call-grid').innerHTML = '';
+}
+
+function _addVideoTile(key, stream, isLocal, label) {
+  const grid = document.getElementById('call-grid');
+  if (!grid) return;
+  let tile = grid.querySelector('[data-key="' + CSS.escape(key) + '"]');
+  if (!tile) {
+    tile = document.createElement('div');
+    tile.className = 'call-tile';
+    tile.dataset.key = key;
+    tile.innerHTML = `<video autoplay playsinline ${isLocal ? 'muted' : ''}></video><span class="call-tile-label"></span>`;
+    grid.appendChild(tile);
+  }
+  tile.querySelector('video').srcObject = stream;
+  tile.querySelector('.call-tile-label').textContent = label || key;
+}
+
+function _removeVideoTile(key) {
+  document.getElementById('call-grid')?.querySelector('[data-key="' + CSS.escape(key) + '"]')?.remove();
+}
+
+/* ── Convite piscando pra quem ainda não entrou ── */
+function watchIncomingCall(scope, key, domId) {
+  const basePath = _callBasePath(scope, key);
+  ref(basePath + '/participants').on('value', snap => {
+    const banner = document.getElementById('ch-invite-' + domId);
+    if (!banner) return; // janela já foi fechada
+    const partKeys = snap.val() ? Object.keys(snap.val()) : [];
+    const iAmIn    = CU?.username && partKeys.includes(CU.username);
+    banner.style.display = (partKeys.length > 0 && !iAmIn) ? 'flex' : 'none';
+  });
 }
 
 async function sendGroupMessage(groupId, text, file = null) {
@@ -9487,6 +9708,7 @@ window.addEventListener('load', function crmInit() {
   const origLogout = window.doLogout;
   if (typeof origLogout === 'function') {
     window.doLogout = function() {
+      if (typeof isInCall === 'function' && isInCall()) leaveCall();
       _crmDetachListener();
       _records = [];
       _crmMode = false;
