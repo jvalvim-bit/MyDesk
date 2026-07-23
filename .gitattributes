@@ -1,0 +1,6 @@
+# Biblioteca de terceiros (PDF.js) — não deve contar nas estatísticas de
+# linguagem do GitHub nem aparecer em diffs/revisões de código.
+docs/js/vendor/** linguist-vendored
+docs/js/vendor/** linguist-generated=true
+docs/js/vendor/** -diff
+package-lock.json linguist-generated=true

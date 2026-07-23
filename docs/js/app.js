@@ -1352,7 +1352,7 @@ function mountNote(n) {
   const el = document.createElement('div');
   el.className = 'note'; el.dataset.id = n.id;
   const _nw = n.w || 0;
-  const _nh = n.h || 0;
+  const _nh = Math.min(n.h || 0, Math.round(window.innerHeight * 0.75));
   el.style.cssText = `left:${n.x}px;top:${n.y}px;z-index:${n.z};background:${p.bg};border-color:${p.bar}30;${_nw > 0 ? 'width:'+_nw+'px;' : ''}${_nh > 0 ? 'height:'+_nh+'px;overflow-y:auto;' : ''}`;
 
   el.innerHTML = `
@@ -1567,7 +1567,8 @@ function mountNote(n) {
       document.body.style.cursor = 'se-resize';
       const onMove = ev => {
         const newW = Math.max(200, Math.min(600, startW + ev.clientX - startX));
-        const newH = Math.max(0, startH + ev.clientY - startY);
+        const maxH = Math.round(window.innerHeight * 0.75);
+        const newH = Math.max(0, Math.min(maxH, startH + ev.clientY - startY));
         el.style.width = newW + 'px';
         if (newH > 120) { el.style.height = newH + 'px'; el.style.overflowY = 'auto'; }
         else            { el.style.height = ''; el.style.overflowY = ''; }

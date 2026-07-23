@@ -1,33 +1,33 @@
 <div align="center">
 
-<img src="docs/screenshots/banner.svg" alt="MyDesk — Workspace de Notas Inteligente" width="100%" />
+<img src="docs/screenshots/banner.svg" alt="MyDesk — Smart Notes Workspace" width="100%" />
 
-# MyDesk — Workspace de Notas Inteligente
+# MyDesk — Smart Notes Workspace
 
-**Organize ideias, gerencie clientes e colabore em tempo real — tudo em um único lugar.**
+**Organize ideas, manage clients, and collaborate in real time — all in one place.**
 
 [![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-222?style=flat-square&logo=github)](https://jvalvim-bit.github.io/MyDesk/)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com)
 [![Vercel](https://img.shields.io/badge/API-Vercel-000?style=flat-square&logo=vercel)](https://vercel.com)
 [![License](https://img.shields.io/badge/License-MIT-10b981?style=flat-square)](LICENSE)
 
-[**Acessar o site →**](https://jvalvim-bit.github.io/MyDesk/) &nbsp;·&nbsp; [Reportar bug](https://github.com/jvalvim-bit/MyDesk/issues) &nbsp;·&nbsp; [Solicitar feature](https://github.com/jvalvim-bit/MyDesk/issues)
+[**Visit the site →**](https://jvalvim-bit.github.io/MyDesk/) &nbsp;·&nbsp; [Report a bug](https://github.com/jvalvim-bit/MyDesk/issues) &nbsp;·&nbsp; [Request a feature](https://github.com/jvalvim-bit/MyDesk/issues)
 
 </div>
 
 ---
 
-## Visão Geral
+## Overview
 
-O **MyDesk** é um workspace colaborativo de notas com visual dark e foco em produtividade. Diferente de apps de notas tradicionais, o MyDesk combina num board visual interativo:
+**MyDesk** is a collaborative notes workspace with a dark visual style and a focus on productivity. Unlike traditional note-taking apps, MyDesk combines the following into a single interactive visual board:
 
-- **Notas posicionáveis** com drag-and-drop, redimensionamento e pilhas automáticas
-- **CRM financeiro** integrado nas notas para gestão de clientes
-- **Chat em tempo real** 1:1 e em grupo
-- **Workspaces compartilhados** sincronizados ao vivo com amigos
-- **Sistema de planos** com pagamento via Pix (AbacatePay)
+- **Freely positionable notes** with drag-and-drop, resizing, and automatic stacking
+- **Financial CRM** built into notes for client management
+- **Real-time chat** 1:1 and in groups, plus **group video calls** (WebRTC)
+- **Shared workspaces** synced live with friends
+- **Plan system** with payment via Pix (AbacatePay)
 
-Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backend em tempo real.
+Built entirely with HTML, CSS, and vanilla JavaScript — no frameworks — using Firebase as the real-time backend.
 
 ---
 
@@ -36,293 +36,322 @@ Tudo construído com JavaScript puro, sem frameworks, usando Firebase como backe
 ### Landing Page & Login
 
 ![Landing Page](docs/screenshots/landing.png)
-*Typewriter animado com notas de demonstração ao fundo, login por e-mail/senha ou Google OAuth*
+*Animated typewriter with demo notes in the background, login via email/password or Google OAuth*
 
 ---
 
-### Board Principal — Notas & Workspace
+### Main Board — Notes & Workspace
 
-![Board de Notas](docs/screenshots/board.png)
-*Board com pilhas de notas, wallpaper personalizado e nota de cliente (CRM) aberta com valor e anexo*
-
----
-
-### Plano Premium
-
-![Modal Premium](docs/screenshots/premium.png)
-
-*Modal de upgrade com benefícios do plano Premium (notas ilimitadas, workspaces de grupo, CRM)*
+![Notes Board](docs/screenshots/board.png)
+*Board with note stacks, custom wallpaper, and a client note (CRM) open with value and attachment*
 
 ---
 
-### CRM Financeiro *(Premium)*
+### Premium Plan
 
-![CRM Financeiro](docs/screenshots/crm.png)
-*Dashboard com totalizadores de receita esperada, recebida, pendente e clientes em atraso*
+![Premium Modal](docs/screenshots/premium.png)
+
+*Upgrade modal with Premium plan benefits (unlimited notes, group workspaces, CRM)*
 
 ---
 
-## Funcionalidades
+### Financial CRM *(Premium)*
 
-### Sistema de Notas (Core)
+![Financial CRM](docs/screenshots/crm.png)
+*Dashboard with totals for expected, received, and pending revenue, plus overdue clients*
 
-O board é um canvas infinito onde as notas são cartões posicionáveis com:
+---
 
-| Recurso | Detalhe |
+## Features
+
+### Notes System (Core)
+
+The board is an infinite canvas where notes are positionable cards with:
+
+| Feature | Detail |
 |---|---|
-| **19 paletas de cores** | Cada cor coordena barra, chip, dot e fundo do card |
-| **4 status de progresso** | A Fazer · Andamento · Concluído · Encerrado |
-| **Datas e lembretes** | Início, prazo e alerta automático (1-365 dias antes) |
-| **Redimensionamento** | Arraste o canto inferior direito para ajustar tamanho |
-| **Drag-and-drop** | Mova notas livremente pelo board |
-| **Anexos** | PDF, imagens, TXT — visualizados dentro da nota |
-| **Pilhas (Stacks)** | Arraste uma nota sobre outra para empilhar automaticamente |
-| **Pin** | Fixe notas importantes para que não colapsem nas pilhas |
+| **19 color palettes** | Each color coordinates the bar, chip, dot, and card background |
+| **4 progress statuses** | To Do · In Progress · Done · Closed |
+| **Dates and reminders** | Start, due date, and automatic alert (1-365 days ahead) |
+| **Resizing** | Drag the bottom-right corner to adjust size (both directions) |
+| **Drag-and-drop** | Move notes freely around the board |
+| **Attachments** | PDF, images, TXT — viewed inside the note |
+| **Checklists** | Checkable to-do items per note, with a progress badge |
+| **Stacks** | Drag one note onto another to stack automatically |
+| **Pin** | Pin important notes so they don't collapse into stacks |
 
-**Status visuais:**
-- 🔵 **A Fazer** — dot slate sem animação
-- 🟣 **Andamento** — dot índigo com glow pulsante + som
-- 🟢 **Concluído** — dot esmeralda + som de vitória
-- 🔴 **Encerrado** — dot vermelho
+**Visual statuses:**
+- 🔵 **To Do** — slate dot, no animation
+- 🟣 **In Progress** — pulsing indigo dot + sound
+- 🟢 **Done** — emerald dot + success sound
+- 🔴 **Closed** — red dot
 
-**Limite do plano Free:** 30 notas/mês (reseta todo dia 1º).
-
----
-
-### Sistema de Pilhas (Stacks)
-
-Agrupe notas relacionadas em pilhas compactas:
-
-1. Arraste uma nota e solte sobre outra → pilha é criada automaticamente
-2. Clique no header da pilha para expandir/recolher
-3. Renomeie e recolora a pilha pelo header
-4. Arraste uma nota para fora para desempilhar
-5. Use **"Reorganizar"** na toolbar para alinhar pilhas em colunas limpas
+**Free plan limit:** 30 notes/month (resets on the 1st of each month).
 
 ---
 
-### Autenticação
+### Stacking System
 
-| Método | Detalhe |
+Group related notes into compact stacks:
+
+1. Drag a note and drop it onto another → a stack is created automatically
+2. Click the stack header to expand/collapse
+3. Rename and recolor the stack from its header
+4. Drag a note out to remove it from the stack
+5. Use **"Reorganize"** in the toolbar to align stacks into clean columns
+
+---
+
+### Authentication
+
+| Method | Detail |
 |---|---|
-| **E-mail + Senha** | Mínimo 8 caracteres com letras e números |
-| **Google OAuth** | Login com popup — cria username automaticamente |
-| **Sessão persistente** | Não expira (Firebase `LOCAL` persistence) |
-| **Modo Demo** | Funciona offline com LocalStorage (sem sincronização) |
+| **Email + Password** | Minimum 8 characters with letters and numbers |
+| **Google OAuth** | Popup login — creates a username automatically |
+| **Persistent session** | Never expires (Firebase `LOCAL` persistence) |
+| **Demo mode** | Works offline with LocalStorage (no sync) |
 
 ---
 
-### Sistema de Amigos & Presença
+### Friends & Presence System
 
-- **Busca por @username** — encontre qualquer usuário cadastrado
-- **Pedido de amizade** — fluxo de aceitar/recusar em tempo real
-- **Status de presença** — Online · Offline · Ocupado com dot colorido
-- **Upload de foto de perfil** — drag/drop ou clique na foto
-- **Perfil com bio e função** — visível para amigos
-
----
-
-### Chat em Tempo Real
-
-- **1:1 entre amigos** — mensagens sincronizadas via Firebase
-- **Janelas flutuantes draggable** — mova o chat para qualquer posição
-- **Múltiplas abas** — converse com vários amigos ao mesmo tempo
-- **Envio de arquivos** — até 5MB por mensagem (imagens, PDFs)
-- **Lightbox para imagens** — clique para ampliar
-- **Notificações** — toast + som quando o amigo está online
-- **Limpar conversa** — apaga histórico local e no Firebase
+- **Search by @username** — find any registered user
+- **Friend requests** — accept/decline flow in real time
+- **Presence status** — Online · Offline · Busy, with colored dot
+- **Profile photo upload** — drag/drop or click the photo
+- **Profile with bio and role** — visible to friends
 
 ---
 
-### Workspaces Pessoais (1:1)
+### Real-Time Chat
 
-Board compartilhado entre dois amigos:
-
-- **Sincronização bidirecional** em menos de 100ms via Firebase
-- Ambos podem criar, editar e deletar notas
-- Stacks compartilhados entre os dois usuários
-- **Sair temporariamente** ou **Excluir workspace** com confirmação
-- Disponível no plano **Free e Premium**
-
----
-
-### Workspaces de Grupo *(Premium)*
-
-> Exige plano Premium ativo.
-
-- Crie grupos com nome e convide amigos
-- Board compartilhado entre todos os membros
-- **Chat de grupo** integrado com histórico
-- Owner pode remover membros (`kickGroupMember`)
-- Compressão automática de imagens (max 400KB) para economizar banda
-- Owner pode encerrar o grupo (todos são desconectados)
+- **1:1 between friends** — messages synced via Firebase
+- **Draggable floating windows** — move the chat window anywhere
+- **Multiple tabs** — chat with several friends at once
+- **File sharing** — up to 5MB per message (images, PDFs)
+- **Image lightbox** — click to zoom
+- **Notifications** — toast + sound when a friend comes online
+- **Clear conversation** — wipes local and Firebase history
 
 ---
 
-### CRM Financeiro *(Premium)*
+### Group Video Calls
 
-Dashboard integrado ao board para gestão de clientes e cobranças:
+- Start a call from a 1:1 chat or a group chat — no approval needed from anyone
+- Anyone who hasn't joined sees a blinking "Call in progress — Join" invite
+- WebRTC mesh topology (peer-to-peer between all participants), signaled through Firebase
+- Floating, draggable, resizable call window — doesn't take over the whole screen
+- Mute microphone / toggle camera / leave call controls
 
-**Totalizadores automáticos:**
-| Métrica | Cálculo |
+---
+
+### Personal Workspaces (1:1)
+
+Board shared between two friends:
+
+- **Bidirectional sync** in under 100ms via Firebase
+- Both users can create, edit, and delete notes
+- Shared stacks between the two users
+- **Leave temporarily** or **delete workspace** with confirmation
+- Available on both **Free and Premium** plans
+
+---
+
+### Group Workspaces *(Premium)*
+
+> Requires an active Premium plan.
+
+- Create named groups and invite friends
+- Board shared among all members
+- **Group chat** with history, plus group video calls
+- Owner can remove members (`kickGroupMember`)
+- Automatic image compression (max 400KB) to save bandwidth
+- Owner can close the group (everyone gets disconnected)
+
+---
+
+### Financial CRM *(Premium)*
+
+Dashboard integrated into the board for client and billing management:
+
+**Automatic totals:**
+| Metric | Calculation |
 |---|---|
-| Total Esperado | Soma de todos os valores cadastrados |
-| Total Recebido | Soma dos `status: 'paid'` |
-| Total Pendente | Soma dos `status: 'pending'` |
-| Atrasados | Count com `dueDate < hoje` e `status: 'pending'` |
+| Total Expected | Sum of all registered values |
+| Total Received | Sum of `status: 'paid'` |
+| Total Pending | Sum of `status: 'pending'` |
+| Overdue | Count with `dueDate < today` and `status: 'pending'` |
 
-**Nota de Cliente:**
-- Campos: nome, serviço/descrição, valor (R$), vencimento, status
-- Cria simultaneamente uma nota visual no board + registro no CRM
-- Edição inline de valor, data e status
-- Status visual: 🟢 Pago · 🟡 Pendente · 🔴 Atrasado (pulsando)
-- Sincroniza bidirecional: editar na nota atualiza o CRM e vice-versa
+**Client Note:**
+- Fields: name, service/description, value (R$), CPF/CNPJ, due date, status, attached documents
+- Simultaneously creates a visual note on the board + a CRM record
+- Inline editing of value, date, and status
+- Visual status: 🟢 Paid · 🟡 Pending · 🔴 Overdue (pulsing)
+- Bidirectional sync: editing the note updates the CRM and vice versa
+- Sortable, searchable table, animated charts (status breakdown + monthly due dates)
+- Export a client's record to Word (.rtf), and preview attached documents (PDF/image) inline
 
 ---
 
-### Pagamentos via Pix
+### Personal Panel — Budget, Expenses & Monthly Tasks *(Free)*
 
-Fluxo completo de assinatura Premium:
+A free panel next to Upcoming Events:
+
+- **Budget** — set a monthly target, see spent/remaining with a progress bar
+- **Expenses** — simple list (description + value) filtered to the current month
+- **Monthly Tasks** — a checklist that automatically resets every month
+- **Upcoming Events** — notes and client due dates for the next 14 days, plus **.ics calendar import**
+
+---
+
+### Payments via Pix
+
+Full Premium subscription flow:
 
 ```
-Usuário atinge limite Free
+User hits the Free limit
         ↓
-Modal "MyDesk Premium" com CTA
+"MyDesk Premium" modal with CTA
         ↓
 API /api/create-charge → AbacatePay
         ↓
-QR Code Pix + Código copia-e-cola
+AbacatePay-hosted payment page (Pix QR code + copy-paste code)
         ↓
-Pagamento confirmado pela AbacatePay
+Payment confirmed by AbacatePay
         ↓
 Webhook /api/webhook → Firebase
         ↓
-plan: 'premium' + expiry +30 dias
+plan: 'premium' + 30-day expiry
         ↓
-App detecta ?premium=activated → reload
+App detects ?premium=activated → reload
 ```
 
-- **Valor:** R$ 10,00/mês
-- **Gateway:** AbacatePay (Pix instantâneo)
-- **Validade:** 30 dias a partir da confirmação
-- **Renovação:** Manual (sem cobrança automática)
+- **Price:** R$ 10.00/month
+- **Gateway:** AbacatePay (instant Pix)
+- **Validity:** 30 days from confirmation
+- **Renewal:** Manual (no automatic billing)
 
 ---
 
-### Fundo Personalizado (Wallpaper)
+### Custom Wallpaper
 
-Cada usuário pode personalizar o fundo do board:
+Each user can customize the board background:
 
-- **11 cores sólidas** — de preto a azul escuro
-- **13 gradientes** — índigo→violeta, esmeralda→teal, etc.
-- **Pixel Art** — padrões geométricos renderizados via Canvas
-- **Upload de imagem** — drag/drop com compressão automática
-- Persistido por usuário no Firebase
+- **11 solid colors** — from black to dark blue
+- **13 gradients** — indigo→violet, emerald→teal, etc.
+- **Pixel Art** — geometric patterns rendered via Canvas
+- **Built-in collection** — ready-made images, no upload needed
+- **Image upload** — drag/drop with automatic compression
+- Persisted per user in Firebase
 
 ---
 
 ### Lo-Fi Radio 🎵
 
-- Streams de rádio copyright-free via **SomaFM**
-- Play/Pause na toolbar
-- Navega entre estações (Indie Pop, Lo-Fi Beats, Space, etc.)
-- Exibe nome da faixa tocando
-- Continua tocando ao navegar pelo app
+- Copyright-free radio streams via **SomaFM**
+- Play/Pause in the toolbar
+- Switch between stations (Indie Pop, Lo-Fi Beats, Space, etc.)
+- Shows the currently playing track name
+- Keeps playing while you navigate the app
 
 ---
 
-### Undo / Restaurar
+### Undo / Restore
 
-- Qualquer nota deletada pode ser **restaurada em até 30 segundos**
-- Botão "Restaurar" aparece na toolbar após cada exclusão
-- Suporta desfazer ações em workspaces pessoais e de grupo
+- Any deleted note can be **restored within 30 seconds**
+- A "Restore" button appears in the toolbar after each deletion
+- Supports undoing actions in both personal and group workspaces
 
 ---
 
-### Sorting & Filtragem
+### Sorting & Filtering
 
-9 modos de ordenação disponíveis no board:
+9 sorting modes available on the board:
 
-| Modo | Descrição |
+| Mode | Description |
 |---|---|
-| Padrão | Posição x/y original no board |
-| Mais antigas | Por data de criação (ASC) |
-| Mais recentes | Por data de criação (DESC) |
-| A → Z | Título alfabético crescente |
-| Z → A | Título alfabético decrescente |
-| Prazo próximo | Urgentes primeiro |
-| Prazo distante | Futuros primeiro |
-| Por status | Todo → Andamento → Concluído → Encerrado |
-| Por cor | Agrupa paletas iguais |
+| Default | Original x/y position on the board |
+| Oldest first | By creation date (ASC) |
+| Newest first | By creation date (DESC) |
+| A → Z | Title, alphabetical ascending |
+| Z → A | Title, alphabetical descending |
+| Due soonest | Most urgent first |
+| Due latest | Furthest away first |
+| By status | To Do → In Progress → Done → Closed |
+| By color | Groups matching palettes |
 
 ---
 
-### Painel Administrativo *(Admin Only)*
+### Admin Panel *(Admin Only)*
 
-Acessível apenas para contas com custom claim `admin: true` no Firebase:
+Accessible only to accounts with the `admin: true` custom claim in Firebase:
 
-- Botão de escudo 🛡️ aparece na toolbar apenas para admins
-- Visualiza todos os usuários cadastrados
-- Ativa/desativa plano Premium manualmente
-- Monitora status de presença
-- Admins ignoram **todos** os limites de plano automaticamente
+- A 🛡️ shield button appears in the toolbar only for admins
+- View all registered users
+- Manually enable/disable the Premium plan
+- Monitor presence status
+- Admins automatically bypass **all** plan limits
 
 ---
 
-## Planos
+## Plans
 
-| Recurso | Free | Premium |
+| Feature | Free | Premium |
 |---|:---:|:---:|
-| Notas por mês | 30 | Ilimitadas |
-| Workspaces pessoais (1:1) | ✅ | ✅ |
-| Workspaces de grupo | ❌ | ✅ |
-| CRM Financeiro | ❌ | ✅ |
-| Chat em tempo real | ✅ | ✅ |
-| Presença de amigos | ✅ | ✅ |
-| Wallpaper personalizado | ✅ | ✅ |
+| Notes per month | 30 | Unlimited |
+| Personal workspaces (1:1) | ✅ | ✅ |
+| Group workspaces | ❌ | ✅ |
+| Financial CRM | ❌ | ✅ |
+| Real-time chat & video calls | ✅ | ✅ |
+| Friend presence | ✅ | ✅ |
+| Custom wallpaper | ✅ | ✅ |
 | Lo-Fi Radio | ✅ | ✅ |
-| Anexos (até 5MB) | ✅ | ✅ |
-| Suporte prioritário | ❌ | ✅ |
-| **Valor** | R$ 0 | R$ 10/mês |
+| Attachments (up to 5MB) | ✅ | ✅ |
+| Budget / Expenses / Monthly Tasks | ✅ | ✅ |
+| Priority support | ❌ | ✅ |
+| **Price** | $0 | R$ 10/month |
 
 ---
 
-## Tecnologias
+## Tech Stack
 
 ### Frontend
-- **HTML5 / CSS3 / JavaScript ES6+** — sem frameworks
+- **HTML5 / CSS3 / JavaScript ES6+** — no frameworks
 - **Firebase JS SDK v9.23.0** (compat) — Auth + Realtime Database
-- **Canvas API** — QR Code Pix, pixel art, visualizador de PDF
-- **Web Audio API** — sons de status e notificações
+- **WebRTC** — peer-to-peer group video calls
+- **PDF.js** (self-hosted) — in-app PDF preview
+- **Canvas API** — Pix QR code, pixel art, PDF rendering
+- **Web Audio API** — status sounds and notifications
 
 ### Backend & APIs
-- **Vercel Serverless Functions (Node.js)** — API de pagamento e webhook
-- **Firebase Admin SDK** — custom claims e operações privilegiadas
-- **AbacatePay API** — pagamentos via Pix
+- **Vercel Serverless Functions (Node.js)** — payment API and webhook
+- **Firebase Admin SDK** — custom claims and privileged operations
+- **AbacatePay API** — Pix payments
 
-### Infraestrutura
-- **GitHub Pages** — hospedagem estática
-- **Vercel** — funções serverless (`/api/*`)
-- **Firebase Realtime Database** — sincronização em tempo real
-- **Firebase Authentication** — autenticação segura
+### Infrastructure
+- **GitHub Pages** — static hosting (serves only `docs/`)
+- **Vercel** — serverless functions (`/api/*`)
+- **Firebase Realtime Database** — real-time sync
+- **Firebase Authentication** — secure auth
 
 ---
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 mydesk/
-├── docs/                   # Único diretório publicado pelo GitHub Pages
-│   ├── index.html          # App principal (board + toolbar)
-│   ├── login.html          # Landing page + autenticação
+├── docs/                   # Only directory published by GitHub Pages
+│   ├── index.html          # Main app (board + toolbar)
+│   ├── login.html          # Landing page + authentication
 │   ├── css/
-│   │   └── main.css        # Todos os estilos (design tokens, componentes)
+│   │   └── main.css        # All styles (design tokens, components)
 │   ├── js/
-│   │   ├── firebase-init.js  # Inicialização do Firebase
-│   │   ├── auth-service.js   # Estado de autenticação centralizado (window.authState)
-│   │   ├── app.js             # Toda a lógica do app
-│   │   └── login.js           # Lógica de login, registro e typewriter
-│   └── screenshots/        # Imagens deste README
+│   │   ├── firebase-init.js  # Firebase initialization
+│   │   ├── auth-service.js   # Centralized auth state (window.authState)
+│   │   ├── app.js             # All app logic
+│   │   ├── login.js           # Login, registration, and typewriter logic
+│   │   └── vendor/pdfjs/      # Self-hosted PDF.js (CSP-compliant)
+│   └── screenshots/        # Images used in this README
 │
 ├── api/
 │   ├── create-charge.js    # POST /api/create-charge → AbacatePay
@@ -332,18 +361,18 @@ mydesk/
 │   ├── set-admin.js        # node scripts/set-admin.js email@x.com
 │   └── remove-admin.js     # node scripts/remove-admin.js email@x.com
 │
-├── database.rules.json     # Regras de segurança do Firebase Realtime DB (não fica público)
-├── firebase.json           # Config Firebase CLI (não fica público)
-├── vercel.json              # Config Vercel — outputDirectory aponta pra docs/
-└── .gitignore               # Ignora .env, serviceAccountKey.json, node_modules
+├── database.rules.json     # Firebase Realtime DB security rules (not public)
+├── firebase.json           # Firebase CLI config (not public)
+├── vercel.json              # Vercel config — outputDirectory points to docs/
+└── .gitignore               # Ignores .env, serviceAccountKey.json, node_modules
 ```
 
-> Só o conteúdo de `docs/` é servido publicamente pelo GitHub Pages — os arquivos de
-> configuração do Firebase/Vercel na raiz do repositório não ficam expostos no site.
+> Only the contents of `docs/` are publicly served by GitHub Pages — the Firebase/Vercel
+> config files at the repository root are never exposed on the live site.
 
 ---
 
-## Estrutura do Firebase
+## Firebase Structure
 
 ```
 mydesk-ad0da/ (Realtime Database)
@@ -355,16 +384,17 @@ mydesk-ad0da/ (Realtime Database)
 │       ├── notes/          → { noteId: { ...note } }
 │       ├── crm_records/    → { recordId: { ...record } }
 │       ├── friends/        → { accepted, pending, blocked }
+│       ├── personal/       → { budgetMonthly, expenses/, monthlyTasks }
 │       ├── wallpaper       → { type, value }
 │       └── inbox/          → { pushId: { type, data } }
 │
 ├── shared_boards/
-│   └── {user1__user2}/     → workspace pessoal
+│   └── {user1__user2}/     → personal workspace
 │       ├── notes/
 │       └── files/
 │
 ├── group_boards/
-│   └── {groupId}/          → workspace de grupo
+│   └── {groupId}/          → group workspace
 │       ├── notes/
 │       └── files/
 │
@@ -372,10 +402,14 @@ mydesk-ad0da/ (Realtime Database)
 │   └── {groupId}/          → { name, owner, members }
 │
 ├── chats/
-│   └── {key}/messages/     → chat 1:1
+│   └── {key}/
+│       ├── messages/       → 1:1 chat
+│       └── call/           → WebRTC signaling for 1:1 video calls
 │
 ├── groupChats/
-│   └── {groupId}/messages/ → chat de grupo
+│   └── {groupId}/
+│       ├── messages/       → group chat
+│       └── call/           → WebRTC signaling for group video calls
 │
 ├── usernames/              → { @username: uid }
 └── uids/                   → { uid: @username }
@@ -383,71 +417,71 @@ mydesk-ad0da/ (Realtime Database)
 
 ---
 
-## Configuração Local
+## Local Setup
 
-### Pré-requisitos
+### Prerequisites
 
 - Node.js 18+
-- Conta no [Firebase](https://firebase.google.com)
-- Conta no [AbacatePay](https://abacatepay.com) *(opcional, só para pagamentos)*
-- [Vercel CLI](https://vercel.com/cli) *(opcional, para funções serverless locais)*
+- A [Firebase](https://firebase.google.com) account
+- An [AbacatePay](https://abacatepay.com) account *(optional, only for payments)*
+- [Vercel CLI](https://vercel.com/cli) *(optional, for local serverless functions)*
 
-### 1. Clonar o repositório
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/jvalvim-bit/MyDesk.git
 cd MyDesk
 ```
 
-### 2. Configurar Firebase
+### 2. Configure Firebase
 
-Edite `js/firebase-init.js` com as credenciais do seu projeto Firebase:
+Edit `docs/js/firebase-init.js` with your Firebase project credentials:
 
 ```javascript
 const firebaseConfig = {
-  apiKey:            "sua-api-key",
-  authDomain:        "seu-projeto.firebaseapp.com",
-  databaseURL:       "https://seu-projeto-default-rtdb.firebaseio.com",
-  projectId:         "seu-projeto",
-  storageBucket:     "seu-projeto.appspot.com",
+  apiKey:            "your-api-key",
+  authDomain:        "your-project.firebaseapp.com",
+  databaseURL:       "https://your-project-default-rtdb.firebaseio.com",
+  projectId:         "your-project",
+  storageBucket:     "your-project.appspot.com",
   messagingSenderId: "123456789",
   appId:             "1:xxx:web:xxx"
 };
 ```
 
-### 3. Configurar variáveis de ambiente
+### 3. Configure environment variables
 
-Crie um arquivo `.env` na raiz (nunca comitar):
+Create a `.env` file at the repository root (never commit it):
 
 ```env
-ABACATE_PAY_API_KEY=sua-chave-abacatepay
-WEBHOOK_SECRET=segredo-aleatorio-forte
-GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
-FIREBASE_DATABASE_URL=https://seu-projeto-default-rtdb.firebaseio.com
+ABACATE_API_KEY=your-abacatepay-key
+WEBHOOK_SECRET=strong-random-secret
+FIREBASE_PROJECT_ID=your-project
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_DATABASE_URL=https://your-project-default-rtdb.firebaseio.com
 ```
 
-### 4. Regras do Firebase
-
-Deploy das regras de segurança:
+### 4. Deploy Firebase rules
 
 ```bash
 npm install -g firebase-tools
 firebase login
-firebase use seu-projeto
+firebase use your-project
 firebase deploy --only database
 ```
 
-### 5. Rodar localmente
+### 5. Run locally
 
-O projeto é estático — basta abrir `index.html` em um servidor local:
+The frontend is static — just serve the `docs/` folder:
 
 ```bash
-npx serve .
-# ou
-python -m http.server 8000
+npx serve docs
+# or
+python -m http.server 8000 --directory docs
 ```
 
-Para testar as funções serverless localmente:
+To test the serverless functions locally:
 
 ```bash
 npm install -g vercel
@@ -456,63 +490,65 @@ vercel dev
 
 ---
 
-## Gerenciar Administradores
+## Managing Admins
 
-### Adicionar admin
-
-```bash
-node scripts/set-admin.js email@exemplo.com
-# ou por UID:
-node scripts/set-admin.js --uid UID_DO_USUARIO
-```
-
-### Remover admin
+### Grant admin
 
 ```bash
-node scripts/remove-admin.js email@exemplo.com
+node scripts/set-admin.js email@example.com
+# or by UID:
+node scripts/set-admin.js --uid USER_UID
 ```
 
-> Requer `serviceAccountKey.json` na raiz e o `.env` configurado.
+### Revoke admin
+
+```bash
+node scripts/remove-admin.js email@example.com
+```
+
+> Requires `serviceAccountKey.json` at the repository root and a configured `.env`.
 
 ---
 
-## Segurança
+## Security
 
-O projeto implementa as seguintes proteções:
+The project implements the following protections:
 
-| Proteção | Implementação |
+| Protection | Implementation |
 |---|---|
-| **Autenticação** | Firebase Auth JWT com persistência `LOCAL` |
-| **Autorização** | Firebase Rules — dados isolados por UID |
-| **Admin** | Custom Claims server-side (`admin: true`) |
-| **XSS** | Função `xe()` escapa HTML em inputs dinâmicos |
-| **Webhook** | `crypto.timingSafeEqual` contra timing attacks |
-| **CORS** | Whitelist de origins na API de pagamento |
-| **Upload** | Validação de MIME type + extensão (bloqueia .exe, .bat, .sh) |
-| **Rate limiting** | Limite de 30 notas/mês no plano Free (Firebase Rules) |
+| **Authentication** | Firebase Auth JWT with `LOCAL` persistence |
+| **Authorization** | Firebase Rules — data isolated per UID |
+| **API authentication** | Payment endpoint verifies the Firebase ID token server-side (never trusts a client-supplied UID) |
+| **Admin** | Server-side Custom Claims (`admin: true`) |
+| **XSS** | `xe()` / `sanitizeAttr()` escape HTML in all dynamic inputs; profile photo URLs are scheme-validated (`https:`/`data:image/*` only) |
+| **Webhook** | `crypto.timingSafeEqual` against timing attacks |
+| **CORS** | Origin allowlist on the payment API |
+| **Upload** | MIME type + extension validation (blocks .exe, .bat, .sh) |
+| **Password hashing (demo mode)** | PBKDF2 with a random per-account salt (100k iterations) |
+| **Rate limiting** | 30 notes/month limit on the Free plan (Firebase Rules) |
 
 ---
 
-## Contribuindo
+## Contributing
 
-1. Fork o repositório
-2. Crie uma branch: `git checkout -b feature/minha-feature`
-3. Commit suas mudanças: `git commit -m 'feat: adicionar minha feature'`
-4. Push: `git push origin feature/minha-feature`
-5. Abra um Pull Request
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'feat: add my feature'`
+4. Push: `git push origin feature/my-feature`
+5. Open a Pull Request
 
 ---
 
-## Licença
+## License
 
-Distribuído sob a licença MIT. Veja [`LICENSE`](LICENSE) para mais informações.
+Distributed under the MIT license. See [`LICENSE`](LICENSE) for more information.
 
 ---
 
 <div align="center">
 
-Feito com ☕ por [jvalvim-bit](https://github.com/jvalvim-bit)
+Made with ☕ by [jvalvim-bit](https://github.com/jvalvim-bit)
 
-**[⬆ Voltar ao topo](#mydesk--workspace-de-notas-inteligente)**
+**[⬆ Back to top](#mydesk--smart-notes-workspace)**
 
 </div>
