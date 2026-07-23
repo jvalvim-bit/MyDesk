@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/screenshots/banner.svg" alt="MyDesk — Smart Notes Workspace" width="100%" />
+<img src="docs/img/logo-mydesk.png" alt="MyDesk — Smart Notes Workspace" width="360" />
 
 # MyDesk — Smart Notes Workspace
 
