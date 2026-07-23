@@ -1,681 +1,310 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MyDesk — Login</title>
-<meta name="description" content="Entre na sua conta MyDesk ou crie uma nova.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyDesk — Entrar</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text y='22' x='5' font-size='20'>📋</text></svg>">
-<meta name="theme-color" content="#6366f1">
+<meta name="theme-color" content="#040409">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="js/firebase-init.js?v=3"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=27">
+<style>
+:root{
+  /* geometria da aurora: a faixa cruza o centro da tela nesta altura */
+  --band: 88vh;
+  --ring: calc(var(--band) / .375);   /* tamanho do círculo que gera a faixa */
+  --cy:   calc(62vh + var(--band));   /* centro do círculo, abaixo da viewport */
+  --glass: rgba(24,24,29,.52);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#040409;
+  font-family:"Inter",system-ui,-apple-system,sans-serif;
+  color:#fff;display:grid;place-items:center;
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* ══════════════ CENA ══════════════ */
+.scene{position:fixed;inset:0;overflow:hidden;z-index:0;background:
+  radial-gradient(120% 80% at 50% 108%, #0d1030 0%, #06060f 52%, #040409 100%)}
+
+.circle{
+  position:absolute;left:50%;top:var(--cy);
+  width:var(--ring);height:var(--ring);
+  transform:translate(-50%,-50%);
+  transform-origin:50% 50%;
+  will-change:transform;
+}
+
+/* faixa de cor: gradiente cônico girando dentro de uma máscara de anel */
+.aurora{
+  background:conic-gradient(from 168deg,
+    #0a1856  0deg,  #1d3fd6  30deg, #5a35d9  58deg,
+    #a531c4  84deg, #e0603a 106deg,
+    #f2b04a 124deg, #4fdba4 150deg, #1f86dc 180deg,
+    #17246a 214deg, #0a1856 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
+          mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
+  filter:blur(46px) saturate(150%);
+  opacity:.95;
+  animation:flow 96s linear infinite, sway 34s ease-in-out infinite alternate;
+}
+/* halo largo e difuso por baixo, dá volume */
+.haze{
+  background:conic-gradient(from 168deg,
+    #16256e 0deg, #2c46c8 40deg, #7b3ad2 78deg, #cf4a8e 104deg,
+    #e07a3c 126deg, #43c8a0 156deg, #1c6fc4 190deg, #16256e 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
+          mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
+  filter:blur(110px) saturate(130%);
+  opacity:.5;
+  animation:flow 96s linear infinite, sway 34s ease-in-out infinite alternate;
+}
+/* a linha nítida do horizonte, logo acima da faixa colorida */
+.limb{
+  background:linear-gradient(90deg,transparent 4%,rgba(190,215,255,.55) 26%,
+    #fff 50%,rgba(190,215,255,.5) 74%,transparent 96%);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 78.4%,#000 78.8%,#000 79.4%,transparent 79.8%);
+          mask:radial-gradient(closest-side,transparent 0 78.4%,#000 78.8%,#000 79.4%,transparent 79.8%);
+  filter:blur(.7px) drop-shadow(0 0 14px rgba(150,195,255,.85)) drop-shadow(0 0 40px rgba(90,150,255,.45));
+  animation:sway 34s ease-in-out infinite alternate;
+}
+@keyframes flow{to{--a:1}}
+@keyframes sway{
+  from{transform:translate(-50%,-50%) rotate(-6deg)}
+  to  {transform:translate(-50%,-50%) rotate(6deg)}
+}
+
+/* poeira estelar */
+.dust{position:absolute;inset:0;opacity:.5;
+  background-image:
+    radial-gradient(1px 1px at 18% 22%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 73% 14%,rgba(255,255,255,.55),transparent),
+    radial-gradient(1px 1px at 41% 9%, rgba(255,255,255,.5),transparent),
+    radial-gradient(1.4px 1.4px at 88% 31%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 8% 41%, rgba(255,255,255,.45),transparent),
+    radial-gradient(1px 1px at 57% 27%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1.2px 1.2px at 30% 36%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 94% 8%, rgba(255,255,255,.5),transparent);
+  animation:twinkle 7s ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.32}to{opacity:.62}}
+
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 74% 58% at 50% 44%,transparent 0%,rgba(4,4,9,.45) 60%,#040409 100%)}
+.grain{position:absolute;inset:0;opacity:.14;pointer-events:none;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ══════════════ MODAL ══════════════ */
+.modal{
+  position:relative;z-index:2;width:min(422px,calc(100vw - 28px));
+  background:var(--glass);
+  backdrop-filter:blur(30px) saturate(165%);
+  -webkit-backdrop-filter:blur(30px) saturate(165%);
+  border-radius:28px;
+  padding:24px 26px 22px;
+  box-shadow:0 50px 100px -34px rgba(0,0,0,.9),
+             0 2px 10px rgba(0,0,0,.4),
+             inset 0 -22px 44px -30px rgba(0,0,0,.75);
+  animation:enter .62s cubic-bezier(.16,1,.3,1) both;
+}
+/* borda-gradiente verdadeira: luz mais forte no topo, some embaixo */
+.modal::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(155deg,
+    rgba(255,255,255,.42) 0%, rgba(255,255,255,.10) 26%,
+    rgba(255,255,255,.02) 52%, rgba(255,255,255,.14) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+}
+/* brilho especular no topo do vidro */
+.modal::after{
+  content:"";position:absolute;left:12%;right:12%;top:0;height:52%;border-radius:inherit;
+  pointer-events:none;
+  background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(255,255,255,.09),transparent 70%)}
+@keyframes enter{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+
+/* entrada escalonada dos elementos */
+.st{animation:up .5s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--i)*55ms + 120ms)}
+@keyframes up{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;position:relative}
+
+/* segmentado com indicador deslizante */
+.seg{position:relative;display:flex;padding:3px;border-radius:999px;
+  background:rgba(255,255,255,.05);
+  box-shadow:inset 0 1px 1px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.05)}
+.thumb{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:999px;
+  background:rgba(255,255,255,.115);
+  box-shadow:0 1px 3px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.13);
+  transition:transform .34s cubic-bezier(.4,0,.2,1),width .34s cubic-bezier(.4,0,.2,1)}
+.seg button{position:relative;z-index:1;border:0;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:500;color:rgba(255,255,255,.48);
+  padding:8px 20px;border-radius:999px;transition:color .24s}
+.seg button[aria-selected="true"]{color:#fff}
+.seg button:hover{color:rgba(255,255,255,.82)}
+
+.close{width:34px;height:34px;flex:none;display:grid;place-items:center;cursor:pointer;
+  border:0;border-radius:50%;color:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.085);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  transition:.2s}
+.close:hover{background:rgba(255,255,255,.17);color:#fff;transform:rotate(90deg)}
+
+h1{font-size:26px;font-weight:700;letter-spacing:-.032em;margin-bottom:20px;
+   text-shadow:0 1px 12px rgba(0,0,0,.35)}
+
+/* ── campos ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.ctrl{position:relative;display:flex;align-items:center;gap:10px;
+  height:52px;padding:0 15px;border-radius:13px;margin-bottom:12px;
+  background:rgba(255,255,255,.045);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),
+             inset 0 1px 0 rgba(255,255,255,.05),
+             inset 0 -2px 5px -3px rgba(0,0,0,.6);
+  transition:background .2s,box-shadow .2s}
+.grid2 .ctrl{margin-bottom:0}
+.ctrl:hover{background:rgba(255,255,255,.06)}
+.ctrl:focus-within{background:rgba(255,255,255,.075);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),0 0 0 3.5px rgba(120,110,255,.16)}
+.ctrl.bad{box-shadow:inset 0 0 0 1px rgba(255,116,116,.6),0 0 0 3.5px rgba(255,90,90,.12)}
+.ctrl input{flex:1;min-width:0;background:transparent;border:0;outline:0;
+  font-family:inherit;font-size:14.5px;color:#fff;letter-spacing:-.006em}
+.ctrl input::placeholder{color:rgba(255,255,255,.38)}
+.ctrl>svg{flex:none;color:rgba(255,255,255,.42)}
+.eye{background:none;border:0;cursor:pointer;color:rgba(255,255,255,.4);padding:4px;display:grid;place-items:center}
+.eye:hover{color:#fff}
+
+/* colapso animado ao trocar de modo */
+.collapse{display:grid;grid-template-rows:1fr;opacity:1;
+  transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1),opacity .26s ease}
+.collapse[data-off]{grid-template-rows:0fr;opacity:0;pointer-events:none}
+.collapse>div{overflow:hidden;min-height:0}
+
+/* botão principal */
+.primary{width:100%;height:52px;border:0;border-radius:13px;cursor:pointer;margin-top:8px;
+  background:linear-gradient(180deg,#fdfdfd 0%,#dcdce1 100%);
+  color:#101014;font-family:inherit;font-size:14.5px;font-weight:600;letter-spacing:-.012em;
+  box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 10px 26px -12px rgba(0,0,0,.85),
+             0 0 0 1px rgba(0,0,0,.18);
+  transition:.2s}
+.primary:hover{background:linear-gradient(180deg,#fff 0%,#e8e8ec 100%);transform:translateY(-1px);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 14px 30px -12px rgba(0,0,0,.9),0 0 0 1px rgba(0,0,0,.18)}
+.primary:active{transform:translateY(0) scale(.994)}
+.primary[disabled]{opacity:.62;cursor:progress;transform:none}
+
+.or{display:flex;align-items:center;gap:14px;margin:20px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent)}
+.or span{font-size:10px;font-weight:500;letter-spacing:.11em;color:rgba(255,255,255,.36);white-space:nowrap}
+
+.social{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.social button{height:52px;border:0;border-radius:13px;cursor:pointer;display:grid;place-items:center;
+  background:rgba(255,255,255,.045);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.05);
+  transition:.2s}
+.social button:hover{background:rgba(255,255,255,.1);transform:translateY(-1px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 8px 20px -10px rgba(0,0,0,.7)}
+
+.terms{margin-top:18px;text-align:center;font-size:11.5px;color:rgba(255,255,255,.34)}
+.terms a{color:rgba(255,255,255,.55);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18)}
+.terms a:hover{color:#fff;border-color:rgba(255,255,255,.5)}
+
+.msg{display:none;margin-top:12px;text-align:center;font-size:12.5px;color:#ff9090}
+.msg.on{display:block;animation:up .22s ease both}
+.msg.ok{color:#6ee7b7}
+
+:focus-visible{outline:2px solid rgba(170,190,255,.75);outline-offset:2px}
+
+@media(max-width:430px){
+  :root{--band:70vh}
+  .modal{padding:20px 18px 18px;border-radius:24px}
+  h1{font-size:22px}
+  .grid2{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
 </head>
 <body>
-<div id="auth-screen" class="landing-scroll">
-  <!-- ── NAV — barra fixa no topo, estilo notion.com ── -->
-  <nav class="lp-nav">
-    <div class="lp-nav-logo"><div class="logo-dot"></div>MyDesk</div>
-    <div class="lp-nav-links">
-      <a href="#lp-about">Recursos</a>
-      <a href="#lp-pricing">Preços</a>
-      <a href="#lp-faq-section">FAQ</a>
-    </div>
-    <button class="lp-nav-cta" onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</button>
-  </nav>
 
-  <!-- ── HERO (nova identidade visual — clara, estilo Notion) ── -->
-  <div class="lpN-hero">
-    <div class="lpN-avatars">
-      <span class="lpN-avatar c1" title="Notas">📝</span>
-      <span class="lpN-avatar c2" title="Chat">💬</span>
-      <span class="lpN-avatar c3" title="CRM">📊</span>
-      <span class="lpN-avatar c4" title="Videochamada">📹</span>
-      <span class="lpN-avatar c5" title="Eventos">🔔</span>
-      <span class="lpN-avatar c6" title="Arquivos">📎</span>
-    </div>
-    <div class="lpN-title">Onde suas notas<br>e seu time <span class="lpN-pill">pensam</span> juntos.</div>
-    <div class="lpN-sub">Capture ideias, organize clientes e nunca mais perca um prazo — um workspace completo pra você e sua equipe.</div>
-    <div class="lpN-ctas">
-      <button class="lpN-btn-fill" onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">Comece já</button>
-      <button class="lpN-btn-outline" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Ver como funciona</button>
-    </div>
-
-    <div class="lp-mock lpN-shot">
-      <div class="lp-mock-bar">
-        <div class="lp-mock-dot" style="background:#ef4444"></div>
-        <div class="lp-mock-dot" style="background:#f59e0b"></div>
-        <div class="lp-mock-dot" style="background:#10b981"></div>
-        <span class="lpN-shot-tag">app.mydesk</span>
-      </div>
-      <div class="lp-mock-body" style="background:radial-gradient(ellipse 80% 60% at 30% 40%,rgba(99,102,241,.09),transparent),#0a0a0a;min-height:340px;overflow:visible;">
-        <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:20px 20px;border-radius:0 0 10px 10px;"></div>
-        <div class="mock-note mock-note-pulse" style="top:14px;left:12px;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
-          <div class="mock-note-bar" style="background:#6366f1"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);color:#a5b4fc;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#6366f1;display:inline-block;"></span>Indigo
-              </div>
-              <div class="mock-note-status" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:#6ee7b7;">
-                <span class="mock-note-status-dot" style="background:#10b981;"></span>Concluído
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Redesign do dashboard</div>
-          <div class="mock-note-body">Atualizar componentes e revisar tipografia do sistema.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Início: 01/07 · Prazo: 15/07
-            </div>
-          </div>
-        </div>
-        <div class="mock-note" style="top:20px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.25);">
-          <div class="mock-note-bar" style="background:#10b981"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.22);color:#6ee7b7;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Emerald
-              </div>
-              <div class="mock-note-status" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.22);color:#a5b4fc;">
-                <span class="mock-note-status-dot" style="background:#6366f1;box-shadow:0 0 4px rgba(99,102,241,.6);"></span>Andamento
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Reunião com cliente</div>
-          <div class="mock-note-body">Apresentar protótipo e coletar feedback do produto.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Prazo: 18/07
-            </div>
-          </div>
-        </div>
-        <div class="mock-note" style="top:180px;left:70px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
-          <div class="mock-note-bar" style="background:#f43f5e"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.22);color:#fda4af;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>Rose
-              </div>
-              <div class="mock-note-status" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;">
-                <span class="mock-note-status-dot" style="background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);"></span>Encerrado
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Bug crítico #482</div>
-          <div class="mock-note-body">Corrigir falha em produção no módulo de pagamentos.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Vencido há 2d
-            </div>
-          </div>
-        </div>
-        <div class="mock-badge-float" style="bottom:-16px;right:14px;">
-          <div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>
-          3 notas ativas
-        </div>
-      </div>
-    </div>
-
-    <div class="lpN-trust">
-      <span class="lpN-trust-txt">Integrado com as ferramentas que você já usa</span>
-      <div class="lpN-trust-logos">
-        <span>🔥 Firebase</span><span>🟦 Google</span><span>Ⓜ️ Outlook</span><span>▲ Vercel</span><span>💳 AbacatePay</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ENTRAR / CRIAR CONTA ── -->
-  <div class="lpN-auth-section" id="lpN-auth-section">
-    <div class="lpN-auth-intro">
-      <div class="lpN-auth-eyebrow">MyDesk</div>
-      <div class="lpN-auth-heading">Acesse sua conta</div>
-      <div class="lpN-auth-desc">Entre ou crie uma conta grátis pra começar a organizar tudo agora.</div>
-    </div>
-    <!-- ── form card ── -->
-    <div class="auth-card" id="auth-card">
-      <div class="auth-card-title" id="auth-title"></div>
-      <div class="auth-card-sub"   id="auth-sub"></div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login">Entrar</button>
-        <button class="auth-tab"        id="tab-reg">Criar conta</button>
-      </div>
-      <!-- LOGIN -->
-      <div id="form-login" class="auth-form">
-        <div class="auth-error" id="login-err"></div>
-        <div class="a-lbl">E-mail</div>
-        <input class="a-inp" id="l-email" type="email" placeholder="seu@email.com" autocomplete="email">
-        <div class="a-lbl">Senha</div>
-        <input class="a-inp" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
-        <div style="text-align:right;margin-bottom:12px;">
-          <a id="forgot-pass" style="font-size:.72rem;color:rgba(165,180,252,.6);cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Esqueci minha senha</a>
-        </div>
-        <div class="a-hint">Autenticado com segurança via Firebase.</div>
-        <button class="auth-btn" id="btn-login">Entrar →</button>
-        <div class="auth-divider">ou</div>
-        <button class="btn-google" id="btn-google-login">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Continuar com Google
-        </button>
-        <div class="auth-switch">Sem conta? <a id="goto-reg">Criar agora</a></div>
-      </div>
-      <!-- REGISTER -->
-      <div id="form-reg" class="auth-form" style="display:none">
-        <div class="auth-error" id="reg-err"></div>
-        <div class="a-row">
-          <div class="a-grp"><div class="a-lbl">Nome</div><input class="a-inp" id="r-name" type="text" placeholder="Seu nome" autocomplete="off"></div>
-          <div class="a-grp"><div class="a-lbl">Usuário</div><input class="a-inp" id="r-user" type="text" placeholder="@login" autocomplete="username"></div>
-        </div>
-        <div class="a-lbl">E-mail</div>
-        <input class="a-inp" id="r-email" type="email" placeholder="seu@email.com" autocomplete="email">
-        <div class="a-lbl">Função</div>
-        <input class="a-inp" id="r-role" type="text" placeholder="designer · dev · gerente…">
-        <div class="a-lbl">Senha</div>
-        <input class="a-inp" id="r-pass" type="password" placeholder="mínimo 6 caracteres" autocomplete="new-password">
-        <div class="a-lbl">Confirmar senha</div>
-        <input class="a-inp" id="r-pass2" type="password" placeholder="repita a senha" autocomplete="new-password">
-        <button class="auth-btn" id="btn-register">Criar conta →</button>
-        <div class="auth-divider">ou</div>
-        <button class="btn-google" id="btn-google-reg">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Continuar com Google
-        </button>
-        <div class="auth-switch">Já tem conta? <a id="goto-login">Entrar</a></div>
-      </div>
-    </div>
-  </div><!-- /lpN-auth-section -->
-
-  <!-- ══════════════════════════════════════════
-       LANDING SECTIONS
-  ══════════════════════════════════════════ -->
-
-  <div class="lp-divider"></div>
-
-  <!-- ═══════════════════════════════════════════════════════
-       LANDING PAGE SECTIONS
-  ════════════════════════════════════════════════════════ -->
-
-  <!-- ── 1. O QUE É O MYDESK ── -->
-  <div class="lp-section lp-reveal" id="lp-about">
-    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>O que é o MyDesk</div>
-      <div class="lp-title">Seu workspace.<br><span class="hl">Redefinido.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Um ambiente onde organização e clareza se encontram. O MyDesk centraliza tudo o que importa — ideias, tarefas e projetos — em uma experiência fluida, elegante e sem distrações.</div>
-    </div>
-
-    <div class="lp-bento">
-      <div class="lp-bento-item lp-bento-visual">
-        <div class="lp-mock" style="position:relative;height:100%;border:none;border-radius:0;box-shadow:none;">
-          <div class="lp-mock-bar">
-            <div class="lp-mock-dot" style="background:#ef4444"></div>
-            <div class="lp-mock-dot" style="background:#f59e0b"></div>
-            <div class="lp-mock-dot" style="background:#10b981"></div>
-            <div style="flex:1;height:5px;background:rgba(255,255,255,.04);border-radius:3px;margin-left:8px;max-width:100px"></div>
-          </div>
-          <div class="lp-mock-body" style="background:radial-gradient(ellipse 80% 60% at 30% 40%,rgba(99,102,241,.07),transparent),#0a0a0a;min-height:290px;overflow:visible;">
-            <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:20px 20px;border-radius:0 0 10px 10px;"></div>
-            <!-- Note 1: Indigo — Concluído -->
-            <div class="mock-note mock-note-pulse" style="top:14px;left:12px;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
-              <div class="mock-note-bar" style="background:#6366f1"></div>
-              <div class="mock-note-head">
-                <div class="mock-note-chip-row">
-                  <div class="mock-note-chip" style="background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);color:#a5b4fc;">
-                    <span style="width:5px;height:5px;border-radius:50%;background:#6366f1;display:inline-block;"></span>Indigo
-                  </div>
-                  <div class="mock-note-status" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:#6ee7b7;">
-                    <span class="mock-note-status-dot" style="background:#10b981;"></span>Concluído
-                  </div>
-                </div>
-              </div>
-              <div class="mock-note-title">Redesign do dashboard</div>
-              <div class="mock-note-body">Atualizar componentes e revisar tipografia do sistema.</div>
-              <div class="mock-note-sep"></div>
-              <div class="mock-note-dates">
-                <div class="mock-note-date-row">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Início: 01/07 · Prazo: 15/07
-                </div>
-              </div>
-            </div>
-
-            <!-- Note 2: Emerald — Andamento -->
-            <div class="mock-note" style="top:20px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.25);">
-              <div class="mock-note-bar" style="background:#10b981"></div>
-              <div class="mock-note-head">
-                <div class="mock-note-chip-row">
-                  <div class="mock-note-chip" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.22);color:#6ee7b7;">
-                    <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Emerald
-                  </div>
-                  <div class="mock-note-status" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.22);color:#a5b4fc;">
-                    <span class="mock-note-status-dot" style="background:#6366f1;box-shadow:0 0 4px rgba(99,102,241,.6);"></span>Andamento
-                  </div>
-                </div>
-              </div>
-              <div class="mock-note-title">Reunião com cliente</div>
-              <div class="mock-note-body">Apresentar protótipo e coletar feedback do produto.</div>
-              <div class="mock-note-sep"></div>
-              <div class="mock-note-dates">
-                <div class="mock-note-date-row">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Prazo: 18/07
-                </div>
-              </div>
-            </div>
-
-            <!-- Note 3: Rose — Urgente -->
-            <div class="mock-note" style="top:180px;left:70px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
-              <div class="mock-note-bar" style="background:#f43f5e"></div>
-              <div class="mock-note-head">
-                <div class="mock-note-chip-row">
-                  <div class="mock-note-chip" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.22);color:#fda4af;">
-                    <span style="width:5px;height:5px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>Rose
-                  </div>
-                  <div class="mock-note-status" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;">
-                    <span class="mock-note-status-dot" style="background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);"></span>Encerrado
-                  </div>
-                </div>
-              </div>
-              <div class="mock-note-title">Bug crítico #482</div>
-              <div class="mock-note-body">Corrigir falha em produção no módulo de pagamentos.</div>
-              <div class="mock-note-sep"></div>
-              <div class="mock-note-dates">
-                <div class="mock-note-date-row">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Vencido há 2d
-                </div>
-              </div>
-            </div>
-            <div class="mock-badge-float" style="bottom:-16px;right:14px;">
-              <div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>
-              3 notas ativas
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-bento-item lp-bento-feat">
-        <div class="lp-feat-icon fi1">🗂️</div>
-        <div class="lp-feat-title">Cards de notas livres</div>
-        <div class="lp-feat-desc">Arraste, redimensione e posicione suas notas em qualquer lugar do board.</div>
-      </div>
-      <div class="lp-bento-item lp-bento-feat">
-        <div class="lp-feat-icon fi3">🔔</div>
-        <div class="lp-feat-title">Alertas automáticos de prazo</div>
-        <div class="lp-feat-desc">Lembretes antes do vencimento, direto no card — nunca perca um prazo.</div>
-      </div>
-
-      <div class="lp-bento-item lp-bento-stat">
-        <div class="lp-stat-num"><span class="hl">∞</span></div>
-        <div class="lp-stat-label">Notas ilimitadas</div>
-      </div>
-      <div class="lp-bento-item lp-bento-stat">
-        <div class="lp-stat-num"><span class="hl">19</span></div>
-        <div class="lp-stat-label">Paletas de cor</div>
-      </div>
-      <div class="lp-bento-item lp-bento-stat">
-        <div class="lp-stat-num"><span class="hl">100%</span></div>
-        <div class="lp-stat-label">Privado e local</div>
-      </div>
-
-      <div class="lp-bento-item lp-bento-wide">
-        <div class="lp-feat-icon fi2">📎</div>
-        <div>
-          <div class="lp-feat-title">Arquivos e visualizador embutido</div>
-          <div class="lp-feat-desc">Anexe PDFs, imagens e documentos. Abra um visualizador lateral sem sair do board — zoom e pan incluídos.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── SEÇÃO EXTRA: RECURSOS AVANÇADOS (dashboard/notificações/tarefas) ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Recursos</div>
-      <div class="lp-title">Tecnologia avançada para<br><span class="hl">garantir tudo o que você precisa.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Maximize a produtividade da sua equipe com um sistema de gestão amigável, seguro e acessível.</div>
-    </div>
-
-    <div class="lp-dash-grid">
-      <div class="lp-dash-card lp-dash-big">
-        <div class="lp-dash-text">
-          <div class="lp-feat-title" style="font-size:1.1rem;margin-bottom:10px;">Dashboard dinâmico</div>
-          <div class="lp-feat-desc" style="margin-bottom:20px;">O CRM financeiro do MyDesk entrega visibilidade total sobre clientes, recebíveis e vencimentos — com gráficos que se atualizam em tempo real.</div>
-          <button class="lp-dash-cta" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Explorar tudo →</button>
-        </div>
-        <div class="lp-dash-visual">
-          <div class="lp-dash-visual-hdr">
-            <span>Financeiro · Julho</span>
-            <div class="lp-dash-avatars"><span>👤</span><span>👤</span><span>👤</span></div>
-          </div>
-          <div class="lp-chart-bars">
-            <div class="lp-chart-bar" style="--h:38%"></div>
-            <div class="lp-chart-bar" style="--h:62%"></div>
-            <div class="lp-chart-bar" style="--h:48%"></div>
-            <div class="lp-chart-bar" style="--h:30%"></div>
-            <div class="lp-chart-bar active" style="--h:100%"></div>
-            <div class="lp-chart-bar" style="--h:70%"></div>
-            <div class="lp-chart-bar" style="--h:55%"></div>
-            <div class="lp-chart-bar" style="--h:42%"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-dash-card">
-        <div class="lp-feat-title" style="margin-bottom:4px;">Notificações inteligentes</div>
-        <div class="lp-feat-desc" style="margin-bottom:16px;">Acessíveis pela central de eventos, com alertas sonoros e visuais quando um prazo vence.</div>
-        <div class="lp-toggle-list">
-          <div class="lp-toggle-row"><span>Novas mensagens</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Prazos e lembretes</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Convites de chamada</span><div class="lp-toggle-mini"></div></div>
-        </div>
-      </div>
-
-      <div class="lp-dash-card">
-        <div class="lp-feat-title" style="margin-bottom:4px;">Gestão de tarefas</div>
-        <div class="lp-feat-desc" style="margin-bottom:16px;">Discuta prazos, atribua checklists e acompanhe o progresso direto no card da nota.</div>
-        <div class="lp-activity-list">
-          <div class="lp-activity-item"><span class="lp-activity-av">B</span><div><b>Beatriz</b> concluiu 3 itens do checklist<span class="lp-activity-time">2 min atrás</span></div></div>
-          <div class="lp-activity-item"><span class="lp-activity-av" style="background:linear-gradient(135deg,#10b981,#0d9488)">R</span><div><b>Rafael</b> anexou um novo documento<span class="lp-activity-time">14 min atrás</span></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── 2. COMO FUNCIONA (passos horizontais) ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Como funciona</div>
-      <div class="lp-title">Do zero ao organizado<br><span class="hl">em quatro passos.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Sem curva de aprendizado — comece a usar em minutos.</div>
-    </div>
-    <div class="lpN-steps">
-      <div class="lpN-step">
-        <div class="lpN-step-num">1</div>
-        <div class="lpN-step-title">Crie uma nota</div>
-        <div class="lpN-step-desc">Título, descrição e uma cor entre 19 paletas — em segundos.</div>
-      </div>
-      <div class="lpN-step">
-        <div class="lpN-step-num">2</div>
-        <div class="lpN-step-title">Defina prazos</div>
-        <div class="lpN-step-desc">Datas de início e vencimento com lembretes automáticos.</div>
-      </div>
-      <div class="lpN-step">
-        <div class="lpN-step-num">3</div>
-        <div class="lpN-step-title">Acompanhe o status</div>
-        <div class="lpN-step-desc">Um clique muda entre A fazer, Andamento, Concluído e Encerrado.</div>
-      </div>
-      <div class="lpN-step">
-        <div class="lpN-step-num">4</div>
-        <div class="lpN-step-title">Reorganize</div>
-        <div class="lpN-step-desc">Um botão alinha tudo em grid — pilhas e cards, sem sobreposição.</div>
-      </div>
-    </div>
-    <div class="lp-quote" style="max-width:640px;margin-left:auto;margin-right:auto;">
-      <div class="lp-quote-text">"Tenho tudo visível de uma vez — sem abas, sem listas enterradas. O board é o meu segundo cérebro."</div>
-      <div class="lp-quote-author">— Usuário MyDesk</div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── RECURSOS EM GRADE (substitui as 4 seções repetitivas de texto+mock por um grid único) ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Tudo incluído</div>
-      <div class="lp-title">Feito pra times reais,<br><span class="hl">do seu jeito.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Colaboração, personalização e segurança — sem precisar de dez ferramentas diferentes.</div>
-    </div>
-    <div class="lpN-fgrid">
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#eceafd;">👥</div>
-        <div class="lpN-fcard-title">Amigos e workspaces</div>
-        <div class="lpN-fcard-desc">Adicione qualquer usuário e crie um board compartilhado, sincronizado em tempo real.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#e6faf5;">💬</div>
-        <div class="lpN-fcard-title">Chat em tempo real</div>
-        <div class="lpN-fcard-desc">Janelas de conversa com texto, imagem e arquivos — mensagens offline entregues ao reconectar.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fef3e2;">🎨</div>
-        <div class="lpN-fcard-title">19 paletas de cor</div>
-        <div class="lpN-fcard-desc">Cada paleta coordena fundo, barra e chip pra um visual consistente em todo o board.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#eceafd;">📚</div>
-        <div class="lpN-fcard-title">Pilhas inteligentes</div>
-        <div class="lpN-fcard-desc">Arraste notas pra formar pilhas. Renomeie pra "Concluído" e elas se organizam sozinhas.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fdecec;">🔐</div>
-        <div class="lpN-fcard-title">Autenticação Firebase</div>
-        <div class="lpN-fcard-desc">Login seguro na nuvem. Senhas nunca em texto puro — só tokens criptografados.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#e6faf5;">🖼️</div>
-        <div class="lpN-fcard-title">Fundo personalizado</div>
-        <div class="lpN-fcard-desc">Cores, gradientes, imagens ou vídeo em loop — cada conta com seu próprio ambiente.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fef3e2;">📹</div>
-        <div class="lpN-fcard-title">Videochamada com tela</div>
-        <div class="lpN-fcard-desc">1:1 ou em grupo, com compartilhamento de tela e janela redimensionável.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fdecec;">🛡️</div>
-        <div class="lpN-fcard-title">Validação de arquivos</div>
-        <div class="lpN-fcard-desc">Uploads filtrados por tipo MIME. Executáveis e scripts perigosos são bloqueados.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── FAIXA DE INTEGRAÇÕES (estilo "Don't replace. Integrate.") ── -->
-  <div class="lp-integrations">
-    <div class="lp-eyebrow" style="justify-content:center;color:rgba(165,180,252,.75)"><div class="lp-eyebrow-dot" style="background:#818cf8"></div>Integrações</div>
-    <div class="lp-int-title">Não substitua. Integre.</div>
-    <div class="lp-int-sub">Sabemos que trocar as ferramentas do seu dia a dia é um problema. Por isso o MyDesk se conecta ao que você já usa.</div>
-    <a class="lp-int-link" href="#lp-pricing">Ver todos os planos →</a>
-    <div class="lp-int-grid">
-      <div class="lp-int-icon">🔥<span>Firebase</span></div>
-      <div class="lp-int-icon">🟦<span>Google Auth</span></div>
-      <div class="lp-int-icon">📅<span>Google Calendar</span></div>
-      <div class="lp-int-icon">Ⓜ️<span>Outlook</span></div>
-      <div class="lp-int-icon">💳<span>AbacatePay</span></div>
-      <div class="lp-int-icon">▲<span>Vercel</span></div>
-      <div class="lp-int-icon">🗓️<span>.ics Calendar</span></div>
-      <div class="lp-int-icon">🔗<span>Firebase Auth</span></div>
-    </div>
-  </div>
-
-  <!-- ── TESTEMUNHO / PROPÓSITO ── -->
-  <div class="lp-section lp-reveal">
-    <div class="lp-testimonial">
-      <div class="lp-testimonial-mark">"</div>
-      <div class="lp-testimonial-quote">O MyDesk nasceu de uma ideia simples: organização não deveria custar caro nem exigir dez ferramentas diferentes. Notas, CRM, chat e chamadas — tudo em um único lugar, sob seu controle.</div>
-      <div class="lp-testimonial-author">— Equipe MyDesk</div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── SEÇÃO 7: FAQ ── -->
-  <div class="lp-section lp-reveal" id="lp-faq-section">
-    <div style="max-width:680px;margin:0 auto;width:100%;">
-      <div class="lp-eyebrow" style="justify-content:center;margin-bottom:16px;"><div class="lp-eyebrow-dot"></div>Dúvidas frequentes</div>
-      <div class="lp-title" style="text-align:center;margin-bottom:40px;">Perguntas<br><span class="hl">& Respostas.</span></div>
-
-      <div style="display:flex;flex-direction:column;gap:12px;" id="lp-faq">
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Meus dados ficam salvos se eu fechar o navegador?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. As notas são salvas na nuvem em tempo real. Ao voltar, tudo estará exatamente como você deixou — em qualquer dispositivo.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Posso usar em vários dispositivos ao mesmo tempo?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. Faça login com a mesma conta em qualquer navegador ou dispositivo. As notas sincronizam automaticamente pela nuvem.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Como funcionam os workspaces compartilhados?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Você pode criar um workspace 1:1 com um amigo ou um workspace de grupo. As notas são sincronizadas em tempo real para todos os participantes.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">É possível anexar arquivos nas notas?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. Cada nota aceita imagens, PDFs, textos e outros arquivos até 5MB. Há um visualizador embutido para PDFs e imagens.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">O MyDesk funciona offline?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Parcialmente. O board carrega normalmente, mas sincronização, chat e funcionalidades sociais precisam de conexão com a internet.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── CTA FINAL ── -->
-
-  <div class="lp-divider"></div>
-
-  <!-- PRICING SECTION -->
-  <div class="lp-section lp-reveal" id="lp-pricing">
-    <div style="max-width:900px;margin:0 auto;">
-      <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Planos</div>
-      <div class="lp-title">Simples e <span class="hl">transparente.</span></div>
-      <div class="lp-subtitle">Comece grátis. Assine quando precisar de mais.</div>
-
-      <div style="display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;">
-
-        <!-- FREE PLAN -->
-        <div class="lpN-plan-card">
-          <div class="lpN-plan-eyebrow">Gratuito</div>
-          <div class="lpN-plan-price">R$ 0</div>
-          <div class="lpN-plan-period">para sempre</div>
-          <div class="lpN-plan-feats">
-            <div class="lpN-plan-feat"><span class="ck">✓</span>30 notas por mês</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Workspaces pessoais</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Chat com amigos</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>19 cores de notas</div>
-            <div class="lpN-plan-feat off"><span class="x">✗</span>CRM Financeiro</div>
-            <div class="lpN-plan-feat off"><span class="x">✗</span>Workspaces de grupo</div>
-            <div class="lpN-plan-feat off"><span class="x">✗</span>Suporte prioritário</div>
-          </div>
-          <button class="lpN-plan-btn" onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">Começar grátis</button>
-        </div>
-
-        <!-- PREMIUM PLAN -->
-        <div class="lpN-plan-card premium">
-          <div class="lpN-plan-badge">Mais popular</div>
-          <div class="lpN-plan-eyebrow">Premium</div>
-          <div class="lpN-plan-price">R$ 10</div>
-          <div class="lpN-plan-period">por mês · via Pix</div>
-          <div class="lpN-plan-feats">
-            <div class="lpN-plan-feat"><span class="ck">✓</span><b>Notas ilimitadas</b></div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Workspaces pessoais ilimitados</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Chat com amigos</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>19 cores de notas</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span><b>CRM Financeiro completo</b></div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span><b>Workspaces de grupo</b></div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Suporte prioritário</div>
-          </div>
-          <button class="lpN-plan-btn premium" onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">Assinar Premium ⭐</button>
-        </div>
-
-      </div>
-
-      <div class="lpN-plan-note">
-        Pix · R$ 0,80 de taxa por transação (AbacatePay) · Sem mensalidade oculta · Cancele quando quiser
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-cta">
-    <div class="lp-eyebrow" style="justify-content:center;margin-bottom:20px;"><div class="lp-eyebrow-dot"></div>Comece agora</div>
-    <div class="lp-cta-title">Comece grátis.<br><span style="background:linear-gradient(135deg,#818cf8,#6366f1,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Evolua quando quiser.</span></div>
-    <div class="lp-cta-desc">Crie sua conta gratuitamente. Nenhum cartão de crédito necessário.<br>Seus dados ficam sincronizados com segurança na nuvem.</div>
-    <button class="lp-cta-btn" onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">
-      Criar conta grátis
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </button>
-    <button class="lp-cta-btn-outline" onclick="document.getElementById('lp-pricing').scrollIntoView({behavior:'smooth'})">Ver planos</button>
-    <div class="lpN-cta-trust" style="display:flex;gap:24px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Gratuito para sempre</span>
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Sem cartão de crédito</span>
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Multi-dispositivo</span>
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Dados na nuvem</span>
-    </div>
-  </div>
-
-  <!-- ── FOOTER ── -->
-  <div class="lp-footer2">
-    <div class="lp-footer2-grid">
-      <div class="lp-footer2-brand">
-        <div class="lp-footer2-brand-name"><span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>MyDesk</div>
-        <div class="lp-footer2-brand-desc">Workspace de notas, CRM financeiro e colaboração em tempo real — tudo em um único lugar, sob seu controle.</div>
-      </div>
-      <div class="lp-footer2-col">
-        <div class="lp-footer2-col-title">Produto</div>
-        <a onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Recursos</a>
-        <a onclick="document.getElementById('lp-pricing').scrollIntoView({behavior:'smooth'})">Preços</a>
-        <a onclick="document.getElementById('lp-faq-section').scrollIntoView({behavior:'smooth'})">Perguntas frequentes</a>
-      </div>
-      <div class="lp-footer2-col">
-        <div class="lp-footer2-col-title">Conta</div>
-        <a onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</a>
-        <a onclick="document.getElementById('lpN-auth-section').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">Criar conta</a>
-      </div>
-      <div class="lp-footer2-col">
-        <div class="lp-footer2-col-title">Integrações</div>
-        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);margin-bottom:10px;">Firebase · Google</span>
-        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);margin-bottom:10px;">Outlook · Vercel</span>
-        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);">AbacatePay (Pix)</span>
-      </div>
-    </div>
-    <div class="lp-footer2-bottom">
-      <span>© 2026 MyDesk · Todos os dados protegidos com autenticação segura na nuvem.</span>
-      <span>Feito com 💜 para equipes e freelancers.</span>
-    </div>
-  </div>
-
+<div class="scene" aria-hidden="true">
+  <div class="circle haze"></div>
+  <div class="circle aurora" id="aurora"></div>
+  <div class="circle limb"></div>
+  <div class="dust"></div>
+  <div class="vignette"></div>
+  <div class="grain"></div>
 </div>
-<div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
-<script src="js/login.js?v=12"></script>
+
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="ttl">
+
+  <div class="top st" style="--i:0">
+    <div class="seg" role="tablist">
+      <span class="thumb" id="thumb"></span>
+      <button role="tab" type="button" aria-selected="true"  data-mode="signup">Criar conta</button>
+      <button role="tab" type="button" aria-selected="false" data-mode="signin">Entrar</button>
+    </div>
+    <button class="close" id="close" aria-label="Fechar">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+    </button>
+  </div>
+
+  <h1 id="ttl" class="st" style="--i:1">Criar conta</h1>
+
+  <form id="form" novalidate>
+
+    <div class="collapse st" id="cNames" style="--i:2"><div>
+      <div class="grid2">
+        <div class="ctrl"><input id="first" type="text" autocomplete="given-name"  placeholder="Nome"></div>
+        <div class="ctrl"><input id="last"  type="text" autocomplete="family-name" placeholder="Sobrenome"></div>
+      </div>
+    </div></div>
+
+    <div class="ctrl st" style="--i:3">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="1.2" y="3.3" width="13.6" height="9.4" rx="2.2"/><path d="M1.9 4.5L8 9l6.1-4.5"/>
+      </svg>
+      <input id="email" type="email" autocomplete="email" placeholder="Seu e-mail">
+    </div>
+
+    <div class="ctrl st" style="--i:4">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="2.5" y="6.9" width="11" height="7.4" rx="2.2"/><path d="M5.3 6.9V4.9a2.7 2.7 0 015.4 0v2"/>
+      </svg>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Sua senha">
+      <button class="eye" type="button" id="eye" aria-label="Mostrar senha">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M1 8s2.6-4.4 7-4.4S15 8 15 8s-2.6 4.4-7 4.4S1 8 1 8z"/><circle cx="8" cy="8" r="1.9"/>
+        </svg>
+      </button>
+    </div>
+
+    <button class="primary st" type="submit" id="submit" style="--i:5">Criar conta</button>
+    <p class="msg" id="msg"></p>
+  </form>
+
+  <div class="or st" style="--i:6"><span>OU ENTRE COM</span></div>
+
+  <div class="social st" style="--i:7">
+    <button type="button" id="btn-google" aria-label="Continuar com Google">
+      <svg width="19" height="19" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.6 9.2c0-.6 0-1.2-.2-1.8H9v3.4h4.8a4.1 4.1 0 01-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z"/><path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 010-3.4V5H.9a9 9 0 000 8l3-2.3z"/><path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 00.9 5l3 2.3C4.6 5.2 6.6 3.6 9 3.6z"/></svg>
+    </button>
+    <button type="button" id="btn-apple" aria-label="Continuar com Apple">
+      <svg width="19" height="19" viewBox="0 0 18 18" fill="#fff"><path d="M12.3 9.5c0-1.9 1.5-2.8 1.6-2.9-.9-1.3-2.2-1.4-2.7-1.5-1.2-.1-2.3.7-2.9.7-.6 0-1.5-.7-2.5-.7-1.3 0-2.5.7-3.1 1.9-1.3 2.3-.3 5.7 1 7.6.6.9 1.4 1.9 2.4 1.9.9 0 1.3-.6 2.4-.6s1.4.6 2.4.6c1 0 1.6-.9 2.2-1.8.7-1 1-2 1-2.1 0 0-1.9-.7-1.9-2.9zM10.6 3.6c.5-.6.9-1.5.8-2.4-.8 0-1.7.5-2.2 1.2-.5.5-.9 1.4-.8 2.3.9.1 1.8-.5 2.2-1.1z"/></svg>
+    </button>
+  </div>
+
+  <p class="terms st" style="--i:8">Ao criar uma conta, você concorda com nossos <a href="landing.html#lp-faq-section">Termos &amp; Privacidade</a></p>
+</div>
+
+<script src="js/login.js?v=14"></script>
 </body>
 </html>

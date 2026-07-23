@@ -1,107 +1,121 @@
-﻿'use strict';
+'use strict';
 
-/* ── Utilitários mínimos necessários para auth ── */
-function $(id) { return document.getElementById(id); }
-function $v(id) { return $(id).value; }
-function showErr(id, msg) { const e = $(id); e.textContent = msg; e.classList.add('show'); }
-function hideErr(id) { const e = $(id); if (e) { e.classList.remove('show'); e.textContent = ''; } }
+/* ═════════════════════════════════════════════════════════════
+   MyDesk — página de login/registro (design "aurora", 1:1 com o
+   arquivo enviado — telefone removido, senha também no cadastro
+   porque o Firebase exige senha pra criar conta).
+   ═════════════════════════════════════════════════════════════ */
 
-function toast(icon, msg) {
-  const t = $('toast');
-  if (!t) return;
-  $('t-ico').textContent = icon;
-  $('t-msg').textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+const $  = id => document.getElementById(id);
+const $v = id => $(id).value;
+
+const form   = $('form');
+const submit = $('submit');
+const msg    = $('msg');
+const thumb  = $('thumb');
+let mode = 'signup';
+
+/* ── gira o gradiente cônico (a cor viaja pelo arco) ── */
+if (window.CSS && CSS.registerProperty) {
+  try {
+    CSS.registerProperty({ name: '--ang', syntax: '<angle>', initialValue: '168deg', inherits: false });
+    const s = document.createElement('style');
+    s.textContent = `
+      @keyframes hue{to{--ang:528deg}}
+      .aurora,.haze{animation:hue 96s linear infinite, sway 34s ease-in-out infinite alternate!important}
+      .aurora{background:conic-gradient(from var(--ang),
+        #0a1856 0deg,#1d3fd6 30deg,#5a35d9 58deg,#a531c4 84deg,#e0603a 106deg,
+        #f2b04a 124deg,#4fdba4 150deg,#1f86dc 180deg,#17246a 214deg,#0a1856 360deg)}
+      .haze{background:conic-gradient(from var(--ang),
+        #16256e 0deg,#2c46c8 40deg,#7b3ad2 78deg,#cf4a8e 104deg,#e07a3c 126deg,
+        #43c8a0 156deg,#1c6fc4 190deg,#16256e 360deg)}`;
+    document.head.appendChild(s);
+  } catch (e) {}
+}
+
+/* ── segmentado (Criar conta / Entrar) ── */
+function moveThumb() {
+  const on = document.querySelector('.seg button[aria-selected="true"]');
+  thumb.style.width = on.offsetWidth + 'px';
+  thumb.style.transform = `translateX(${on.offsetLeft - 3}px)`;
+}
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.seg button').forEach(b =>
+    b.setAttribute('aria-selected', String(b.dataset.mode === m)));
+  const up = m === 'signup';
+  $('cNames').toggleAttribute('data-off', !up);
+  $('ttl').textContent = up ? 'Criar conta' : 'Bem-vindo de volta';
+  submit.textContent   = up ? 'Criar conta' : 'Entrar';
+  clearErrors();
+  moveThumb();
+}
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+addEventListener('resize', moveThumb);
+document.fonts ? document.fonts.ready.then(moveThumb) : moveThumb();
+moveThumb();
+
+/* ── senha visível ── */
+$('eye').onclick = () => {
+  const p = $('password');
+  p.type = p.type === 'password' ? 'text' : 'password';
+  $('eye').setAttribute('aria-label', p.type === 'password' ? 'Mostrar senha' : 'Ocultar senha');
+  p.focus();
+};
+
+/* ── validação ── */
+const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+function clearErrors() {
+  document.querySelectorAll('.ctrl').forEach(c => c.classList.remove('bad'));
+  msg.classList.remove('on', 'ok');
+}
+function fail(text, ...fields) {
+  fields.forEach(f => f && f.closest('.ctrl').classList.add('bad'));
+  msg.textContent = text;
+  msg.classList.remove('ok');
+  msg.classList.add('on');
+  return false;
+}
+function okMsg(text) {
+  msg.textContent = text;
+  msg.classList.add('on', 'ok');
 }
 
 /* ── Firebase helpers ── */
-let _db = null;
-let _auth = null;
-let _fbReady = false;
-
+let _db = null, _auth = null, _fbReady = false;
 function loadFirebase() {
-  return new Promise((ok) => {
+  return new Promise(ok => {
     if (_fbReady) { ok(); return; }
-    function tryInit() {
-      if (window._fbInitDone) {
-        _db = window._fbDB; _auth = window._fbAuth; _fbReady = true; ok();
-      } else { setTimeout(tryInit, 50); }
-    }
-    tryInit();
+    (function tryInit() {
+      if (window._fbInitDone) { _db = window._fbDB; _auth = window._fbAuth; _fbReady = true; ok(); }
+      else setTimeout(tryInit, 50);
+    })();
   });
 }
-
 function getAuth() { return _auth || window._fbAuth || null; }
 function fbGet(path) { return _db.ref(path).once('value').then(s => s.val()); }
 function fbSet(path, val) { return _db.ref(path).set(val); }
 
-/* ── Tab de login/registro ── */
-function switchTab(t) {
-  $('form-login').style.display = t === 'login' ? 'block' : 'none';
-  $('form-reg').style.display   = t === 'reg'   ? 'block' : 'none';
-  $('tab-login').classList.toggle('active', t === 'login');
-  $('tab-reg').classList.toggle('active',   t === 'reg');
-  $('login-err').textContent = '';
-  $('reg-err').textContent   = '';
-}
-
-/* ── Mapeamento de erros Firebase — PT-BR / EN, escolhido pelo idioma do usuário ──
-   Nunca repassamos e.message (texto cru do SDK do Firebase, sempre em inglês
-   técnico) para a tela — sempre uma mensagem traduzida e amigável. */
+/* ── Mensagens de erro Firebase, traduzidas ── */
 const AUTH_ERR_MSGS = {
-  pt: {
-    'auth/email-already-in-use':      'Este e-mail já está cadastrado.',
-    'auth/invalid-email':             'E-mail inválido.',
-    'auth/weak-password':             'Senha muito fraca. Use pelo menos 8 caracteres.',
-    'auth/user-not-found':            'E-mail não encontrado.',
-    'auth/wrong-password':            'Senha incorreta.',
-    'auth/invalid-credential':        'E-mail ou senha incorretos.',
-    'auth/invalid-login-credentials': 'E-mail ou senha incorretos.',
-    'auth/missing-password':          'Informe a senha.',
-    'auth/too-many-requests':         'Muitas tentativas. Tente novamente mais tarde.',
-    'auth/network-request-failed':    'Sem conexão com a internet.',
-    'auth/user-disabled':             'Esta conta foi desativada.',
-    'auth/operation-not-allowed':     'Registro desativado. Contate o administrador.',
-    'auth/configuration-not-found':   'Firebase não configurado corretamente.',
-    default:                          'Erro ao autenticar. Tente novamente.',
-  },
-  en: {
-    'auth/email-already-in-use':      'This email is already registered.',
-    'auth/invalid-email':             'Invalid email.',
-    'auth/weak-password':             'Password too weak. Use at least 8 characters.',
-    'auth/user-not-found':            'Email not found.',
-    'auth/wrong-password':            'Incorrect password.',
-    'auth/invalid-credential':        'Incorrect email or password.',
-    'auth/invalid-login-credentials': 'Incorrect email or password.',
-    'auth/missing-password':          'Enter your password.',
-    'auth/too-many-requests':         'Too many attempts. Try again later.',
-    'auth/network-request-failed':    'No internet connection.',
-    'auth/user-disabled':             'This account has been disabled.',
-    'auth/operation-not-allowed':     'Registration disabled. Contact the administrator.',
-    'auth/configuration-not-found':   'Firebase is not configured correctly.',
-    default:                          'Authentication error. Please try again.',
-  },
+  'auth/email-already-in-use':      'Este e-mail já está cadastrado.',
+  'auth/invalid-email':             'E-mail inválido.',
+  'auth/weak-password':             'Senha muito fraca. Use pelo menos 8 caracteres.',
+  'auth/user-not-found':            'E-mail não encontrado.',
+  'auth/wrong-password':            'Senha incorreta.',
+  'auth/invalid-credential':        'E-mail ou senha incorretos.',
+  'auth/invalid-login-credentials': 'E-mail ou senha incorretos.',
+  'auth/missing-password':          'Informe a senha.',
+  'auth/too-many-requests':         'Muitas tentativas. Tente novamente mais tarde.',
+  'auth/network-request-failed':    'Sem conexão com a internet.',
+  'auth/user-disabled':             'Esta conta foi desativada.',
+  'auth/operation-not-allowed':     'Registro desativado. Contate o administrador.',
+  'auth/configuration-not-found':   'Firebase não configurado corretamente.',
+  default:                          'Erro ao autenticar. Tente novamente.',
 };
+function authErrMsg(code) { return AUTH_ERR_MSGS[code] || AUTH_ERR_MSGS.default; }
 
-// Mesma chave (md_lang) usada pelo detector de idioma/geolocalização em app.js,
-// para manter a preferência consistente entre login.html e index.html.
-function currentAuthLang() {
-  const saved = localStorage.getItem('md_lang');
-  if (saved && AUTH_ERR_MSGS[saved]) return saved;
-  const browserLang = (navigator.language || navigator.userLanguage || 'pt').slice(0, 2).toLowerCase();
-  return AUTH_ERR_MSGS[browserLang] ? browserLang : 'pt';
-}
-
-function authErrMsg(code) {
-  const dict = AUTH_ERR_MSGS[currentAuthLang()];
-  return dict[code] || dict.default;
-}
-
-/* ── Hash de senha para modo demo (offline, sem Firebase) ──
-   PBKDF2 com salt aleatório por conta — evita que um único rainbow table
-   sirva pra todas as contas (o antigo SHA-256 com "sal" fixo era fraco
-   nesse sentido). _demoHashPassLegacy fica só pra migrar contas antigas. */
+/* ── Hash de senha para modo demo (offline, sem Firebase) ── */
 function _demoGenSalt() {
   const arr = new Uint8Array(16);
   crypto.getRandomValues(arr);
@@ -116,10 +130,20 @@ async function _demoHashPass(pass, salt) {
   );
   return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-async function _demoHashPassLegacy(pass) {
-  const enc = new TextEncoder();
-  const buf = await crypto.subtle.digest('SHA-256', enc.encode('mydesk-demo-v1:' + pass));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+/* ── nome de usuário derivado do e-mail (sem campo visível no formulário —
+   o design enviado não tem esse campo; a mesma estratégia já é usada no
+   fluxo de login com Google, que também não coleta usuário) ── */
+async function deriveUsername(email) {
+  const prefix = (email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 20) || 'user';
+  let candidate = prefix, attempts = 0;
+  while (attempts < 5) {
+    const taken = await fbGet('usernames/' + candidate).catch(() => null);
+    if (!taken) break;
+    candidate = prefix + Math.floor(Math.random() * 9000 + 1000);
+    attempts++;
+  }
+  return candidate;
 }
 
 /* ── Redirecionar para o app após login ── */
@@ -133,34 +157,29 @@ function goToApp(userData) {
 
 /* ── Registro ── */
 async function doRegister() {
-  const name  = $v('r-name').trim();
-  const user  = $v('r-user').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-  const email = $v('r-email').trim().toLowerCase();
-  const role  = $v('r-role').trim();
-  const pass  = $v('r-pass');
-  const pass2 = $v('r-pass2');
+  const first = $v('first').trim();
+  const last  = $v('last').trim();
+  const name  = (first + ' ' + last).trim();
+  const email = $v('email').trim().toLowerCase();
+  const pass  = $v('password');
 
-  if (!name)  return showErr('reg-err', 'Informe seu nome.');
-  if (!user)  return showErr('reg-err', 'Informe um nome de usuário (letras, números, _).');
-  if (user.length < 2) return showErr('reg-err', 'Usuário deve ter ao menos 2 caracteres.');
-  if (!email) return showErr('reg-err', 'Informe seu e-mail.');
-  if (!pass)  return showErr('reg-err', 'Informe uma senha.');
-  if (pass.length < 8 || !/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass))
-    return showErr('reg-err', 'Senha deve ter ao menos 8 caracteres com letras e números.');
-  if (pass !== pass2) return showErr('reg-err', 'As senhas não coincidem.');
+  if (!first)  return fail('Informe seu nome.', $('first'));
+  if (!emailOk(email)) return fail('Informe um e-mail válido.', $('email'));
+  if (pass.length < 8) return fail('A senha precisa ter pelo menos 8 caracteres.', $('password'));
 
-  const btn = $('btn-register');
-  btn.textContent = 'Criando…'; btn.disabled = true;
+  submit.disabled = true;
+  submit.textContent = 'Criando…';
 
   // Modo demo (Firebase indisponível)
   if (!window._fbInitDone) {
+    const user = email.split('@')[0].replace(/[^a-z0-9_]/gi, '') || 'user';
     const accs = JSON.parse(localStorage.getItem('md_acc') || '{}');
-    if (accs[user]) { showErr('reg-err', 'Usuário já existe.'); btn.textContent = 'Criar conta →'; btn.disabled = false; return; }
+    if (accs[user]) { fail('Já existe uma conta com este e-mail.', $('email')); submit.disabled = false; submit.textContent = 'Criar conta'; return; }
     const salt     = _demoGenSalt();
     const passHash = await _demoHashPass(pass, salt);
-    accs[user] = { username: user, name, role, email, passHash, salt };
+    accs[user] = { username: user, name, role: '', email, passHash, salt };
     localStorage.setItem('md_acc', JSON.stringify(accs));
-    goToApp({ uid: 'demo_' + user, username: user, name, role, email });
+    goToApp({ uid: 'demo_' + user, username: user, name, role: '', email });
     return;
   }
 
@@ -168,24 +187,17 @@ async function doRegister() {
     await loadFirebase();
     const auth = getAuth();
 
-    let existing = null;
-    try { existing = await fbGet('usernames/' + user); } catch(_) {}
-    if (existing) {
-      showErr('reg-err', 'Este nome de usuário já está em uso.');
-      btn.textContent = 'Criar conta →'; btn.disabled = false;
-      return;
-    }
-
     let cred;
     try {
       cred = await auth.createUserWithEmailAndPassword(email, pass);
-    } catch(e) {
-      showErr('reg-err', authErrMsg(e.code));
-      btn.textContent = 'Criar conta →'; btn.disabled = false;
+    } catch (e) {
+      fail(authErrMsg(e.code), $('email'));
+      submit.disabled = false; submit.textContent = 'Criar conta';
       return;
     }
 
     const uid = cred.user.uid;
+    const user = await deriveUsername(email);
     await cred.user.updateProfile({ displayName: user }).catch(() => {});
 
     let claimed = false;
@@ -196,81 +208,56 @@ async function doRegister() {
         return undefined;
       });
       claimed = tx.committed;
-    } catch(_) { claimed = false; }
+    } catch (_) { claimed = false; }
 
-    if (!claimed) {
-      await cred.user.delete().catch(() => {});
-      showErr('reg-err', 'Este nome de usuário foi registrado por outra pessoa. Tente outro.');
-      btn.textContent = 'Criar conta →'; btn.disabled = false;
-      return;
-    }
-
-    const profile = { name, role: role || '', email, uid, username: user };
+    const profile = { name, role: '', email, uid, username: claimed ? user : uid };
     await _db.ref().update({
-      ['uids/' + uid]:                user,
-      ['users/' + uid + '/profile']:  profile,
-      ['users/' + user + '/profile']: profile,
+      ['uids/' + uid]:                          claimed ? user : uid,
+      ['users/' + uid + '/profile']:            profile,
+      ['users/' + (claimed ? user : uid) + '/profile']: profile,
     }).catch(async () => {
-      await fbSet('uids/' + uid, user).catch(() => {});
+      await fbSet('uids/' + uid, claimed ? user : uid).catch(() => {});
       await fbSet('users/' + uid + '/profile', profile).catch(() => {});
-      await fbSet('users/' + user + '/profile', profile).catch(() => {});
+      await fbSet('users/' + (claimed ? user : uid) + '/profile', profile).catch(() => {});
     });
 
-    goToApp({ uid, username: user, name, role, email });
+    goToApp({ uid, username: profile.username, name, role: '', email });
 
-  } catch(e) {
+  } catch (e) {
     console.error('Register error:', e);
-    showErr('reg-err', authErrMsg(e.code));
-    btn.textContent = 'Criar conta →'; btn.disabled = false;
+    fail(authErrMsg(e.code));
+    submit.disabled = false; submit.textContent = 'Criar conta';
   }
 }
 
 /* ── Login ── */
 async function doLogin() {
-  const email = $v('l-email').trim().toLowerCase();
-  const pass  = $v('l-pass');
+  const email = $v('email').trim().toLowerCase();
+  const pass  = $v('password');
 
-  if (!email) return showErr('login-err', 'Informe seu e-mail.');
-  if (!pass)  return showErr('login-err', 'Informe sua senha.');
+  if (!emailOk(email)) return fail('Informe um e-mail válido.', $('email'));
+  if (!pass) return fail('Informe sua senha.', $('password'));
 
-  const btn = $('btn-login');
-  btn.textContent = 'Entrando…'; btn.disabled = true;
+  submit.disabled = true;
+  submit.textContent = 'Entrando…';
 
   // Modo demo
   if (!window._fbInitDone) {
-    const username = email.split('@')[0].replace(/[^a-z0-9_]/gi, '') || 'demo';
     const accs = JSON.parse(localStorage.getItem('md_acc') || '{}');
     const acc = Object.values(accs).find(a => a.email === email);
     if (acc) {
-      let match, needsRehash = false;
-      if (acc.salt && acc.passHash) {
-        match = acc.passHash === await _demoHashPass(pass, acc.salt);
-      } else if (acc.passHash) {
-        // Conta antiga: hash sem salt por conta. Migra pro PBKDF2 salgado no acerto.
-        match = acc.passHash === await _demoHashPassLegacy(pass);
-        needsRehash = match;
-      } else {
-        // Conta bem antiga: senha em texto puro. Migra também.
-        match = acc.passDemo === pass;
-        needsRehash = match;
-      }
+      const match = acc.passHash === await _demoHashPass(pass, acc.salt);
       if (!match) {
-        showErr('login-err', 'Senha incorreta.');
-        btn.textContent = 'Entrar →'; btn.disabled = false;
+        fail('Senha incorreta.', $('password'));
+        submit.disabled = false; submit.textContent = 'Entrar';
         return;
-      }
-      if (needsRehash) {
-        acc.salt     = _demoGenSalt();
-        acc.passHash = await _demoHashPass(pass, acc.salt);
-        delete acc.passDemo;
-        localStorage.setItem('md_acc', JSON.stringify(accs));
       }
       goToApp({ uid: 'demo_' + acc.username, username: acc.username, name: acc.name, role: acc.role || '', email });
     } else {
+      const username = email.split('@')[0].replace(/[^a-z0-9_]/gi, '') || 'demo';
       const salt     = _demoGenSalt();
       const passHash = await _demoHashPass(pass, salt);
-      const newAcc = { username, name: username, role: '', email, passHash, salt };
-      accs[username] = newAcc;
+      accs[username] = { username, name: username, role: '', email, passHash, salt };
       localStorage.setItem('md_acc', JSON.stringify(accs));
       goToApp({ uid: 'demo_' + username, username, name: username, role: '', email });
     }
@@ -281,25 +268,22 @@ async function doLogin() {
     await loadFirebase();
     const auth = getAuth();
     const cred = await auth.signInWithEmailAndPassword(email, pass);
-    // Redirect immediately — app.js (tryAutoLogin) handles profile loading
     goToApp({ uid: cred.user.uid, email });
-
-  } catch(e) {
+  } catch (e) {
     console.error('Login error:', e.code, e.message);
-    showErr('login-err', authErrMsg(e.code));
-    btn.textContent = 'Entrar →'; btn.disabled = false;
+    fail(authErrMsg(e.code));
+    submit.disabled = false; submit.textContent = 'Entrar';
   }
 }
 
 /* ── Login com Google ── */
 async function doGoogleLogin() {
-  if (!window._fbInitDone) { toast('⚠', 'Firebase não carregado.'); return; }
+  if (!window._fbInitDone) { return fail('Firebase não carregado.'); }
   const auth = getAuth();
-  if (!auth) { toast('⚠', 'Auth não disponível.'); return; }
+  if (!auth) { return fail('Autenticação não disponível.'); }
 
-  const btn = document.getElementById('btn-google-login') || document.getElementById('btn-google-reg');
-  const originalText = btn?.innerHTML;
-  if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+  const btn = $('btn-google');
+  btn.disabled = true; btn.style.opacity = '.6';
 
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -311,17 +295,8 @@ async function doGoogleLogin() {
     let username = await fbGet('uids/' + user.uid).catch(() => null);
 
     if (!username) {
-      const emailPrefix = (user.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 20);
-      const displayName = user.displayName || emailPrefix;
-      let candidate = emailPrefix;
-      let attempts = 0;
-      while (attempts < 5) {
-        const taken = await fbGet('usernames/' + candidate).catch(() => null);
-        if (!taken) break;
-        candidate = emailPrefix + Math.floor(Math.random() * 9000 + 1000);
-        attempts++;
-      }
-      username = candidate;
+      const displayName = user.displayName || (user.email || '').split('@')[0];
+      username = await deriveUsername(user.email || user.uid);
       const profile = { name: displayName, role: '', email: user.email || '', uid: user.uid, username, photo: user.photoURL || null };
       await fbSet('usernames/' + username, user.uid);
       await fbSet('uids/' + user.uid, username);
@@ -334,114 +309,36 @@ async function doGoogleLogin() {
                || {};
       goToApp({ uid: user.uid, username, name: profile.name || username, role: profile.role || '', email: user.email || '' });
     }
-
-  } catch(e) {
-    if (btn) { btn.disabled = false; btn.innerHTML = originalText; btn.style.opacity = ''; }
+  } catch (e) {
+    btn.disabled = false; btn.style.opacity = '';
     if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
     console.error('Google login error:', e);
-    showErr('login-err', 'Erro ao entrar com Google: ' + (e.message || e.code));
+    fail('Erro ao entrar com Google: ' + (e.message || e.code));
   }
 }
 
-/* ── Esqueci a senha ── */
-async function doForgotPassword() {
-  const email = $v('l-email').trim();
-  if (!email) return showErr('login-err', 'Informe seu e-mail para redefinir a senha.');
-  try {
-    await getAuth().sendPasswordResetEmail(email);
-    const el = $('login-err');
-    el.textContent = '✓ E-mail de redefinição enviado! Verifique sua caixa de entrada.';
-    el.classList.add('show');
-    el.style.color = '#6ee7b7';
-  } catch(e) {
-    showErr('login-err', authErrMsg(e.code));
-  }
-}
+/* ── submit do formulário ── */
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  clearErrors();
+  if (mode === 'signup') doRegister(); else doLogin();
+});
 
-/* ── Animação de typewriter ── */
-function startTypewriter() {
-  const el     = document.getElementById('auth-typewriter');
-  const cursor = document.getElementById('auth-cursor');
-  if (!el || !cursor) return;
-  const phrases = ['de notas.', 'colaborativo.', 'sem distrações.', 'do seu jeito.'];
-  let pi = 0, ci = 0, deleting = false;
-  function tick() {
-    const phrase = phrases[pi];
-    if (!deleting) {
-      el.textContent = phrase.slice(0, ++ci);
-      if (ci === phrase.length) { deleting = true; return setTimeout(tick, 1800); }
-    } else {
-      el.textContent = phrase.slice(0, --ci);
-      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; return setTimeout(tick, 400); }
-    }
-    setTimeout(tick, deleting ? 45 : 90);
-  }
-  tick();
-}
+$('btn-google').addEventListener('click', doGoogleLogin);
+$('btn-apple').addEventListener('click', () => fail('Login com Apple em breve por aqui — use e-mail ou Google por enquanto.'));
+$('close').addEventListener('click', () => window.location.assign('landing.html'));
+addEventListener('keydown', e => { if (e.key === 'Escape') $('close').click(); });
 
 /* ── Guard: se já autenticado, ir direto para o app ── */
 window.addEventListener('DOMContentLoaded', () => {
-  // Verificar sessão demo
   const sess = localStorage.getItem('md_sess_demo');
   if (sess) {
-    try {
-      const u = JSON.parse(sess);
-      if (u?.username) { window.location.href = 'index.html'; return; }
-    } catch(_) {}
+    try { const u = JSON.parse(sess); if (u?.username) { window.location.href = 'index.html'; return; } }
+    catch (_) {}
   }
-
-  // Verificar Firebase Auth
   if (window._fbInitDone && window._fbAuth) {
-    window._fbAuth.onAuthStateChanged(user => {
-      if (user) window.location.href = 'index.html';
-    });
+    window._fbAuth.onAuthStateChanged(user => { if (user) window.location.href = 'index.html'; });
   }
 
-  // Animação
-  startTypewriter();
-
-  // Bindagem dos botões
-  $('tab-login')?.addEventListener('click', () => switchTab('login'));
-  $('tab-reg')?.addEventListener('click',   () => switchTab('reg'));
-  $('btn-login')?.addEventListener('click', doLogin);
-  $('btn-register')?.addEventListener('click', doRegister);
-  document.getElementById('btn-google-login')?.addEventListener('click', doGoogleLogin);
-  document.getElementById('btn-google-reg')?.addEventListener('click',   doGoogleLogin);
-  document.getElementById('forgot-pass')?.addEventListener('click', doForgotPassword);
-
-  // Enter key para submeter
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'Enter') return;
-    if ($('form-login') && $('form-login').style.display !== 'none') doLogin();
-    else doRegister();
-  });
-
-  // Scroll reveal — seções da landing entram com fade + slide sutil
-  const revealEls = document.querySelectorAll('.lp-reveal');
-  if (revealEls.length && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
-    revealEls.forEach(el => io.observe(el));
-  } else {
-    revealEls.forEach(el => el.classList.add('in-view')); // sem suporte — mostra direto
-  }
-
-  // Nav: link ativo conforme a seção visível
-  const navLinks = document.querySelectorAll('.lp-nav-links a');
-  if (navLinks.length) {
-    const sections = Array.from(navLinks).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
-    const navIo = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        const link = document.querySelector('.lp-nav-links a[href="#' + entry.target.id + '"]');
-        if (link) link.classList.toggle('active', entry.isIntersecting);
-      });
-    }, { rootMargin: '-40% 0px -55% 0px' });
-    sections.forEach(s => navIo.observe(s));
-  }
+  if (new URLSearchParams(location.search).get('mode') === 'signin') setMode('signin');
 });
