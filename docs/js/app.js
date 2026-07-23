@@ -735,10 +735,10 @@ function doLogout() {
   try { if (getAuth()) getAuth().signOut(); } catch(_) {}
 
   // swap UI panels — index.html no longer has an inline auth-screen,
-  // so logging out always sends the user back to login.html
+  // so logging out always sends the user back to the landing page
   $('toolbar').style.display = 'none';
   $('board').style.display   = 'none';
-  window.location.replace('login.html');
+  window.location.replace('landing.html');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -4665,13 +4665,13 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!window._fbInitDone) {
       const sess = localStorage.getItem('md_sess_demo');
       if (sess) { try { const u = JSON.parse(sess); if (u?.username) { CU = u; launchApp(); return; } } catch(_) {} }
-      window.location.replace('login.html');
+      window.location.replace('landing.html');
       return;
     }
     const auth = getAuth();
     if (!auth) { setTimeout(tryAutoLogin, 150); return; }
     auth.onAuthStateChanged(async user => {
-      if (!user && !CU && !window._registering) { window.location.replace('login.html'); return; }
+      if (!user && !CU && !window._registering) { window.location.replace('landing.html'); return; }
       if (user && !CU && !window._registering) {
         try {
           // Resolve admin claim ANTES de launchApp para que isPremium() já enxergue isAdmin
