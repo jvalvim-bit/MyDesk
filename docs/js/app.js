@@ -734,30 +734,11 @@ function doLogout() {
   localStorage.removeItem('md_sess_demo');
   try { if (getAuth()) getAuth().signOut(); } catch(_) {}
 
-  // swap UI panels
-  $('toolbar').style.display     = 'none';
-  $('board').style.display       = 'none';
-  const as2 = $('auth-screen');
-  if (as2) { as2.classList.add('landing-scroll'); as2.style.display = 'flex'; as2.style.overflow = ''; }
-  else { window.location.replace('login.html'); }
-  as2.scrollTop = 0;
-
-  // re-trigger animations
-  const card = $('auth-card');
-  card.classList.remove('anim');
-  void card.offsetWidth;
-  card.classList.add('anim');
-
-  // re-trigger welcome animation
-  const welcome = $('auth-welcome');
-  if (welcome) { welcome.style.animation='none'; void welcome.offsetWidth; welcome.style.animation=''; }
-
-  // reset auth form
-  switchTab('login');
-  if ($('l-email')) $('l-email').value = '';
-  $('l-pass').value = '';
-  syncCount();
-  setTimeout(() => { if ($('l-email')) $('l-email').focus(); }, 200);
+  // swap UI panels — index.html no longer has an inline auth-screen,
+  // so logging out always sends the user back to login.html
+  $('toolbar').style.display = 'none';
+  $('board').style.display   = 'none';
+  window.location.replace('login.html');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -4683,12 +4664,14 @@ window.addEventListener('DOMContentLoaded', () => {
     // Demo mode: no Firebase (sandbox/preview) — try local session
     if (!window._fbInitDone) {
       const sess = localStorage.getItem('md_sess_demo');
-      if (sess) { try { const u = JSON.parse(sess); if (u?.username) { CU = u; launchApp(); } } catch(_) {} }
+      if (sess) { try { const u = JSON.parse(sess); if (u?.username) { CU = u; launchApp(); return; } } catch(_) {} }
+      window.location.replace('login.html');
       return;
     }
     const auth = getAuth();
     if (!auth) { setTimeout(tryAutoLogin, 150); return; }
     auth.onAuthStateChanged(async user => {
+      if (!user && !CU && !window._registering) { window.location.replace('login.html'); return; }
       if (user && !CU && !window._registering) {
         try {
           // Resolve admin claim ANTES de launchApp para que isPremium() já enxergue isAdmin
