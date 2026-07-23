@@ -90,6 +90,7 @@ body.page-ready{opacity:1;}
 .pillar .ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:rgba(99,102,241,.14);margin-bottom:16px;}
 .pillar h3{font-size:1.05rem;font-weight:700;margin:0 0 10px;font-family:'Syne',sans-serif;}
 .pillar p{font-size:.85rem;color:var(--text-dim);line-height:1.75;margin:0 0 16px;}
+.pillar-preview{background:#0a0a0f;border:1px solid var(--border);border-radius:10px;margin-bottom:16px;}
 .pillar-note{color:var(--accent-light);}
 .pillar-tags{display:flex;flex-wrap:wrap;gap:8px;}
 .pillar-tags span{font-size:.7rem;color:var(--text-faint);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:5px 12px;}
@@ -122,9 +123,13 @@ body.page-ready{opacity:1;}
 
 /* ══ PRICING ══ */
 .plans{display:flex;gap:20px;flex-wrap:wrap;margin-top:36px;}
-.plan{flex:1;min-width:260px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;}
-.plan.premium{background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(79,70,229,.06));border-color:rgba(99,102,241,.4);position:relative;}
-.plan-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:20px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#fff;text-transform:uppercase;}
+.plan{flex:1;min-width:260px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;}
+.plan:hover{transform:translateY(-5px);border-color:var(--border-hover);box-shadow:0 18px 40px rgba(0,0,0,.4);}
+.plan.premium{background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(79,70,229,.06));border-color:rgba(99,102,241,.4);position:relative;animation:planGlow 3.4s ease-in-out infinite;}
+.plan-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:20px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#fff;text-transform:uppercase;animation:badgePulse 2.4s ease-in-out infinite;}
+@keyframes planGlow{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.22);}50%{box-shadow:0 0 34px 4px rgba(99,102,241,.3);}}
+@keyframes badgePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+@media(prefers-reduced-motion:reduce){.plan.premium,.plan-badge{animation:none!important;}}
 .plan-eyebrow{font-size:.64rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;}
 .plan.premium .plan-eyebrow{color:var(--accent-light);}
 .plan-price{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;line-height:1;margin-bottom:2px;}
@@ -144,7 +149,8 @@ body.page-ready{opacity:1;}
 .faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--card);font-size:.85rem;font-weight:600;}
 .faq-arrow{font-size:.7rem;color:var(--text-faint);transition:transform .2s;flex-shrink:0;margin-left:12px;}
 .faq-item.open .faq-arrow{transform:rotate(180deg);}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+.faq-item.open .faq-a{max-height:220px;}
 .faq-a div{padding:0 18px 16px;font-size:.8rem;color:var(--text-dim);line-height:1.7;}
 
 /* ══ FINAL CTA ══ */
@@ -253,6 +259,18 @@ body.page-ready{opacity:1;}
       <div class="ic">🗂️</div>
       <h3>Notas que se organizam sozinhas</h3>
       <p>Cada nota é um card livre: arraste, redimensione e escolha entre 19 paletas de cor. Empilhe notas relacionadas arrastando uma sobre a outra, defina prazos com lembretes automáticos e, quando o board bagunçar, um botão realinha tudo em grid.</p>
+      <div class="pillar-preview" style="padding:14px;display:flex;gap:8px;">
+        <div style="flex:1;background:#0f1029;border:1px solid rgba(99,102,241,.3);border-radius:8px;padding:9px 10px;">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#6366f1;"></span><span style="font-size:.62rem;color:#a5b4fc;">Indigo</span></div>
+          <div style="font-size:.72rem;font-weight:600;color:#fff;">Redesign do dashboard</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.35);margin-top:4px;">Prazo: 15/07</div>
+        </div>
+        <div style="flex:1;background:#071a10;border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:9px 10px;">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;"></span><span style="font-size:.62rem;color:#6ee7b7;">Concluído</span></div>
+          <div style="font-size:.72rem;font-weight:600;color:#fff;">Reunião com cliente</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.35);margin-top:4px;">Prazo: 18/07</div>
+        </div>
+      </div>
       <div class="pillar-tags"><span>Pilhas inteligentes</span><span>Reorganizar com 1 clique</span><span>Arquivos anexados</span></div>
     </div>
 
@@ -260,6 +278,10 @@ body.page-ready{opacity:1;}
       <div class="ic" style="background:rgba(20,184,166,.14);">💬</div>
       <h3>Colabore em tempo real</h3>
       <p>Adicione qualquer pessoa pelo @usuário e converse por chat com texto, imagem e arquivos — mensagens chegam mesmo se ela estava offline. Quando precisar, inicie uma videochamada 1:1 ou em grupo, com tela compartilhada.</p>
+      <div class="pillar-preview" style="padding:13px 14px;display:flex;flex-direction:column;gap:7px;">
+        <div style="align-self:flex-start;background:rgba(255,255,255,.07);border-radius:12px 12px 12px 3px;padding:7px 12px;font-size:.72rem;color:rgba(255,255,255,.82);max-width:78%;">Cria um workspace comigo?</div>
+        <div style="align-self:flex-end;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:12px 12px 3px 12px;padding:7px 12px;font-size:.72rem;color:#fff;max-width:78%;">Claro! Manda o convite 🎉</div>
+      </div>
       <div class="pillar-tags"><span>Chat flutuante</span><span>Vídeo + tela compartilhada</span></div>
     </div>
 
@@ -267,6 +289,20 @@ body.page-ready{opacity:1;}
       <div class="ic" style="background:rgba(245,158,11,.14);">💰</div>
       <h3>CRM financeiro embutido</h3>
       <p>Cadastre clientes e acompanhe recebíveis num painel só: total esperado, recebido, pendente e atrasado, com gráficos que atualizam sozinhos. Sem precisar de uma planilha ou ferramenta separada. <span class="pillar-note">Plano Premium.</span></p>
+      <div class="pillar-preview" style="padding:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <div><div style="font-size:.6rem;color:rgba(255,255,255,.35);">Esperado</div><div style="font-size:.85rem;font-weight:700;color:#fff;">R$ 4.200</div></div>
+          <div><div style="font-size:.6rem;color:rgba(255,255,255,.35);">Recebido</div><div style="font-size:.85rem;font-weight:700;color:#34d399;">R$ 3.100</div></div>
+          <div><div style="font-size:.6rem;color:rgba(255,255,255,.35);">Pendente</div><div style="font-size:.85rem;font-weight:700;color:#fbbf24;">R$ 1.100</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:4px;height:32px;">
+          <div style="flex:1;background:rgba(99,102,241,.45);height:55%;border-radius:2px 2px 0 0;"></div>
+          <div style="flex:1;background:rgba(99,102,241,.45);height:82%;border-radius:2px 2px 0 0;"></div>
+          <div style="flex:1;background:rgba(99,102,241,.9);height:100%;border-radius:2px 2px 0 0;"></div>
+          <div style="flex:1;background:rgba(99,102,241,.45);height:40%;border-radius:2px 2px 0 0;"></div>
+          <div style="flex:1;background:rgba(99,102,241,.45);height:68%;border-radius:2px 2px 0 0;"></div>
+        </div>
+      </div>
       <div class="pillar-tags"><span>Dashboard ao vivo</span><span>Busca de clientes</span></div>
     </div>
 
@@ -274,6 +310,15 @@ body.page-ready{opacity:1;}
       <div class="ic" style="background:rgba(239,68,68,.14);">🔒</div>
       <h3>Seu ambiente, protegido</h3>
       <p>Personalize o fundo do seu board com cores, gradientes ou vídeo em loop, e sincronize prazos com Google Agenda, Outlook ou um arquivo .ics. Por trás, cada conta tem seus dados isolados no Firebase, com upload de arquivos validado por tipo.</p>
+      <div class="pillar-preview" style="padding:14px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:6px;">
+          <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#6366f1,#4f46e5);"></div>
+          <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#14b8a6,#0d9488);"></div>
+          <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#f59e0b,#d97706);"></div>
+          <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#1a1a2e,#0d0d0d);border:1px solid rgba(255,255,255,.15);"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.68rem;color:rgba(255,255,255,.5);"><span style="color:#34d399;">🔒</span>Firebase Auth</div>
+      </div>
       <div class="pillar-tags"><span>Autenticação Firebase</span><span>Fundo personalizado</span><span>Integração de calendário</span></div>
     </div>
   </div>
@@ -430,7 +475,7 @@ body.page-ready{opacity:1;}
   <p>Nenhum cartão de crédito necessário. Seus dados ficam sincronizados com segurança na nuvem.</p>
   <button class="btn-fill" onclick="goTo('login.html')">Junte-se a nós</button>
   <div class="cta-trust">
-    <span>✓ Gratuito para sempre</span>
+    <span>✓ Plano gratuito disponível</span>
     <span>✓ Sem cartão de crédito</span>
     <span>✓ Multi-dispositivo</span>
   </div>
