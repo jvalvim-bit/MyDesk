@@ -439,10 +439,19 @@
 .call-header{display:flex;align-items:center;justify-content:center;padding:7px 10px;flex-shrink:0;cursor:grab;background:var(--clr-bg-card);border-bottom:1px solid var(--clr-border);user-select:none;}
 .call-header:active{cursor:grabbing;}
 .call-title{font-family:'Syne',sans-serif;font-size:.74rem;font-weight:700;color:var(--clr-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.call-grid{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;overflow:auto;align-content:center;padding:6px;min-height:0;}
-.call-tile{position:relative;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--clr-border-strong);min-height:0;}
+/* Mosaico: por padrao todo mundo (camera ou tela compartilhada) fica do
+   mesmo tamanho de miniatura — nunca uma pessoa/tela toma a janela toda
+   sozinha. Expandir uma tela especifica e escolha do usuario (botao ⤢),
+   nunca automatico. */
+.call-grid{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;gap:6px;overflow:auto;padding:6px;min-height:0;}
+.call-tile{position:relative;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--clr-border-strong);flex:0 0 auto;width:min(150px,100%);height:112px;transition:width .25s cubic-bezier(.16,1,.3,1),height .25s cubic-bezier(.16,1,.3,1);}
+.call-grid.has-focus .call-tile{width:84px;height:60px;order:1;}
+.call-grid.has-focus .call-tile.focused{order:-1;flex:1 1 100%;width:100%;height:min(65%,320px);}
 .call-tile video{width:100%;height:100%;object-fit:cover;display:block;}
 .call-tile-label{position:absolute;left:6px;bottom:4px;background:rgba(0,0,0,.55);color:#fff;font-size:.58rem;font-family:'Inter',sans-serif;padding:2px 7px;border-radius:20px;}
+.call-tile-expand{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:5px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .15s,background .15s;font-size:.6rem;padding:0;}
+.call-tile:hover .call-tile-expand{opacity:1;}
+.call-tile.focused .call-tile-expand{opacity:1;background:rgba(99,102,241,.5);}
 .call-controls{display:flex;align-items:center;justify-content:center;gap:8px;padding:7px;flex-shrink:0;border-top:1px solid var(--clr-border);}
 .call-ctrl-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--clr-text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
 .call-ctrl-btn:hover{background:rgba(255,255,255,.16);}
@@ -572,6 +581,8 @@
 .wp-gallery-swatch{width:52px;height:36px;border-radius:7px;cursor:pointer;border:1.5px solid rgba(255,255,255,.08);transition:all .15s;background-size:cover;background-position:center;flex-shrink:0;}
 .wp-gallery-swatch:hover{border-color:var(--clr-indigo-40);transform:scale(1.06);}
 .wp-gallery-swatch.active{border-color:var(--clr-indigo);box-shadow:0 0 0 2px rgba(99,102,241,.35);}
+.wp-gallery-swatch.is-video{background:linear-gradient(135deg,#1a1a2e,#0d0d0d);display:flex;align-items:center;justify-content:center;}
+.wp-gallery-play{font-size:.85rem;color:rgba(255,255,255,.6);}
 
 /* ══════════════════════════════════════════════════════════════════════
    LANDING — "CLAUSE" MARKETING HERO + SEÇÕES INSPIRADAS NO TEMPLATE

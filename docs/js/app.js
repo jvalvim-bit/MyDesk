@@ -4744,7 +4744,10 @@ let activeWpKey = null; // tracks which swatch is active
 
 // ── COLEÇÃO — imagens de fundo prontas (bundladas no app, sem upload) ──
 const WP_GALLERY = [
-  { key: 'gallery_city_sunset', label: 'Cidade ao pôr do sol', url: 'screenshots/wp-city-sunset.jpg' },
+  { key: 'gallery_city_sunset',        label: 'Cidade ao pôr do sol',    url: 'screenshots/wp-city-sunset.jpg',        type: 'image' },
+  { key: 'gallery_synthwave_mountains', label: 'Montanhas synthwave',    url: 'screenshots/wp-synthwave-mountains.jpg', type: 'image' },
+  { key: 'gallery_lofi_desk',          label: 'Mesa lofi',               url: 'screenshots/wp-lofi-desk.jpg',           type: 'image' },
+  { key: 'gallery_lofi_video',         label: 'Lofi (vídeo em loop)',    url: 'media/wp-lofi-loop.mp4',                 type: 'video' },
 ];
 
 // ── PIXEL ART THEMES (animated) ──────────────────────────
@@ -5218,15 +5221,20 @@ function buildWpPanel() {
     wrap.addEventListener('click', () => applyWallpaper({ type: 'pixel', value: theme.key, key: theme.key }));
     pixelsEl.appendChild(wrap);
   });
-  // coleção de imagens prontas
+  // coleção de imagens/vídeos prontos
   const galleryEl = document.getElementById('wp-gallery');
   WP_GALLERY.forEach(item => {
     const d = document.createElement('div');
-    d.className = 'wp-gallery-swatch';
-    d.style.backgroundImage = 'url(' + item.url + ')';
+    d.className = 'wp-gallery-swatch' + (item.type === 'video' ? ' is-video' : '');
     d.dataset.wpKey = item.key;
     d.title = item.label;
-    d.addEventListener('click', () => applyWallpaper({ type: 'image', value: item.url, key: item.key }));
+    if (item.type === 'video') {
+      // Sem preview animado no seletor (custaria banda) — só um ícone de play sobre fundo escuro
+      d.innerHTML = '<span class="wp-gallery-play">&#9654;</span>';
+    } else {
+      d.style.backgroundImage = 'url(' + item.url + ')';
+    }
+    d.addEventListener('click', () => applyWallpaper({ type: item.type || 'image', value: item.url, key: item.key }));
     galleryEl.appendChild(d);
   });
 }
@@ -5281,16 +5289,24 @@ async function _wpIdbDelete(username) {
 }
 
 function _applyWpVisual(wp) {
-  const board   = document.getElementById('board');
-  const bgLayer = document.getElementById('board-bg');
-  const dots    = document.getElementById('board-dots');
+  const board    = document.getElementById('board');
+  const bgLayer  = document.getElementById('board-bg');
+  const vidLayer = document.getElementById('board-bg-video');
+  const dots     = document.getElementById('board-dots');
 
-  document.querySelectorAll('.wp-swatch,.wp-grad,.wp-pixel-swatch').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.wp-swatch,.wp-grad,.wp-pixel-swatch,.wp-gallery-swatch').forEach(el => el.classList.remove('active'));
   if (wp.key) {
     const el = document.querySelector('[data-wp-key="'+wp.key+'"]');
     if (el) el.classList.add('active');
   }
   activeWpKey = wp.key || null;
+
+  // Sai do fundo de vídeo sempre que o tipo escolhido não for vídeo — evita
+  // continuar decodificando/tocando um <video> escondido sem necessidade.
+  if (wp.type !== 'video' && vidLayer) {
+    vidLayer.style.opacity = '0';
+    vidLayer.pause();
+  }
 
   if (wp.type === 'pixel') {
     const theme = WP_PIXEL_THEMES.find(t => t.key === wp.value);
@@ -5304,7 +5320,17 @@ function _applyWpVisual(wp) {
   } else {
     stopPixelAnimation();
   }
-  if (wp.type === 'image') {
+  if (wp.type === 'video') {
+    board.style.background = '#000';
+    bgLayer.style.backgroundImage = 'none';
+    bgLayer.style.opacity = '0';
+    if (vidLayer) {
+      if (vidLayer.dataset.src !== wp.value) { vidLayer.src = wp.value; vidLayer.dataset.src = wp.value; }
+      vidLayer.style.opacity = '1';
+      vidLayer.play().catch(() => {});
+    }
+    dots.style.opacity = '0.015';
+  } else if (wp.type === 'image') {
     board.style.background = '#000';
     bgLayer.style.backgroundImage = 'url(' + wp.value + ')';
     bgLayer.style.opacity = '1';
@@ -7952,7 +7978,9 @@ function openCallOverlay(title) {
   const overlay = document.getElementById('call-overlay');
   if (!overlay) return;
   document.getElementById('call-title').textContent = title || 'Videochamada';
-  document.getElementById('call-grid').innerHTML = '';
+  const grid = document.getElementById('call-grid');
+  grid.innerHTML = '';
+  grid.classList.remove('has-focus');
   overlay.style.display = 'flex';
   _restoreCallGeom(overlay);
   _wireCallDrag(overlay);
@@ -7973,15 +8001,37 @@ function _addVideoTile(key, stream, isLocal, label) {
     tile = document.createElement('div');
     tile.className = 'call-tile';
     tile.dataset.key = key;
-    tile.innerHTML = `<video autoplay playsinline ${isLocal ? 'muted' : ''}></video><span class="call-tile-label"></span>`;
+    tile.innerHTML = `<video autoplay playsinline ${isLocal ? 'muted' : ''}></video><span class="call-tile-label"></span><button type="button" class="call-tile-expand" title="Expandir/encolher" onclick="_toggleTileFocus(this.closest('.call-tile').dataset.key)">&#10530;</button>`;
     grid.appendChild(tile);
   }
   tile.querySelector('video').srcObject = stream;
   tile.querySelector('.call-tile-label').textContent = label || key;
 }
 
+/* Expandir/encolher uma tela especifica dentro da grade da chamada —
+   sempre uma escolha manual de quem esta vendo, nunca automatico ao
+   compartilhar tela (cada participante decide o que quer ver grande). */
+function _toggleTileFocus(key) {
+  const grid = document.getElementById('call-grid');
+  const tile = grid?.querySelector('[data-key="' + CSS.escape(key) + '"]');
+  if (!grid || !tile) return;
+  const wasFocused = tile.classList.contains('focused');
+  grid.querySelectorAll('.call-tile.focused').forEach(t => t.classList.remove('focused'));
+  if (wasFocused) {
+    grid.classList.remove('has-focus');
+  } else {
+    tile.classList.add('focused');
+    grid.classList.add('has-focus');
+  }
+}
+
 function _removeVideoTile(key) {
-  document.getElementById('call-grid')?.querySelector('[data-key="' + CSS.escape(key) + '"]')?.remove();
+  const grid = document.getElementById('call-grid');
+  const tile = grid?.querySelector('[data-key="' + CSS.escape(key) + '"]');
+  if (!tile) return;
+  const wasFocused = tile.classList.contains('focused');
+  tile.remove();
+  if (wasFocused) grid.classList.remove('has-focus');
 }
 
 /* ── Convite piscando pra quem ainda não entrou ── */
