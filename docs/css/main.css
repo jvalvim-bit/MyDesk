@@ -842,6 +842,25 @@
 #auth-screen .lpN-plan-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:20px;padding:3px 10px;font-size:.62rem;font-weight:700;color:#fff;letter-spacing:.5px;text-transform:uppercase;}
 #auth-screen .lpN-plan-note{text-align:center;margin-top:20px;font-size:.72rem;color:#a5a49e;}
 
+/* ── "Como funciona" — passos horizontais numerados (substitui o antigo layout de 2 colunas texto+mock) ── */
+#auth-screen .lpN-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-bottom:44px;}
+#auth-screen .lpN-steps::before{content:'';position:absolute;top:22px;left:12%;right:12%;height:1px;background:#e5e5e3;z-index:0;}
+#auth-screen .lpN-step{position:relative;text-align:center;padding:0 16px;z-index:1;}
+#auth-screen .lpN-step-num{width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid #6366f1;color:#4f46e5;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+#auth-screen .lpN-step-title{font-size:.92rem;font-weight:700;color:#191919;margin-bottom:6px;}
+#auth-screen .lpN-step-desc{font-size:.78rem;color:#78776f;line-height:1.6;}
+@media(max-width:768px){#auth-screen .lpN-steps{grid-template-columns:1fr;gap:28px;}#auth-screen .lpN-steps::before{display:none;}}
+
+/* ── Grid de recursos — substitui as antigas 4 seções repetitivas (Social/Personalização/Pilhas/Segurança) por um único grid de cards ── */
+#auth-screen .lpN-fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+#auth-screen .lpN-fcard{background:#f7f7f5;border:1px solid #ececea;border-radius:16px;padding:22px;transition:all .2s;}
+#auth-screen .lpN-fcard:hover{border-color:rgba(99,102,241,.3);transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.06);}
+#auth-screen .lpN-fcard-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:14px;}
+#auth-screen .lpN-fcard-title{font-size:.88rem;font-weight:700;color:#191919;margin-bottom:6px;}
+#auth-screen .lpN-fcard-desc{font-size:.76rem;color:#78776f;line-height:1.6;}
+@media(max-width:900px){#auth-screen .lpN-fgrid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){#auth-screen .lpN-fgrid{grid-template-columns:1fr;}}
+
 /* ── Footer multi-coluna ── */
 .lp-footer2{padding:56px 8vw 28px;border-top:1px solid var(--clr-border-faint);background:#08090c;}
 .lp-footer2-grid{display:flex;gap:60px;flex-wrap:wrap;justify-content:space-between;max-width:1100px;margin:0 auto 36px;}

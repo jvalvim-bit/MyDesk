@@ -13,7 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="js/firebase-init.js?v=3"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=26">
+<link rel="stylesheet" href="css/main.css?v=27">
 </head>
 <body>
 <div id="auth-screen" class="landing-scroll">
@@ -395,404 +395,90 @@
 
   <div class="lp-divider"></div>
 
-  <!-- ── 2. COMO FUNCIONA ── -->
+  <!-- ── 2. COMO FUNCIONA (passos horizontais) ── -->
   <div class="lp-section lp-reveal">
-    <div class="lp-cols reverse">
-      <div class="lp-col-text">
-        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Como funciona</div>
-        <div class="lp-title">Status. Cores.<br><span class="hl">Fluxo.</span></div>
-        <div class="lp-subtitle">Cada elemento comunica. Acompanhe progresso com precisão, organize com lógica visual e transforme complexidade em simplicidade.</div>
-
-        <div class="lp-how">
-          <div class="lp-how-step">
-            <div class="lp-how-num">1</div>
-            <div>
-              <div class="lp-how-title">Crie uma nota com título e descrição</div>
-              <div class="lp-how-desc">Clique em "Nova nota", preencha o conteúdo e escolha uma cor que representa aquela tarefa.</div>
-            </div>
-          </div>
-          <div class="lp-how-step">
-            <div class="lp-how-num">2</div>
-            <div>
-              <div class="lp-how-title">Defina datas de início e prazo</div>
-              <div class="lp-how-desc">Adicione datas diretamente no card e ative o lembrete para receber avisos automáticos.</div>
-            </div>
-          </div>
-          <div class="lp-how-step">
-            <div class="lp-how-num">3</div>
-            <div>
-              <div class="lp-how-title">Atualize o status com um clique</div>
-              <div class="lp-how-desc">O pill de status abre um menu. O card muda visualmente — efeito de glow para "Andamento".</div>
-            </div>
-          </div>
-          <div class="lp-how-step">
-            <div class="lp-how-num">4</div>
-            <div>
-              <div class="lp-how-title">Reorganize com um botão</div>
-              <div class="lp-how-desc">Clique em "Reorganizar" para alinhar todos os cards em grid automaticamente.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="lp-quote">
-          <div class="lp-quote-text">"Tenho tudo visível de uma vez — sem abas, sem listas enterradas. O board é o meu segundo cérebro."</div>
-          <div class="lp-quote-author">— Usuário MyDesk</div>
-        </div>
+    <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
+      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Como funciona</div>
+      <div class="lp-title">Do zero ao organizado<br><span class="hl">em quatro passos.</span></div>
+      <div class="lp-subtitle" style="margin:0 auto;">Sem curva de aprendizado — comece a usar em minutos.</div>
+    </div>
+    <div class="lpN-steps">
+      <div class="lpN-step">
+        <div class="lpN-step-num">1</div>
+        <div class="lpN-step-title">Crie uma nota</div>
+        <div class="lpN-step-desc">Título, descrição e uma cor entre 19 paletas — em segundos.</div>
       </div>
-
-      <div class="lp-col-visual">
-        <div class="lp-mock">
-          <div class="lp-mock-bar">
-            <div class="lp-mock-dot" style="background:#ef4444"></div>
-            <div class="lp-mock-dot" style="background:#f59e0b"></div>
-            <div class="lp-mock-dot" style="background:#10b981"></div>
-          </div>
-          <div class="lp-mock-body" style="padding:18px;background:#0a0a0a;min-height:320px;display:flex;flex-direction:column;gap:10px;">
-            <div style="background:#16172e;border:1px solid rgba(99,102,241,.22);border-radius:10px;overflow:hidden;">
-              <div style="height:3px;background:linear-gradient(90deg,#6366f1,#818cf8)"></div>
-              <div style="padding:10px 12px;">
-                <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(148,163,184,.1);border:1px solid rgba(148,163,184,.2);border-radius:20px;padding:2px 8px;font-size:.55rem;font-weight:700;color:#94a3b8;margin-bottom:7px;">● A fazer</div>
-                <div style="font-size:.78rem;font-weight:600;color:#f0f0f0;margin-bottom:4px;">Pesquisa de UX</div>
-                <div style="font-size:.67rem;color:rgba(240,240,240,.38);line-height:1.4;">Entrevistar 5 usuários e mapear pontos de atrito.</div>
-                <div style="margin-top:7px;font-size:.55rem;color:rgba(99,102,241,.6);font-family:'JetBrains Mono',monospace;">📅 Prazo: 30/01</div>
-              </div>
-            </div>
-            <div style="background:#0a2018;border:1px solid rgba(16,185,129,.22);border-radius:10px;overflow:hidden;box-shadow:0 0 12px rgba(16,185,129,.07);">
-              <div style="height:3px;background:linear-gradient(90deg,#10b981,#34d399)"></div>
-              <div style="padding:10px 12px;">
-                <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:2px 8px;font-size:.55rem;font-weight:700;color:#a5b4fc;margin-bottom:7px;">
-                  <span style="width:5px;height:5px;border-radius:50%;background:#6366f1;box-shadow:0 0 5px rgba(99,102,241,.8);animation:progressPulse 1.4s ease-in-out infinite;display:inline-block;"></span> Andamento
-                </div>
-                <div style="font-size:.78rem;font-weight:600;color:#f0f0f0;margin-bottom:4px;">API de integração</div>
-                <div style="font-size:.67rem;color:rgba(240,240,240,.38);">Implementar endpoints REST e documentar.</div>
-              </div>
-            </div>
-            <div style="background:#121c04;border:1px solid rgba(132,204,22,.18);border-radius:10px;overflow:hidden;">
-              <div style="height:3px;background:linear-gradient(90deg,#84cc16,#a3e635)"></div>
-              <div style="padding:10px 12px;">
-                <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:20px;padding:2px 8px;font-size:.55rem;font-weight:700;color:#6ee7b7;margin-bottom:7px;">● Concluído</div>
-                <div style="font-size:.78rem;font-weight:600;color:rgba(240,240,240,.4);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.18);">Deploy em produção</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="lpN-step">
+        <div class="lpN-step-num">2</div>
+        <div class="lpN-step-title">Defina prazos</div>
+        <div class="lpN-step-desc">Datas de início e vencimento com lembretes automáticos.</div>
       </div>
+      <div class="lpN-step">
+        <div class="lpN-step-num">3</div>
+        <div class="lpN-step-title">Acompanhe o status</div>
+        <div class="lpN-step-desc">Um clique muda entre A fazer, Andamento, Concluído e Encerrado.</div>
+      </div>
+      <div class="lpN-step">
+        <div class="lpN-step-num">4</div>
+        <div class="lpN-step-title">Reorganize</div>
+        <div class="lpN-step-desc">Um botão alinha tudo em grid — pilhas e cards, sem sobreposição.</div>
+      </div>
+    </div>
+    <div class="lp-quote" style="max-width:640px;margin-left:auto;margin-right:auto;">
+      <div class="lp-quote-text">"Tenho tudo visível de uma vez — sem abas, sem listas enterradas. O board é o meu segundo cérebro."</div>
+      <div class="lp-quote-author">— Usuário MyDesk</div>
     </div>
   </div>
 
   <div class="lp-divider"></div>
 
-  <!-- ── 3. SOCIAL ── -->
+  <!-- ── RECURSOS EM GRADE (substitui as 4 seções repetitivas de texto+mock por um grid único) ── -->
   <div class="lp-section lp-reveal">
-    <div class="lp-cols">
-      <div class="lp-col-text">
-        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Social</div>
-        <div class="lp-title">Colabore<br><span class="hl">sem fricção.</span></div>
-        <div class="lp-subtitle">Compartilhe, edite e evolua em conjunto. O MyDesk conecta pessoas e ideias em tempo real — mantendo tudo alinhado, sem ruído.</div>
-
-        <div class="lp-feats">
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);">👥</div>
-            <div>
-              <div class="lp-feat-title">Amigos e pedidos</div>
-              <div class="lp-feat-desc">Adicione qualquer usuário pelo login. Aceite ou recuse pedidos com um clique — igual a uma rede social.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">💬</div>
-            <div>
-              <div class="lp-feat-title">Chat em tempo real</div>
-              <div class="lp-feat-desc">Janelas flutuantes com suporte a texto, imagens e arquivos. Mensagens offline entregues ao reconectar.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">🗂️</div>
-            <div>
-              <div class="lp-feat-title">Workspace compartilhado</div>
-              <div class="lp-feat-desc">Crie um board em conjunto. Ambos criam, editam e deletam notas — sincronizado ao vivo em tempo real.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-col-visual">
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div class="lp-mock">
-            <div class="lp-mock-bar">
-              <div class="lp-mock-dot" style="background:#ef4444"></div>
-              <div class="lp-mock-dot" style="background:#f59e0b"></div>
-              <div class="lp-mock-dot" style="background:#10b981"></div>
-              <div style="font-size:.55rem;color:rgba(240,240,240,.28);margin-left:8px;font-family:Inter,sans-serif;">👥 Social</div>
-            </div>
-            <div class="lp-mock-body" style="padding:10px;min-height:auto;">
-              <div class="mock-sp-row">
-                <div class="mock-sp-av" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">A</div>
-                <div style="flex:1;">
-                  <div class="mock-sp-name">Ana Lima</div>
-                  <div class="mock-sp-meta">@analima · <span style="color:#6ee7b7">online</span></div>
-                </div>
-                <div style="display:flex;gap:5px;">
-                  <div style="padding:3px 8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);border-radius:5px;font-size:.6rem;color:#a5b4fc;font-family:Inter,sans-serif;">💬</div>
-                  <div style="padding:3px 8px;background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.25);border-radius:5px;font-size:.6rem;color:#2dd4bf;font-family:Inter,sans-serif;">🗂</div>
-                </div>
-              </div>
-              <div class="mock-sp-row">
-                <div class="mock-sp-av" style="background:linear-gradient(135deg,#10b981,#0d9488)">R</div>
-                <div style="flex:1;">
-                  <div class="mock-sp-name">Rafael Dev</div>
-                  <div class="mock-sp-meta">@rafaeldev · offline</div>
-                </div>
-                <div style="width:7px;height:7px;border-radius:50%;background:#374151;flex-shrink:0;"></div>
-              </div>
-            </div>
-          </div>
-          <div class="mock-chat-win">
-            <div class="mock-chat-hdr">
-              <div class="mock-chat-av">A</div>
-              <div class="mock-chat-name">Ana Lima</div>
-              <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
-                <div style="width:6px;height:6px;border-radius:50%;background:#10b981;"></div>
-              </div>
-            </div>
-            <div class="mock-chat-msgs">
-              <div class="mock-msg theirs">Oi! Viu o card de bug?</div>
-              <div class="mock-msg mine">Sim, já estou olhando 👀</div>
-              <div class="mock-msg theirs">Cria um workspace comigo?</div>
-              <div class="mock-msg mine">Claro! Manda o convite 🗂️</div>
-            </div>
-            <div class="mock-typing">
-              <div class="mock-typing-dot"></div>
-              <div class="mock-typing-dot"></div>
-              <div class="mock-typing-dot"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
+      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Tudo incluído</div>
+      <div class="lp-title">Feito pra times reais,<br><span class="hl">do seu jeito.</span></div>
+      <div class="lp-subtitle" style="margin:0 auto;">Colaboração, personalização e segurança — sem precisar de dez ferramentas diferentes.</div>
     </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── 4. PERSONALIZAÇÃO ── -->
-  <div class="lp-section lp-reveal">
-    <div class="lp-cols reverse">
-      <div class="lp-col-text">
-        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Personalização</div>
-        <div class="lp-title">Seu board,<br><span class="hl">sua identidade.</span></div>
-        <div class="lp-subtitle">Estruture do seu jeito. Crie, adapte e refine seu espaço com liberdade total — porque produtividade também é pessoal.</div>
-
-        <div class="lp-feats">
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.22);">🎨</div>
-            <div>
-              <div class="lp-feat-title">19 paletas coordenadas</div>
-              <div class="lp-feat-desc">De índigo a esmeralda, cada paleta coordena fundo, barra e chip para um visual sofisticado e consistente.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">🖼️</div>
-            <div>
-              <div class="lp-feat-title">Fundo personalizado por usuário</div>
-              <div class="lp-feat-desc">Suba sua imagem ou escolha entre 11 cores e 13 gradientes. Salvo por conta — cada usuário tem seu ambiente.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">↔️</div>
-            <div>
-              <div class="lp-feat-title">Redimensionamento livre</div>
-              <div class="lp-feat-desc">Arraste o canto de qualquer nota para ajustar largura e altura. O tamanho é salvo automaticamente.</div>
-            </div>
-          </div>
-        </div>
+    <div class="lpN-fgrid">
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#eceafd;">👥</div>
+        <div class="lpN-fcard-title">Amigos e workspaces</div>
+        <div class="lpN-fcard-desc">Adicione qualquer usuário e crie um board compartilhado, sincronizado em tempo real.</div>
       </div>
-
-      <div class="lp-col-visual">
-        <div class="lp-mock">
-          <div class="lp-mock-bar">
-            <div class="lp-mock-dot" style="background:#ef4444"></div>
-            <div class="lp-mock-dot" style="background:#f59e0b"></div>
-            <div class="lp-mock-dot" style="background:#10b981"></div>
-          </div>
-          <div style="padding:20px;background:#111;min-height:240px;">
-            <div style="font-size:.58rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(240,240,240,.25);margin-bottom:12px;">🎨 Fundo do painel</div>
-            <div style="font-size:.5rem;color:rgba(240,240,240,.22);margin-bottom:6px;letter-spacing:.8px;text-transform:uppercase;">Gradientes</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;">
-              <div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#1a1a2e,#0d0d0d);border:2px solid rgba(255,255,255,.07)"></div>
-              <div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#0d1b4d,#1a1a3e);border:2px solid rgba(99,102,241,.4)"></div>
-              <div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#0a2018,#0d1f0d)"></div>
-              <div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#1a0a0a,#2d0a0a)"></div>
-              <div style="width:42px;height:24px;border-radius:6px;background:linear-gradient(135deg,#1a1a0a,#2a1f00)"></div>
-            </div>
-            <div style="font-size:.5rem;color:rgba(240,240,240,.22);margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;">Paletas de nota</div>
-            <div style="display:flex;gap:7px;flex-wrap:wrap;">
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4f46e5);box-shadow:0 0 6px rgba(99,102,241,.4)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#7c3aed)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#d946ef,#c026d3)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#e11d48)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 0 6px rgba(16,185,129,.3)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#64748b,#475569)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#db2777)"></div>
-              <div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#84cc16,#65a30d)"></div>
-            </div>
-          </div>
-        </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#e6faf5;">💬</div>
+        <div class="lpN-fcard-title">Chat em tempo real</div>
+        <div class="lpN-fcard-desc">Janelas de conversa com texto, imagem e arquivos — mensagens offline entregues ao reconectar.</div>
       </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── SEÇÃO 5: PILHAS & ORGANIZAÇÃO ── -->
-  <div class="lp-section lp-reveal">
-    <div class="lp-cols">
-      <div class="lp-col-text">
-        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Organização inteligente</div>
-        <div class="lp-title">Pilhas que<br><span class="hl">pensam por você.</span></div>
-        <div class="lp-subtitle">Agrupe notas em pilhas compactas com um simples arrastar. Expanda, recolha e reorganize tudo com um clique — sem perder o contexto.</div>
-
-        <div class="lp-feats">
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);">📚</div>
-            <div>
-              <div class="lp-feat-title">Pilhas automáticas</div>
-              <div class="lp-feat-desc">Arraste uma nota sobre outra e elas formam uma pilha. Título editável, cor personalizável, contador de itens visível sempre.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">⚡</div>
-            <div>
-              <div class="lp-feat-title">Reorganizar com um clique</div>
-              <div class="lp-feat-desc">O botão Reorganizar posiciona pilhas e notas em colunas limpas, sem sobreposição, com animação suave.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">📌</div>
-            <div>
-              <div class="lp-feat-title">Pin & visualizador de arquivos</div>
-              <div class="lp-feat-desc">Fixe notas para mantê-las expandidas. Visualize PDFs, imagens e textos em painel lateral sem sair do board.</div>
-            </div>
-          </div>
-        </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#fef3e2;">🎨</div>
+        <div class="lpN-fcard-title">19 paletas de cor</div>
+        <div class="lpN-fcard-desc">Cada paleta coordena fundo, barra e chip pra um visual consistente em todo o board.</div>
       </div>
-
-      <div class="lp-col-visual">
-        <div class="lp-mock">
-          <div class="lp-mock-bar">
-            <div class="lp-mock-dot" style="background:#ef4444"></div>
-            <div class="lp-mock-dot" style="background:#f59e0b"></div>
-            <div class="lp-mock-dot" style="background:#10b981"></div>
-            <span style="font-size:.55rem;color:rgba(240,240,240,.25);margin-left:auto;">board</span>
-          </div>
-          <div style="padding:16px;background:#111;min-height:240px;display:flex;flex-direction:column;gap:8px;">
-            <!-- Stack mock -->
-            <div style="background:#1a1a2e;border:1px solid rgba(99,102,241,.3);border-radius:10px;overflow:hidden;">
-              <div style="background:rgba(99,102,241,.15);padding:9px 12px;display:flex;align-items:center;gap:8px;">
-                <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;flex-shrink:0;"></div>
-                <span style="font-size:.68rem;font-weight:600;color:#f0f0f0;flex:1;">Projeto Alpha</span>
-                <span style="font-size:.6rem;color:rgba(240,240,240,.3);background:rgba(255,255,255,.07);padding:1px 7px;border-radius:10px;">3</span>
-                <span style="font-size:.6rem;color:rgba(240,240,240,.25);">▾</span>
-              </div>
-              <div style="padding:6px 12px 6px 12px;display:flex;flex-direction:column;gap:4px;">
-                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-                  <div style="width:3px;height:14px;background:#6366f1;border-radius:2px;flex-shrink:0;"></div>
-                  <span style="font-size:.65rem;color:rgba(240,240,240,.7);flex:1;">Briefing inicial</span>
-                  <span style="font-size:.58rem;color:#10b981;">● Concluído</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-                  <div style="width:3px;height:14px;background:#6366f1;border-radius:2px;flex-shrink:0;"></div>
-                  <span style="font-size:.65rem;color:rgba(240,240,240,.7);flex:1;">Wireframes</span>
-                  <span style="font-size:.58rem;color:#f59e0b;">● Andamento</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
-                  <div style="width:3px;height:14px;background:#6366f1;border-radius:2px;flex-shrink:0;"></div>
-                  <span style="font-size:.65rem;color:rgba(240,240,240,.7);flex:1;">Revisão final</span>
-                  <span style="font-size:.58rem;color:rgba(240,240,240,.28);">● A fazer</span>
-                </div>
-              </div>
-            </div>
-            <!-- Loose note mock -->
-            <div style="background:#071a10;border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:10px 12px;">
-              <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
-                <span style="font-size:.58rem;font-weight:600;color:#34d399;background:rgba(16,185,129,.15);padding:2px 8px;border-radius:20px;">● ESMERALDA</span>
-                <span style="font-size:.58rem;color:rgba(240,240,240,.3);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:20px;">A fazer</span>
-              </div>
-              <div style="font-size:.72rem;font-weight:600;color:#f0f0f0;margin-bottom:3px;">Reunião de sprint</div>
-              <div style="font-size:.62rem;color:rgba(240,240,240,.35);">Pauta: velocity, blockers e próximos entregáveis…</div>
-            </div>
-          </div>
-        </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#eceafd;">📚</div>
+        <div class="lpN-fcard-title">Pilhas inteligentes</div>
+        <div class="lpN-fcard-desc">Arraste notas pra formar pilhas. Renomeie pra "Concluído" e elas se organizam sozinhas.</div>
       </div>
-    </div>
-  </div>
-
-  <!-- ── SEÇÃO 6: SEGURANÇA ── -->
-  <div class="lp-section lp-reveal">
-    <div class="lp-cols reverse">
-      <div class="lp-col-text">
-        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Segurança</div>
-        <div class="lp-title">Seus dados,<br><span class="hl">sua proteção.</span></div>
-        <div class="lp-subtitle">O MyDesk foi construído com camadas de segurança reais — não só promessas. Autenticação robusta, dados isolados por usuário e validação em todas as entradas.</div>
-
-        <div class="lp-feats">
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);">🔐</div>
-            <div>
-              <div class="lp-feat-title">Autenticação Firebase</div>
-              <div class="lp-feat-desc">Login com e-mail e senha com autenticação segura na nuvem. Senhas nunca são armazenadas em texto — só tokens criptografados.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.22);">🗄️</div>
-            <div>
-              <div class="lp-feat-title">Dados isolados por UID</div>
-              <div class="lp-feat-desc">Suas notas ficam em <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:.72rem;">/users/{uid}/notes</code> — apenas você acessa. O UID é imutável e não pode ser forjado.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);">🛡️</div>
-            <div>
-              <div class="lp-feat-title">Validação de arquivos</div>
-              <div class="lp-feat-desc">Uploads validados por tipo MIME e extensão. Executáveis, scripts e arquivos perigosos são bloqueados. Limite de 5MB por arquivo.</div>
-            </div>
-          </div>
-        </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#fdecec;">🔐</div>
+        <div class="lpN-fcard-title">Autenticação Firebase</div>
+        <div class="lpN-fcard-desc">Login seguro na nuvem. Senhas nunca em texto puro — só tokens criptografados.</div>
       </div>
-
-      <div class="lp-col-visual">
-        <div class="lp-mock">
-          <div class="lp-mock-bar">
-            <div class="lp-mock-dot" style="background:#ef4444"></div>
-            <div class="lp-mock-dot" style="background:#f59e0b"></div>
-            <div class="lp-mock-dot" style="background:#10b981"></div>
-          </div>
-          <div style="padding:20px;background:#111;min-height:240px;display:flex;flex-direction:column;gap:12px;">
-            <div style="font-size:.55rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(240,240,240,.25);margin-bottom:4px;">🛡️ Camadas de proteção</div>
-            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #6366f1;">
-              <span style="font-size:.85rem;flex-shrink:0;">🔑</span>
-              <div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Firebase Auth JWT</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);margin-top:1px;">Token renovado automaticamente</div></div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #10b981;">
-              <span style="font-size:.85rem;flex-shrink:0;">🗄️</span>
-              <div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Regras do Database</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);margin-top:1px;">Leitura/escrita por UID</div></div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #f59e0b;">
-              <span style="font-size:.85rem;flex-shrink:0;">✅</span>
-              <div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Validação de input</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);margin-top:1px;">XSS bloqueado em todas as entradas</div></div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #ec4899;">
-              <span style="font-size:.85rem;flex-shrink:0;">📎</span>
-              <div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Filtro de arquivos</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);margin-top:1px;">Whitelist MIME + extensões</div></div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;border-left:2px solid #14b8a6;">
-              <span style="font-size:.85rem;flex-shrink:0;">🔒</span>
-              <div><div style="font-size:.68rem;font-weight:600;color:#f0f0f0;">Dados por usuário</div><div style="font-size:.6rem;color:rgba(240,240,240,.35);margin-top:1px;">Isolamento total entre contas</div></div>
-            </div>
-          </div>
-        </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#e6faf5;">🖼️</div>
+        <div class="lpN-fcard-title">Fundo personalizado</div>
+        <div class="lpN-fcard-desc">Cores, gradientes, imagens ou vídeo em loop — cada conta com seu próprio ambiente.</div>
+      </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#fef3e2;">📹</div>
+        <div class="lpN-fcard-title">Videochamada com tela</div>
+        <div class="lpN-fcard-desc">1:1 ou em grupo, com compartilhamento de tela e janela redimensionável.</div>
+      </div>
+      <div class="lpN-fcard">
+        <div class="lpN-fcard-icon" style="background:#fdecec;">🛡️</div>
+        <div class="lpN-fcard-title">Validação de arquivos</div>
+        <div class="lpN-fcard-desc">Uploads filtrados por tipo MIME. Executáveis e scripts perigosos são bloqueados.</div>
       </div>
     </div>
   </div>
