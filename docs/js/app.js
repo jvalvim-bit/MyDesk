@@ -8641,21 +8641,31 @@ function _renderCRMDonut(totals) {
   const arcs = segs.map(s => {
     const frac = s.v / sum;
     const len  = frac * C;
-    const dash = `${len} ${C - len}`;
     const rot  = (offset / sum) * 360;
     offset += s.v;
+    // Começa com dasharray "0 C" (invisível) — a animação de desenho vem
+    // depois, quando trocamos pro valor real num próximo frame.
     return `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="14"
-              stroke-dasharray="${dash}" stroke-dashoffset="0"
+              data-target="${len} ${C - len}" stroke-dasharray="0 ${C}" stroke-dashoffset="0"
               transform="rotate(${rot - 90} 60 60)" stroke-linecap="butt"/>`;
   }).join('');
 
   host.innerHTML = `
-    <svg width="120" height="120" viewBox="0 0 120 120" class="crm-donut-svg">${arcs}</svg>
+    <div class="crm-donut-visual">
+      <svg width="120" height="120" viewBox="0 0 120 120" class="crm-donut-svg">${arcs}</svg>
+      <div class="crm-donut-center"><b>${fmtBRL(sum)}</b><span>Total</span></div>
+    </div>
     <div class="crm-donut-legend">
       <div class="crm-donut-leg-item"><span class="dot" style="background:#10b981"></span>Recebido <b>${fmtBRL(paid)}</b></div>
       <div class="crm-donut-leg-item"><span class="dot" style="background:#f59e0b"></span>Pendente <b>${fmtBRL(pending)}</b></div>
       <div class="crm-donut-leg-item"><span class="dot" style="background:#ef4444"></span>Atrasado <b>${fmtBRL(overdue)}</b></div>
     </div>`;
+
+  requestAnimationFrame(() => {
+    host.querySelectorAll('circle[data-target]').forEach(c => {
+      c.setAttribute('stroke-dasharray', c.dataset.target);
+    });
+  });
 }
 
 function _renderCRMMonthlyBars() {
@@ -8665,6 +8675,7 @@ function _renderCRMMonthlyBars() {
 
   // Agrupa por mês (AAAA-MM) de vencimento — últimos 6 meses até 2 meses à frente
   const now = new Date();
+  const curKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
   const months = [];
   for (let i = 5; i >= -2; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -8680,25 +8691,86 @@ function _renderCRMMonthlyBars() {
 
   const max = Math.max(1, ...Object.values(totalsByMonth));
   const bars = months.map(m => {
-    const v = totalsByMonth[m.key];
-    const h = Math.round((v / max) * 64);
-    return `<div class="crm-bar-col" title="${fmtBRL(v)}">
-        <div class="crm-bar" style="height:${Math.max(h,2)}px"></div>
-        <span class="crm-bar-lbl">${m.label}</span>
+    const v       = totalsByMonth[m.key];
+    const h       = Math.max(Math.round((v / max) * 64), 2);
+    const isCur   = m.key === curKey;
+    return `<div class="crm-bar-col">
+        <div class="crm-bar-tooltip">${fmtBRL(v)}</div>
+        <div class="crm-bar ${isCur ? 'crm-bar-current' : ''}" data-target-h="${h}" style="height:0px"></div>
+        <span class="crm-bar-lbl ${isCur ? 'crm-bar-lbl-current' : ''}">${m.label}</span>
       </div>`;
   }).join('');
 
   host.innerHTML = `<div class="crm-bars-wrap">${bars}</div>`;
+
+  requestAnimationFrame(() => {
+    host.querySelectorAll('.crm-bar[data-target-h]').forEach(b => {
+      b.style.height = b.dataset.targetH + 'px';
+    });
+  });
 }
 
 /* ─────────────────────────────────────────────
    RENDER TABLE
 ───────────────────────────────────────────── */
+/* ── Busca + ordenação da tabela de clientes ── */
+let _crmSearchQuery = '';
+let _crmSortKey      = null; // 'name' | 'value' | 'status' | 'dueDate'
+let _crmSortDir      = 1;    // 1 asc, -1 desc
+
+function crmFilterInput(q) {
+  _crmSearchQuery = (q || '').trim().toLowerCase();
+  renderRecordsTable();
+}
+
+function crmSortBy(key) {
+  if (_crmSortKey === key) { _crmSortDir *= -1; } else { _crmSortKey = key; _crmSortDir = 1; }
+  renderRecordsTable();
+}
+
+function _crmSortValue(rec, key) {
+  if (key === 'name')    return (rec.name || '').toLowerCase();
+  if (key === 'value')   return Number(rec.value) || 0;
+  if (key === 'status')  return getRecordDisplayStatus(rec);
+  if (key === 'dueDate') return rec.dueDate || '';
+  return '';
+}
+
+function _crmVisibleRecords() {
+  let list = _records;
+  if (_crmSearchQuery) {
+    list = list.filter(r => (r.name || '').toLowerCase().includes(_crmSearchQuery) ||
+                             (r.description || '').toLowerCase().includes(_crmSearchQuery));
+  }
+  if (_crmSortKey) {
+    list = [...list].sort((a, b) => {
+      const av = _crmSortValue(a, _crmSortKey), bv = _crmSortValue(b, _crmSortKey);
+      if (av < bv) return -1 * _crmSortDir;
+      if (av > bv) return  1 * _crmSortDir;
+      return 0;
+    });
+  }
+  return list;
+}
+
+function _crmFmtDate(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-');
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return `${d} ${months[Number(m) - 1]} ${y}`;
+}
+
 function renderRecordsTable() {
   const tbody  = document.getElementById('crm-table-body');
   const empty  = document.getElementById('crm-empty-state');
   const badge  = document.getElementById('crm-count-badge');
   if (!tbody) return;
+
+  // Marca a seta de ordenação ativa no cabeçalho
+  document.querySelectorAll('.crm-th-sort').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.sort === _crmSortKey);
+    th.classList.toggle('desc', th.dataset.sort === _crmSortKey && _crmSortDir === -1);
+  });
 
   if (badge) badge.textContent = _records.length ? _records.length + ' registro' + (_records.length !== 1 ? 's' : '') : '';
 
@@ -8710,7 +8782,16 @@ function renderRecordsTable() {
   }
   if (empty) empty.style.display = 'none';
 
-  _records.forEach(rec => {
+  const visible = _crmVisibleRecords();
+
+  if (visible.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="5" style="text-align:center;padding:24px;color:rgba(240,240,240,.3);font-size:.8rem;">Nenhum cliente encontrado para "${xe(_crmSearchQuery)}"</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  visible.forEach((rec, i) => {
     // Sync client note blocks on board (se existirem)
     updateClientNoteBlock(rec.id);
 
@@ -8718,6 +8799,7 @@ function renderRecordsTable() {
     const over    = ds === 'overdue';
     const initial = (rec.name || '?')[0].toUpperCase();
     const pal     = PAL[rec.color] || PAL.indigo;
+    const dueFmt  = _crmFmtDate(rec.dueDate);
 
     const statusLabel = {
       paid:    '✓ Pago',
@@ -8727,6 +8809,8 @@ function renderRecordsTable() {
 
     const tr = document.createElement('tr');
     if (over) tr.classList.add('overdue-row');
+    tr.classList.add('crm-row-in');
+    tr.style.animationDelay = Math.min(i, 12) * 25 + 'ms';
     tr.dataset.id = rec.id;
 
     tr.innerHTML = `
@@ -8750,10 +8834,9 @@ function renderRecordsTable() {
         </span>
       </td>
       <td>
-        <input type="date" class="crm-date-inp ${over ? 'crm-date-overdue' : ''}"
-          value="${rec.dueDate || ''}"
-          data-id="${rec.id}"
-          title="Data de vencimento">
+        <span class="crm-date-cell ${over ? 'crm-date-overdue' : ''}" id="crm-date-${rec.id}" title="Clique para editar">
+          ${dueFmt ? xe(dueFmt) : '<span class="crm-date-empty">Sem data</span>'}
+        </span>
       </td>
       <td>
         <div class="crm-row-actions">
@@ -8772,11 +8855,31 @@ function renderRecordsTable() {
     const valSpan = tr.querySelector('#crm-val-' + rec.id);
     valSpan.addEventListener('click', () => openInlineValueEditor(rec.id, valSpan));
 
-    const dateInp = tr.querySelector('.crm-date-inp');
-    dateInp.addEventListener('change', async e => {
-      await updateRecord(rec.id, { dueDate: e.target.value });
-    });
+    const dateSpan = tr.querySelector('#crm-date-' + rec.id);
+    dateSpan.addEventListener('click', () => openInlineDateEditor(rec.id, dateSpan));
   });
+}
+
+/* ── INLINE DATE EDITOR (mesmo padrão do editor de valor) ── */
+function openInlineDateEditor(id, spanEl) {
+  const rec = _records.find(r => r.id === id);
+  if (!rec) return;
+
+  const inp = document.createElement('input');
+  inp.type      = 'date';
+  inp.className = 'crm-date-inp-edit';
+  inp.value     = rec.dueDate || '';
+
+  spanEl.replaceWith(inp);
+  inp.focus();
+
+  let done = false;
+  const commit = async () => {
+    if (done) return; done = true;
+    await updateRecord(id, { dueDate: inp.value });
+  };
+  inp.addEventListener('change', commit);
+  inp.addEventListener('blur', () => { if (!done) renderRecordsTable(); });
 }
 
 /* ─────────────────────────────────────────────

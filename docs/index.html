@@ -18,7 +18,7 @@
   <script src="js/firebase-init.js?v=5"></script>
   <script src="js/auth-service.js?v=1"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=8">
+  <link rel="stylesheet" href="css/main.css?v=9">
 </head>
 <body>
 
@@ -426,11 +426,21 @@
     <span style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--clr-text);">Clientes</span>
     <span id="crm-count-badge" style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:rgba(240,240,240,.3);background:var(--clr-border-faint);border-radius:20px;padding:2px 8px;"></span>
     <div class="crm-table-toolbar-spacer"></div>
+    <div class="crm-search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="crm-search-inp" class="crm-search-inp" placeholder="Buscar cliente..." oninput="crmFilterInput(this.value)">
+    </div>
     <button class="crm-clear-btn" onclick="confirmClearAllRecords()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Apagar tudo</button>
   </div>
   <div class="crm-table-wrap">
     <table class="crm-table">
-      <thead><tr><th>Cliente</th><th>Valor</th><th>Status</th><th>Vencimento</th><th></th></tr></thead>
+      <thead><tr>
+        <th class="crm-th-sort" data-sort="name" onclick="crmSortBy('name')">Cliente<span class="crm-sort-arrow"></span></th>
+        <th class="crm-th-sort" data-sort="value" onclick="crmSortBy('value')">Valor<span class="crm-sort-arrow"></span></th>
+        <th class="crm-th-sort" data-sort="status" onclick="crmSortBy('status')">Status<span class="crm-sort-arrow"></span></th>
+        <th class="crm-th-sort" data-sort="dueDate" onclick="crmSortBy('dueDate')">Vencimento<span class="crm-sort-arrow"></span></th>
+        <th></th>
+      </tr></thead>
       <tbody id="crm-table-body"></tbody>
     </table>
     <div id="crm-empty-state" class="crm-empty">
@@ -522,6 +532,6 @@
 <!-- TOAST -->
 <div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
 
-<script src="js/app.js?v=9" defer></script>
+<script src="js/app.js?v=10" defer></script>
 </body>
 </html>
