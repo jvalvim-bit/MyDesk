@@ -98,8 +98,25 @@ function authErrMsg(code) {
   return dict[code] || dict.default;
 }
 
-/* ── Hash de senha para modo demo ── */
-async function _demoHashPass(pass) {
+/* ── Hash de senha para modo demo (offline, sem Firebase) ──
+   PBKDF2 com salt aleatório por conta — evita que um único rainbow table
+   sirva pra todas as contas (o antigo SHA-256 com "sal" fixo era fraco
+   nesse sentido). _demoHashPassLegacy fica só pra migrar contas antigas. */
+function _demoGenSalt() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function _demoHashPass(pass, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function _demoHashPassLegacy(pass) {
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest('SHA-256', enc.encode('mydesk-demo-v1:' + pass));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -139,8 +156,9 @@ async function doRegister() {
   if (!window._fbInitDone) {
     const accs = JSON.parse(localStorage.getItem('md_acc') || '{}');
     if (accs[user]) { showErr('reg-err', 'Usuário já existe.'); btn.textContent = 'Criar conta →'; btn.disabled = false; return; }
-    const passHash = await _demoHashPass(pass);
-    accs[user] = { username: user, name, role, email, passHash };
+    const salt     = _demoGenSalt();
+    const passHash = await _demoHashPass(pass, salt);
+    accs[user] = { username: user, name, role, email, passHash, salt };
     localStorage.setItem('md_acc', JSON.stringify(accs));
     goToApp({ uid: 'demo_' + user, username: user, name, role, email });
     return;
@@ -224,21 +242,34 @@ async function doLogin() {
     const accs = JSON.parse(localStorage.getItem('md_acc') || '{}');
     const acc = Object.values(accs).find(a => a.email === email);
     if (acc) {
-      const inputHash = await _demoHashPass(pass);
-      const match = acc.passHash ? (acc.passHash === inputHash) : (acc.passDemo === pass);
+      let match, needsRehash = false;
+      if (acc.salt && acc.passHash) {
+        match = acc.passHash === await _demoHashPass(pass, acc.salt);
+      } else if (acc.passHash) {
+        // Conta antiga: hash sem salt por conta. Migra pro PBKDF2 salgado no acerto.
+        match = acc.passHash === await _demoHashPassLegacy(pass);
+        needsRehash = match;
+      } else {
+        // Conta bem antiga: senha em texto puro. Migra também.
+        match = acc.passDemo === pass;
+        needsRehash = match;
+      }
       if (!match) {
         showErr('login-err', 'Senha incorreta.');
         btn.textContent = 'Entrar →'; btn.disabled = false;
         return;
       }
-      if (!acc.passHash) {
-        acc.passHash = inputHash; delete acc.passDemo;
+      if (needsRehash) {
+        acc.salt     = _demoGenSalt();
+        acc.passHash = await _demoHashPass(pass, acc.salt);
+        delete acc.passDemo;
         localStorage.setItem('md_acc', JSON.stringify(accs));
       }
       goToApp({ uid: 'demo_' + acc.username, username: acc.username, name: acc.name, role: acc.role || '', email });
     } else {
-      const passHash = await _demoHashPass(pass);
-      const newAcc = { username, name: username, role: '', email, passHash };
+      const salt     = _demoGenSalt();
+      const passHash = await _demoHashPass(pass, salt);
+      const newAcc = { username, name: username, role: '', email, passHash, salt };
       accs[username] = newAcc;
       localStorage.setItem('md_acc', JSON.stringify(accs));
       goToApp({ uid: 'demo_' + username, username, name: username, role: '', email });
