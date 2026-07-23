@@ -4235,6 +4235,26 @@ function _applySortFilter() {
   const notesStartX = stackIds.length > 0 ? PAD_X + 280 + GAP : PAD_X;
   const anim = 'left .35s cubic-bezier(.16,1,.3,1), top .35s cubic-bezier(.16,1,.3,1)';
 
+  // Pilhas (pastas) ficam sempre na própria coluna reservada, à esquerda —
+  // nunca no mesmo espaço dos cards soltos, pra não sobrepor nada ao reorganizar.
+  let stackY = NOTE_TOP_START;
+  stackIds.forEach(sid => {
+    const members = getStackNotes(sid);
+    if (!members.length) return;
+    members.forEach(n => { n.x = PAD_X; n.y = stackY; });
+    const wrapEl = document.querySelector('.stack-wrap[data-stack="'+sid+'"]');
+    if (wrapEl) {
+      void wrapEl.offsetWidth;
+      wrapEl.style.transition = anim;
+      wrapEl.style.left = PAD_X + 'px';
+      wrapEl.style.top  = stackY + 'px';
+      stackY += wrapEl.offsetHeight + GAP;
+      setTimeout(() => { wrapEl.style.transition = ''; }, 400);
+    } else {
+      stackY += 60 + GAP; // fallback — pilha ainda não renderizada
+    }
+  });
+
   let col = 0, colCount = 0, noteY = NOTE_TOP_START, colX = notesStartX;
 
   // Pre-measure
