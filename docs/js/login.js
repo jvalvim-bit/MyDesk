@@ -44,6 +44,7 @@ function setMode(m) {
     b.setAttribute('aria-selected', String(b.dataset.mode === m)));
   const up = m === 'signup';
   $('cNames').toggleAttribute('data-off', !up);
+  $('cForgot').toggleAttribute('data-off', up);
   $('ttl').textContent = up ? 'Criar conta' : 'Bem-vindo de volta';
   submit.textContent   = up ? 'Criar conta' : 'Entrar';
   clearErrors();
@@ -281,6 +282,24 @@ async function doLogin() {
   }
 }
 
+/* ── Esqueci a senha ── */
+async function doForgotPassword() {
+  const email = $v('email').trim().toLowerCase();
+  if (!emailOk(email)) return fail('Informe seu e-mail pra redefinir a senha.', $('email'));
+
+  if (!window._fbInitDone) {
+    return fail('Modo demo: não há e-mail real pra enviar a redefinição.');
+  }
+
+  try {
+    await loadFirebase();
+    await getAuth().sendPasswordResetEmail(email);
+    okMsg('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+  } catch (e) {
+    fail(authErrMsg(e.code));
+  }
+}
+
 /* ── Login com Google ── */
 async function doGoogleLogin() {
   if (!window._fbInitDone) { return fail('Firebase não carregado.'); }
@@ -331,6 +350,7 @@ form.addEventListener('submit', e => {
 
 $('btn-google').addEventListener('click', doGoogleLogin);
 $('btn-apple').addEventListener('click', () => fail('Login com Apple em breve por aqui — use e-mail ou Google por enquanto.'));
+$('forgot-pass').addEventListener('click', doForgotPassword);
 $('close').addEventListener('click', () => goTo('landing.html'));
 addEventListener('keydown', e => { if (e.key === 'Escape') $('close').click(); });
 

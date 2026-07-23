@@ -231,6 +231,10 @@ h1{font-size:26px;font-weight:700;letter-spacing:-.032em;margin-bottom:20px;
 .terms a{color:rgba(255,255,255,.55);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18)}
 .terms a:hover{color:#fff;border-color:rgba(255,255,255,.5)}
 
+.fpass{display:flex;justify-content:flex-end;margin:-4px 0 12px}
+.fpass a{font-size:11.5px;color:rgba(255,255,255,.4);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.fpass a:hover{color:#fff}
+
 .msg{display:none;margin-top:12px;text-align:center;font-size:12.5px;color:#ff9090}
 .msg.on{display:block;animation:up .22s ease both}
 .msg.ok{color:#6ee7b7}
@@ -302,6 +306,10 @@ h1{font-size:26px;font-weight:700;letter-spacing:-.032em;margin-bottom:20px;
       </button>
     </div>
 
+    <div class="collapse" id="cForgot" data-off style="--i:4.5"><div>
+      <div class="fpass"><a id="forgot-pass" tabindex="0">Esqueci minha senha</a></div>
+    </div></div>
+
     <button class="primary st" type="submit" id="submit" style="--i:5">Criar conta</button>
     <p class="msg" id="msg"></p>
   </form>
@@ -320,6 +328,6 @@ h1{font-size:26px;font-weight:700;letter-spacing:-.032em;margin-bottom:20px;
   <p class="terms st" style="--i:8">Ao criar uma conta, você concorda com nossos <a href="landing.html#lp-faq-section">Termos &amp; Privacidade</a></p>
 </div>
 
-<script src="js/login.js?v=14"></script>
+<script src="js/login.js?v=15"></script>
 </body>
 </html>
