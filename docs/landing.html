@@ -4,846 +4,487 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MyDesk — Workspace de Notas Inteligente</title>
-<meta name="description" content="MyDesk é um workspace de notas corporativo com CRM financeiro, workspaces em grupo, chat em tempo real e muito mais. Grátis para começar.">
+<meta name="description" content="MyDesk é um workspace de notas corporativo com CRM financeiro, workspaces em grupo, chat e videochamada em tempo real. Grátis para começar.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text y='22' x='5' font-size='20'>📋</text></svg>">
 <meta name="theme-color" content="#040409">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=27">
 <style>
-/* ══════════════ AURORA (mesma cena do login.html) ══════════════ */
 :root{
-  --band: 88vh;
-  --ring: calc(var(--band) / .375);
-  --cy:   calc(62vh + var(--band));
+  --bg:#040409; --bg-2:#08080d;
+  --card:rgba(255,255,255,.035); --border:rgba(255,255,255,.09); --border-hover:rgba(129,140,248,.4);
+  --text:#f5f5f7; --text-dim:rgba(245,245,247,.5); --text-faint:rgba(245,245,247,.32);
+  --accent:#6366f1; --accent-light:#a5b4fc;
+  --radius:12px;
 }
-body{background:#040409;}
-.scene{position:fixed;inset:0;overflow:hidden;z-index:0;background:
-  radial-gradient(120% 80% at 50% 108%, #0d1030 0%, #06060f 52%, #040409 100%)}
-.circle{position:absolute;left:50%;top:var(--cy);width:var(--ring);height:var(--ring);
-  transform:translate(-50%,-50%);transform-origin:50% 50%;will-change:transform;}
-.aurora{
-  background:conic-gradient(from 168deg,
-    #0a1856  0deg,  #1d3fd6  30deg, #5a35d9  58deg,
-    #a531c4  84deg, #e0603a 106deg,
-    #f2b04a 124deg, #4fdba4 150deg, #1f86dc 180deg,
-    #17246a 214deg, #0a1856 360deg);
-  -webkit-mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
-          mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
-  filter:blur(46px) saturate(150%);opacity:.85;
-  animation:flow 22s linear infinite, sway 9s ease-in-out infinite alternate;
-}
-.haze{
-  background:conic-gradient(from 168deg,
-    #16256e 0deg, #2c46c8 40deg, #7b3ad2 78deg, #cf4a8e 104deg,
-    #e07a3c 126deg, #43c8a0 156deg, #1c6fc4 190deg, #16256e 360deg);
-  -webkit-mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
-          mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
-  filter:blur(110px) saturate(130%);opacity:.4;
-  animation:flow 22s linear infinite, sway 9s ease-in-out infinite alternate;
-}
-.limb{
-  background:linear-gradient(90deg,transparent 4%,rgba(190,215,255,.55) 26%,
-    #fff 50%,rgba(190,215,255,.5) 74%,transparent 96%);
-  -webkit-mask:radial-gradient(closest-side,transparent 0 78.4%,#000 78.8%,#000 79.4%,transparent 79.8%);
-          mask:radial-gradient(closest-side,transparent 0 78.4%,#000 78.8%,#000 79.4%,transparent 79.8%);
-  filter:blur(.7px) drop-shadow(0 0 14px rgba(150,195,255,.85)) drop-shadow(0 0 40px rgba(90,150,255,.45));
-  animation:sway 9s ease-in-out infinite alternate;
-}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+.hl{background:linear-gradient(135deg,#a5b4fc,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ══ AURORA — só no hero, contida, some antes do resto da página ══ */
+.hero-wrap{position:relative;overflow:hidden;padding-top:20px;}
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;}
+:root{--band:70vh;--ring:calc(var(--band)/.375);--cy:calc(46vh + var(--band));}
+.circle{position:absolute;left:50%;top:var(--cy);width:var(--ring);height:var(--ring);transform:translate(-50%,-50%);transform-origin:50% 50%;will-change:transform;}
+.aurora{background:conic-gradient(from 168deg,#0a1856 0deg,#1d3fd6 30deg,#5a35d9 58deg,#a531c4 84deg,#e0603a 106deg,#f2b04a 124deg,#4fdba4 150deg,#1f86dc 180deg,#17246a 214deg,#0a1856 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
+  filter:blur(50px) saturate(140%);opacity:.55;animation:flow 22s linear infinite,sway 9s ease-in-out infinite alternate;}
+.haze{background:conic-gradient(from 168deg,#16256e 0deg,#2c46c8 40deg,#7b3ad2 78deg,#cf4a8e 104deg,#e07a3c 126deg,#43c8a0 156deg,#1c6fc4 190deg,#16256e 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
+  filter:blur(120px) saturate(120%);opacity:.28;animation:flow 22s linear infinite,sway 9s ease-in-out infinite alternate;}
 @keyframes flow{to{--a:1}}
 @keyframes sway{from{transform:translate(-50%,-50%) rotate(-6deg)}to{transform:translate(-50%,-50%) rotate(6deg)}}
-.dust{position:absolute;inset:0;opacity:.4;
-  background-image:
-    radial-gradient(1px 1px at 18% 22%,rgba(255,255,255,.7),transparent),
-    radial-gradient(1px 1px at 73% 14%,rgba(255,255,255,.55),transparent),
-    radial-gradient(1px 1px at 41% 9%, rgba(255,255,255,.5),transparent),
-    radial-gradient(1.4px 1.4px at 88% 31%,rgba(255,255,255,.6),transparent),
-    radial-gradient(1px 1px at 8% 41%, rgba(255,255,255,.45),transparent),
-    radial-gradient(1px 1px at 57% 27%,rgba(255,255,255,.4),transparent),
-    radial-gradient(1.2px 1.2px at 30% 36%,rgba(255,255,255,.5),transparent),
-    radial-gradient(1px 1px at 94% 8%, rgba(255,255,255,.5),transparent);
-  animation:twinkle 7s ease-in-out infinite alternate}
-@keyframes twinkle{from{opacity:.28}to{opacity:.5}}
-.vignette{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 74% 58% at 50% 44%,transparent 0%,rgba(4,4,9,.45) 60%,#040409 100%)}
-.grain{position:absolute;inset:0;opacity:.14;pointer-events:none;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hero-fade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 0%,transparent 55%,var(--bg) 100%);}
+@media(prefers-reduced-motion:reduce){.aurora,.haze{animation:none!important;}}
 
-/* ══════════════ GLASS OVERRIDES — a landing volta a ser escura,
-   com cartões em vidro fosco, por cima da aurora ══════════════ */
-#auth-screen{background:transparent;}
+/* ══ NAV ══ */
+.nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:28px;padding:16px 6vw;background:rgba(4,4,9,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+.nav-logo{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;}
+.nav-logo .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#14b8a6);}
+.nav-links{display:flex;gap:26px;margin-left:8px;}
+.nav-links a{font-size:.82rem;color:var(--text-dim);text-decoration:none;}
+.nav-links a:hover,.nav-links a.active{color:var(--text);}
+.nav-spacer{flex:1;}
+.nav-cta{background:#fff;color:#0a0a0a;border:none;border-radius:8px;padding:9px 18px;font-size:.82rem;font-weight:700;cursor:pointer;}
+.nav-cta:hover{opacity:.85;}
 
-#auth-screen .lp-nav{background:rgba(4,4,9,.75);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
-#auth-screen .lp-nav-logo{color:#fff;}
-#auth-screen .lp-nav-links a{color:rgba(255,255,255,.55);}
-#auth-screen .lp-nav-links a:hover,#auth-screen .lp-nav-links a.active{color:#fff;}
-#auth-screen .lp-nav-cta{background:linear-gradient(180deg,#fdfdfd,#dcdce1);color:#101014;}
-#auth-screen .lp-nav-cta:hover{opacity:.85;}
+/* ══ HERO CONTENT ══ */
+.hero{position:relative;z-index:2;max-width:760px;margin:0 auto;padding:88px 6vw 64px;text-align:center;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.68rem;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent-light);margin-bottom:22px;}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.3rem,5.4vw,3.6rem);line-height:1.1;letter-spacing:-1.5px;margin:0 0 20px;}
+.hero p{font-size:1.02rem;color:var(--text-dim);max-width:520px;margin:0 auto 34px;line-height:1.7;}
+.hero-ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:64px;}
+.btn-fill{background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:13px 26px;font-size:.9rem;font-weight:700;cursor:pointer;}
+.btn-fill:hover{opacity:.88;}
+.btn-outline{background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--border);border-radius:10px;padding:13px 26px;font-size:.9rem;font-weight:600;cursor:pointer;}
+.btn-outline:hover{background:rgba(255,255,255,.1);}
 
-#auth-screen .lpN-avatar{background:rgba(255,255,255,.055);box-shadow:0 6px 18px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
-#auth-screen .lpN-title{color:#fff;}
-#auth-screen .lpN-pill{background:rgba(99,102,241,.18);color:#c7d2fe;}
-#auth-screen .lpN-pill::before{background:#818cf8;}
-#auth-screen .lpN-sub{color:rgba(255,255,255,.55);}
-#auth-screen .lpN-btn-fill{background:linear-gradient(180deg,#fdfdfd,#dcdce1);color:#101014;}
-#auth-screen .lpN-btn-fill:hover{opacity:.88;}
-#auth-screen .lpN-btn-outline{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.14);}
-#auth-screen .lpN-btn-outline:hover{background:rgba(255,255,255,.12);}
-#auth-screen .lpN-shot{box-shadow:0 40px 90px rgba(0,0,0,.7),0 4px 14px rgba(0,0,0,.3);border-color:rgba(255,255,255,.1);}
-#auth-screen .lpN-trust-txt{color:rgba(255,255,255,.32);}
-#auth-screen .lpN-trust-logos span{color:rgba(255,255,255,.5);}
+/* screenshot */
+.shot{max-width:820px;margin:0 auto;background:#0b0b10;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);}
+.shot-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);}
+.shot-dot{width:9px;height:9px;border-radius:50%;}
+.shot-tag{margin-left:10px;font-size:.6rem;color:var(--text-faint);font-family:'JetBrains Mono',monospace;}
+.shot-body{position:relative;min-height:300px;background:radial-gradient(ellipse 80% 60% at 30% 30%,rgba(99,102,241,.08),transparent),#0a0a0a;overflow:hidden;}
+.shot-body::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.035) 1px,transparent 0);background-size:20px 20px;}
+.note{position:absolute;width:190px;border-radius:10px;padding:12px 14px;font-size:.72rem;box-shadow:0 10px 26px rgba(0,0,0,.5);}
+.note b{display:block;font-size:.78rem;margin:6px 0 4px;color:#fff;}
+.note .d{color:rgba(255,255,255,.4);font-size:.68rem;}
+.note .tag{display:inline-flex;align-items:center;gap:5px;font-size:.62rem;padding:2px 8px;border-radius:20px;margin-bottom:2px;}
+.note .tag i{width:5px;height:5px;border-radius:50%;}
 
-#auth-screen .lp-section:nth-child(odd),
-#auth-screen .lp-section:nth-child(even){background:transparent;border-top:1px solid rgba(255,255,255,.07);}
+/* ══ STATS ══ */
+.stats{display:flex;justify-content:center;gap:64px;flex-wrap:wrap;padding:40px 6vw;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.stat{text-align:center;}
+.stat b{display:block;font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;}
+.stat span{font-size:.7rem;color:var(--text-faint);letter-spacing:.3px;}
 
-#auth-screen .lp-eyebrow{color:rgba(165,180,252,.75);}
-#auth-screen .lp-subtitle{color:rgba(255,255,255,.5);}
-#auth-screen .lp-feat{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
-#auth-screen .lp-feat:hover{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.08);}
-#auth-screen .lp-feat-title{color:#fff;}
-#auth-screen .lp-feat-desc{color:rgba(255,255,255,.45);}
-#auth-screen .lp-bento-item{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-#auth-screen .lp-bento-item:hover{border-color:rgba(99,102,241,.4);}
-#auth-screen .lp-stat-num{color:#fff;}
-#auth-screen .lp-stat-label{color:rgba(255,255,255,.4);}
-#auth-screen .lp-how-num{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.4);color:#c7d2fe;}
-#auth-screen .lp-how-title{color:#fff;}
-#auth-screen .lp-how-desc{color:rgba(255,255,255,.45);}
-#auth-screen .lp-quote{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25);}
-#auth-screen .lp-quote-text{color:rgba(255,255,255,.85);}
-#auth-screen .lp-quote-author{color:rgba(255,255,255,.4);}
-#auth-screen .lp-divider{background:linear-gradient(90deg,transparent,rgba(129,140,248,.4),rgba(20,184,166,.3),transparent);}
-#auth-screen .lp-dash-card{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-#auth-screen .lp-dash-card:hover{border-color:rgba(99,102,241,.4);}
-#auth-screen .lp-toggle-row{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.08);}
-#auth-screen .lp-activity-item{color:rgba(255,255,255,.7);}
-#auth-screen .lp-activity-time{color:rgba(255,255,255,.32);}
-#auth-screen .lp-dash-cta{background:linear-gradient(180deg,#fdfdfd,#dcdce1);border:none;color:#101014;}
-#auth-screen .lp-dash-cta:hover{opacity:.88;}
+/* ══ SECTION SHELL ══ */
+.section{max-width:1080px;margin:0 auto;padding:96px 6vw;}
+.section-head{max-width:600px;margin:0 auto 48px;text-align:center;}
+.section-head .eyebrow{justify-content:center;}
+.section-head h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.9rem,3.6vw,2.6rem);letter-spacing:-1px;line-height:1.15;margin:0 0 14px;}
+.section-head p{font-size:.95rem;color:var(--text-dim);line-height:1.7;margin:0;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);max-width:1080px;margin:0 auto;}
 
-#auth-screen .lp-integrations{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);border-color:rgba(255,255,255,.07);}
-#auth-screen .lp-int-title{color:#fff;}
-#auth-screen .lp-int-sub{color:rgba(255,255,255,.45);}
-#auth-screen .lp-int-link{color:#a5b4fc;}
-#auth-screen .lp-int-icon{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.09);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
-#auth-screen .lp-int-icon span{color:rgba(255,255,255,.4);}
+/* ══ FEATURE CATALOG — organizado por categoria, cartão único e consistente ══ */
+.cat{margin-bottom:56px;}
+.cat:last-child{margin-bottom:0;}
+.cat-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.cat-head h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin:0;}
+.cat-head span{font-size:.74rem;color:var(--text-faint);}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.fcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s,transform .2s;}
+.fcard:hover{border-color:var(--border-hover);transform:translateY(-2px);}
+.fcard .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;background:rgba(99,102,241,.14);margin-bottom:14px;}
+.fcard h4{font-size:.87rem;font-weight:700;margin:0 0 6px;}
+.fcard p{font-size:.78rem;color:var(--text-dim);line-height:1.6;margin:0;}
+@media(max-width:860px){.fgrid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.fgrid{grid-template-columns:1fr;}}
 
-#auth-screen .lp-testimonial-mark{color:rgba(129,140,248,.4);}
-#auth-screen .lp-testimonial-quote{color:#fff;}
-#auth-screen .lp-testimonial-author{color:rgba(255,255,255,.4);}
+/* ══ STEPS ══ */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-bottom:8px;}
+.steps::before{content:'';position:absolute;top:21px;left:12%;right:12%;height:1px;background:var(--border);}
+.step{position:relative;text-align:center;padding:0 14px;}
+.step-num{width:42px;height:42px;border-radius:50%;background:var(--bg);border:1px solid var(--border-hover);color:var(--accent-light);font-family:'Syne',sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1;}
+.step h4{font-size:.87rem;font-weight:700;margin:0 0 6px;}
+.step p{font-size:.76rem;color:var(--text-dim);line-height:1.6;margin:0;}
+@media(max-width:700px){.steps{grid-template-columns:1fr;gap:28px;}.steps::before{display:none;}}
 
-#auth-screen .lp-faq-item{border-color:rgba(255,255,255,.09)!important;background:rgba(255,255,255,.02);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
-#auth-screen .lp-faq-item>div:first-child{background:rgba(255,255,255,.02)!important;}
-#auth-screen .lp-faq-item span:first-of-type{color:#fff!important;}
-#auth-screen .lp-faq-arrow{color:rgba(255,255,255,.35)!important;}
-#auth-screen .lp-faq-body div{color:rgba(255,255,255,.5)!important;}
+/* ══ PESSOAL x GRUPO ══ */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.split-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;}
+.split-card .ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:rgba(99,102,241,.14);margin-bottom:16px;}
+.split-card h3{font-size:1rem;font-weight:700;margin:0 0 8px;}
+.split-card p{font-size:.82rem;color:var(--text-dim);line-height:1.65;margin:0 0 18px;}
+.split-list{display:flex;flex-direction:column;gap:9px;}
+.split-list div{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-dim);}
+.split-list i{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+@media(max-width:760px){.split{grid-template-columns:1fr;}}
 
-#auth-screen .lp-cta{background:transparent;border-color:rgba(255,255,255,.07);}
-#auth-screen .lp-cta-title{color:#fff;}
-#auth-screen .lp-cta-desc{color:rgba(255,255,255,.4);}
-#auth-screen .lp-cta-btn{background:linear-gradient(180deg,#fdfdfd,#dcdce1);box-shadow:0 10px 30px rgba(0,0,0,.5);color:#101014;}
-#auth-screen .lp-cta-btn:hover{opacity:.9;transform:translateY(-2px);}
-#auth-screen .lp-cta-btn-outline{border-color:rgba(255,255,255,.16);color:#fff;}
-#auth-screen .lp-cta-btn-outline:hover{background:rgba(255,255,255,.06);}
-#auth-screen .lpN-cta-trust{color:rgba(255,255,255,.35);}
+/* ══ INTEGRATIONS ══ */
+.int-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:36px;}
+.int-icon{width:98px;height:72px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:1.3rem;}
+.int-icon span{font-size:.62rem;color:var(--text-faint);}
 
-#auth-screen .lp-footer2{background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.07);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
-#auth-screen .lp-footer2-brand-name{color:#fff;}
-#auth-screen .lp-footer2-brand-desc{color:rgba(255,255,255,.4);}
-#auth-screen .lp-footer2-col a{color:rgba(255,255,255,.42)!important;}
-#auth-screen .lp-footer2-col a:hover{color:#fff!important;}
-#auth-screen .lp-footer2-col-title{color:rgba(255,255,255,.5);}
-#auth-screen .lp-footer2-col span[style]{color:rgba(255,255,255,.4)!important;}
-#auth-screen .lp-footer2-bottom{color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.07);}
+/* ══ PRICING ══ */
+.plans{display:flex;gap:20px;flex-wrap:wrap;margin-top:36px;}
+.plan{flex:1;min-width:260px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;}
+.plan.premium{background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(79,70,229,.06));border-color:rgba(99,102,241,.4);position:relative;}
+.plan-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:20px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#fff;text-transform:uppercase;}
+.plan-eyebrow{font-size:.64rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;}
+.plan.premium .plan-eyebrow{color:var(--accent-light);}
+.plan-price{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;line-height:1;margin-bottom:2px;}
+.plan-period{font-size:.76rem;color:var(--text-faint);margin-bottom:22px;}
+.plan-feats{display:flex;flex-direction:column;gap:9px;flex:1;margin-bottom:22px;}
+.plan-feats div{display:flex;align-items:center;gap:8px;font-size:.79rem;color:rgba(245,245,247,.78);}
+.plan-feats div.off{color:var(--text-faint);}
+.plan-feats .ck{color:#34d399;}
+.plan.premium .plan-feats .ck{color:var(--accent-light);}
+.plan-btn{width:100%;padding:12px;border-radius:10px;font-size:.84rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.06);color:#fff;}
+.plan-btn:hover{background:rgba(255,255,255,.1);}
+.plan-btn.premium{background:linear-gradient(135deg,var(--accent),#4f46e5);border:none;}
+.plan-note{text-align:center;margin-top:20px;font-size:.72rem;color:var(--text-faint);}
 
-#auth-screen #lp-pricing{background:transparent;}
-#auth-screen .lpN-plan-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
-#auth-screen .lpN-plan-card.premium{background:linear-gradient(135deg,rgba(99,102,241,.16),rgba(79,70,229,.08));border-color:rgba(99,102,241,.4);}
-#auth-screen .lpN-plan-eyebrow{color:rgba(255,255,255,.4);}
-#auth-screen .lpN-plan-card.premium .lpN-plan-eyebrow{color:#c7d2fe;}
-#auth-screen .lpN-plan-price{color:#fff;}
-#auth-screen .lpN-plan-period{color:rgba(255,255,255,.38);}
-#auth-screen .lpN-plan-feat{color:rgba(255,255,255,.78);}
-#auth-screen .lpN-plan-feat.off{color:rgba(255,255,255,.28);}
-#auth-screen .lpN-plan-feat .ck{color:#34d399;}
-#auth-screen .lpN-plan-card.premium .lpN-plan-feat .ck{color:#a5b4fc;}
-#auth-screen .lpN-plan-feat .x{opacity:.4;}
-#auth-screen .lpN-plan-btn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;}
-#auth-screen .lpN-plan-btn:hover{background:rgba(255,255,255,.1);}
-#auth-screen .lpN-plan-btn.premium{background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;color:#fff;box-shadow:0 8px 24px rgba(99,102,241,.4);}
-#auth-screen .lpN-plan-note{color:rgba(255,255,255,.3);}
+/* ══ FAQ ══ */
+.faq-item{border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;margin-bottom:10px;}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--card);font-size:.85rem;font-weight:600;}
+.faq-arrow{font-size:.7rem;color:var(--text-faint);transition:transform .2s;flex-shrink:0;margin-left:12px;}
+.faq-item.open .faq-arrow{transform:rotate(180deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.faq-a div{padding:0 18px 16px;font-size:.8rem;color:var(--text-dim);line-height:1.7;}
 
-#auth-screen .lpN-steps::before{background:rgba(255,255,255,.1);}
-#auth-screen .lpN-step-num{background:rgba(255,255,255,.06);border:2px solid rgba(129,140,248,.5);color:#c7d2fe;backdrop-filter:blur(10px);}
-#auth-screen .lpN-step-title{color:#fff;}
-#auth-screen .lpN-step-desc{color:rgba(255,255,255,.42);}
+/* ══ FINAL CTA ══ */
+.cta{text-align:center;padding:100px 6vw;border-top:1px solid var(--border);}
+.cta h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.9rem,3.6vw,2.7rem);letter-spacing:-1px;margin:0 0 16px;}
+.cta p{font-size:.92rem;color:var(--text-dim);margin:0 0 36px;line-height:1.7;}
+.cta-trust{display:flex;gap:22px;justify-content:center;margin-top:26px;flex-wrap:wrap;font-size:.72rem;color:var(--text-faint);}
 
-#auth-screen .lpN-fcard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-#auth-screen .lpN-fcard:hover{border-color:rgba(99,102,241,.4);box-shadow:0 12px 28px rgba(0,0,0,.4);}
-#auth-screen .lpN-fcard-title{color:#fff;}
-#auth-screen .lpN-fcard-desc{color:rgba(255,255,255,.45);}
+/* ══ FOOTER ══ */
+.footer{border-top:1px solid var(--border);padding:56px 6vw 28px;}
+.footer-grid{display:flex;gap:56px;flex-wrap:wrap;justify-content:space-between;max-width:1080px;margin:0 auto 32px;}
+.footer-brand-name{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;margin-bottom:10px;}
+.footer-brand-desc{font-size:.79rem;color:var(--text-faint);max-width:280px;line-height:1.6;}
+.footer-col-title{font-size:.7rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;}
+.footer-col a{display:block;font-size:.79rem;color:var(--text-faint);text-decoration:none;margin-bottom:9px;cursor:pointer;}
+.footer-col a:hover{color:#fff;}
+.footer-bottom{max-width:1080px;margin:0 auto;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.72rem;color:var(--text-faint);}
+
+.lp-reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease;}
+.lp-reveal.in-view{opacity:1;transform:none;}
 </style>
 </head>
 <body>
 
-<div class="scene" aria-hidden="true">
-  <div class="circle haze"></div>
-  <div class="circle aurora"></div>
-  <div class="circle limb"></div>
-  <div class="dust"></div>
-  <div class="vignette"></div>
-  <div class="grain"></div>
-</div>
+<div class="hero-wrap">
+  <div class="scene" aria-hidden="true">
+    <div class="circle haze"></div>
+    <div class="circle aurora"></div>
+  </div>
+  <div class="hero-fade"></div>
 
-<div id="auth-screen" class="landing-scroll">
-  <!-- ── NAV — barra fixa no topo ── -->
-  <nav class="lp-nav">
-    <div class="lp-nav-logo"><div class="logo-dot"></div>MyDesk</div>
-    <div class="lp-nav-links">
-      <a href="#lp-about">Recursos</a>
-      <a href="#lp-pricing">Preços</a>
-      <a href="#lp-faq-section">FAQ</a>
+  <nav class="nav">
+    <div class="nav-logo"><span class="dot"></span>MyDesk</div>
+    <div class="nav-links">
+      <a href="#recursos">Recursos</a>
+      <a href="#precos">Preços</a>
+      <a href="#faq">FAQ</a>
     </div>
-    <button class="lp-nav-cta" onclick="location.href='login.html?mode=signin';">Entrar</button>
+    <div class="nav-spacer"></div>
+    <button class="nav-cta" onclick="location.href='login.html?mode=signin'">Entrar</button>
   </nav>
 
-  <!-- ── HERO ── -->
-  <div class="lpN-hero">
-    <div class="lpN-avatars">
-      <span class="lpN-avatar c1" title="Notas">📝</span>
-      <span class="lpN-avatar c2" title="Chat">💬</span>
-      <span class="lpN-avatar c3" title="CRM">📊</span>
-      <span class="lpN-avatar c4" title="Videochamada">📹</span>
-      <span class="lpN-avatar c5" title="Eventos">🔔</span>
-      <span class="lpN-avatar c6" title="Arquivos">📎</span>
-    </div>
-    <div class="lpN-title">Onde suas notas<br>e seu time <span class="lpN-pill">pensam</span> juntos.</div>
-    <div class="lpN-sub">Capture ideias, organize clientes e nunca mais perca um prazo — um workspace completo pra você e sua equipe.</div>
-    <div class="lpN-ctas">
-      <button class="lpN-btn-fill" onclick="location.href='login.html'">Junte-se a nós</button>
-      <button class="lpN-btn-outline" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Ver como funciona</button>
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>Workspace corporativo</div>
+    <h1>Onde suas notas<br>e seu time <span class="hl">pensam</span> juntos.</h1>
+    <p>Capture ideias, organize clientes e nunca mais perca um prazo — um workspace completo pra você e sua equipe.</p>
+    <div class="hero-ctas">
+      <button class="btn-fill" onclick="location.href='login.html'">Junte-se a nós</button>
+      <button class="btn-outline" onclick="document.getElementById('recursos').scrollIntoView({behavior:'smooth'})">Ver todos os recursos</button>
     </div>
 
-    <div class="lp-mock lpN-shot">
-      <div class="lp-mock-bar">
-        <div class="lp-mock-dot" style="background:#ef4444"></div>
-        <div class="lp-mock-dot" style="background:#f59e0b"></div>
-        <div class="lp-mock-dot" style="background:#10b981"></div>
-        <span class="lpN-shot-tag">app.mydesk</span>
+    <div class="shot">
+      <div class="shot-bar">
+        <div class="shot-dot" style="background:#ef4444"></div>
+        <div class="shot-dot" style="background:#f59e0b"></div>
+        <div class="shot-dot" style="background:#10b981"></div>
+        <span class="shot-tag">app.mydesk</span>
       </div>
-      <div class="lp-mock-body" style="background:radial-gradient(ellipse 80% 60% at 30% 40%,rgba(99,102,241,.09),transparent),#0a0a0a;min-height:340px;overflow:visible;">
-        <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:20px 20px;border-radius:0 0 10px 10px;"></div>
-        <div class="mock-note mock-note-pulse" style="top:14px;left:12px;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
-          <div class="mock-note-bar" style="background:#6366f1"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);color:#a5b4fc;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#6366f1;display:inline-block;"></span>Indigo
-              </div>
-              <div class="mock-note-status" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:#6ee7b7;">
-                <span class="mock-note-status-dot" style="background:#10b981;"></span>Concluído
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Redesign do dashboard</div>
-          <div class="mock-note-body">Atualizar componentes e revisar tipografia do sistema.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Início: 01/07 · Prazo: 15/07
-            </div>
-          </div>
+      <div class="shot-body">
+        <div class="note" style="top:16px;left:20px;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
+          <span class="tag" style="background:rgba(99,102,241,.12);color:#a5b4fc;"><i style="background:#6366f1"></i>Indigo</span>
+          <b>Redesign do dashboard</b>
+          <div class="d">Prazo: 15/07</div>
         </div>
-        <div class="mock-note" style="top:20px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.25);">
-          <div class="mock-note-bar" style="background:#10b981"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.22);color:#6ee7b7;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Emerald
-              </div>
-              <div class="mock-note-status" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.22);color:#a5b4fc;">
-                <span class="mock-note-status-dot" style="background:#6366f1;box-shadow:0 0 4px rgba(99,102,241,.6);"></span>Andamento
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Reunião com cliente</div>
-          <div class="mock-note-body">Apresentar protótipo e coletar feedback do produto.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Prazo: 18/07
-            </div>
-          </div>
+        <div class="note" style="top:24px;left:260px;background:#071a10;border:1px solid rgba(16,185,129,.25);">
+          <span class="tag" style="background:rgba(16,185,129,.1);color:#6ee7b7;"><i style="background:#10b981"></i>Emerald</span>
+          <b>Reunião com cliente</b>
+          <div class="d">Prazo: 18/07</div>
         </div>
-        <div class="mock-note" style="top:180px;left:70px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
-          <div class="mock-note-bar" style="background:#f43f5e"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.22);color:#fda4af;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>Rose
-              </div>
-              <div class="mock-note-status" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;">
-                <span class="mock-note-status-dot" style="background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);"></span>Encerrado
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Bug crítico #482</div>
-          <div class="mock-note-body">Corrigir falha em produção no módulo de pagamentos.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Vencido há 2d
-            </div>
-          </div>
-        </div>
-        <div class="mock-badge-float" style="bottom:-16px;right:14px;">
-          <div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>
-          3 notas ativas
-        </div>
-      </div>
-    </div>
-
-    <div class="lpN-trust">
-      <span class="lpN-trust-txt">Integrado com as ferramentas que você já usa</span>
-      <div class="lpN-trust-logos">
-        <span>🔥 Firebase</span><span>🟦 Google</span><span>Ⓜ️ Outlook</span><span>▲ Vercel</span><span>💳 AbacatePay</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── 1. O QUE É O MYDESK ── -->
-  <div class="lp-section lp-reveal" id="lp-about">
-    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>O que é o MyDesk</div>
-      <div class="lp-title">Seu workspace.<br><span class="hl">Redefinido.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Um ambiente onde organização e clareza se encontram. O MyDesk centraliza tudo o que importa — ideias, tarefas e projetos — em uma experiência fluida, elegante e sem distrações.</div>
-    </div>
-
-    <div class="lp-bento">
-      <div class="lp-bento-item lp-bento-visual">
-        <div class="lp-mock" style="position:relative;height:100%;border:none;border-radius:0;box-shadow:none;">
-          <div class="lp-mock-bar">
-            <div class="lp-mock-dot" style="background:#ef4444"></div>
-            <div class="lp-mock-dot" style="background:#f59e0b"></div>
-            <div class="lp-mock-dot" style="background:#10b981"></div>
-            <div style="flex:1;height:5px;background:rgba(255,255,255,.04);border-radius:3px;margin-left:8px;max-width:100px"></div>
-          </div>
-          <div class="lp-mock-body" style="background:radial-gradient(ellipse 80% 60% at 30% 40%,rgba(99,102,241,.07),transparent),#0a0a0a;min-height:290px;overflow:visible;">
-            <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:20px 20px;border-radius:0 0 10px 10px;"></div>
-            <div class="mock-note mock-note-pulse" style="top:14px;left:12px;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
-              <div class="mock-note-bar" style="background:#6366f1"></div>
-              <div class="mock-note-head">
-                <div class="mock-note-chip-row">
-                  <div class="mock-note-chip" style="background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);color:#a5b4fc;">
-                    <span style="width:5px;height:5px;border-radius:50%;background:#6366f1;display:inline-block;"></span>Indigo
-                  </div>
-                  <div class="mock-note-status" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:#6ee7b7;">
-                    <span class="mock-note-status-dot" style="background:#10b981;"></span>Concluído
-                  </div>
-                </div>
-              </div>
-              <div class="mock-note-title">Redesign do dashboard</div>
-              <div class="mock-note-body">Atualizar componentes e revisar tipografia do sistema.</div>
-              <div class="mock-note-sep"></div>
-              <div class="mock-note-dates">
-                <div class="mock-note-date-row">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Início: 01/07 · Prazo: 15/07
-                </div>
-              </div>
-            </div>
-            <div class="mock-note" style="top:20px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.25);">
-              <div class="mock-note-bar" style="background:#10b981"></div>
-              <div class="mock-note-head">
-                <div class="mock-note-chip-row">
-                  <div class="mock-note-chip" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.22);color:#6ee7b7;">
-                    <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Emerald
-                  </div>
-                  <div class="mock-note-status" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.22);color:#a5b4fc;">
-                    <span class="mock-note-status-dot" style="background:#6366f1;box-shadow:0 0 4px rgba(99,102,241,.6);"></span>Andamento
-                  </div>
-                </div>
-              </div>
-              <div class="mock-note-title">Reunião com cliente</div>
-              <div class="mock-note-body">Apresentar protótipo e coletar feedback do produto.</div>
-              <div class="mock-note-sep"></div>
-              <div class="mock-note-dates">
-                <div class="mock-note-date-row">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Prazo: 18/07
-                </div>
-              </div>
-            </div>
-            <div class="mock-note" style="top:180px;left:70px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
-              <div class="mock-note-bar" style="background:#f43f5e"></div>
-              <div class="mock-note-head">
-                <div class="mock-note-chip-row">
-                  <div class="mock-note-chip" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.22);color:#fda4af;">
-                    <span style="width:5px;height:5px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>Rose
-                  </div>
-                  <div class="mock-note-status" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;">
-                    <span class="mock-note-status-dot" style="background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);"></span>Encerrado
-                  </div>
-                </div>
-              </div>
-              <div class="mock-note-title">Bug crítico #482</div>
-              <div class="mock-note-body">Corrigir falha em produção no módulo de pagamentos.</div>
-              <div class="mock-note-sep"></div>
-              <div class="mock-note-dates">
-                <div class="mock-note-date-row">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Vencido há 2d
-                </div>
-              </div>
-            </div>
-            <div class="mock-badge-float" style="bottom:-16px;right:14px;">
-              <div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>
-              3 notas ativas
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-bento-item lp-bento-feat">
-        <div class="lp-feat-icon fi1">🗂️</div>
-        <div class="lp-feat-title">Cards de notas livres</div>
-        <div class="lp-feat-desc">Arraste, redimensione e posicione suas notas em qualquer lugar do board.</div>
-      </div>
-      <div class="lp-bento-item lp-bento-feat">
-        <div class="lp-feat-icon fi3">🔔</div>
-        <div class="lp-feat-title">Alertas automáticos de prazo</div>
-        <div class="lp-feat-desc">Lembretes antes do vencimento, direto no card — nunca perca um prazo.</div>
-      </div>
-
-      <div class="lp-bento-item lp-bento-stat">
-        <div class="lp-stat-num"><span class="hl">∞</span></div>
-        <div class="lp-stat-label">Notas ilimitadas</div>
-      </div>
-      <div class="lp-bento-item lp-bento-stat">
-        <div class="lp-stat-num"><span class="hl">19</span></div>
-        <div class="lp-stat-label">Paletas de cor</div>
-      </div>
-      <div class="lp-bento-item lp-bento-stat">
-        <div class="lp-stat-num"><span class="hl">100%</span></div>
-        <div class="lp-stat-label">Privado e local</div>
-      </div>
-
-      <div class="lp-bento-item lp-bento-wide">
-        <div class="lp-feat-icon fi2">📎</div>
-        <div>
-          <div class="lp-feat-title">Arquivos e visualizador embutido</div>
-          <div class="lp-feat-desc">Anexe PDFs, imagens e documentos. Abra um visualizador lateral sem sair do board — zoom e pan incluídos.</div>
+        <div class="note" style="top:160px;left:90px;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
+          <span class="tag" style="background:rgba(244,63,94,.1);color:#fda4af;"><i style="background:#f43f5e"></i>Rose</span>
+          <b>Bug crítico #482</b>
+          <div class="d">Vencido há 2d</div>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── WORKSPACE PESSOAL x DE GRUPO ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Dois modos, um só board</div>
-      <div class="lp-title">Sozinho ou em equipe.<br><span class="hl">Você escolhe.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">O mesmo board por trás — só muda quem enxerga. Alterne entre workspaces com um clique, sem trocar de conta.</div>
-    </div>
-
-    <div class="lp-dash-grid">
-      <div class="lp-dash-card">
-        <div class="lp-feat-icon fi1" style="margin-bottom:14px;">🧍</div>
-        <div class="lp-feat-title" style="font-size:1.05rem;margin-bottom:8px;">Workspace pessoal</div>
-        <div class="lp-feat-desc" style="margin-bottom:20px;">Crie quantos workspaces pessoais quiser — Trabalho, Estudos, Projetos — cada um com seu próprio board, privado por padrão. Ninguém vê, a não ser que você compartilhe.</div>
-        <div class="lp-toggle-list" style="margin-bottom:20px;">
-          <div class="lp-toggle-row"><span>Notas privadas por padrão</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Fundo e cores por conta</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>CRM financeiro pessoal</span><div class="lp-toggle-mini on"></div></div>
-        </div>
-        <div class="lp-mock" style="position:relative;">
-          <div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div>
-          <div style="padding:14px 16px;background:#0a0a0a;display:flex;flex-direction:column;gap:8px;">
-            <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:9px;">
-              <span style="width:7px;height:7px;border-radius:50%;background:#6366f1;box-shadow:0 0 6px rgba(99,102,241,.6);"></span>
-              <span style="font-size:.76rem;font-weight:600;color:#fff;flex:1;">Pessoal</span>
-              <span style="font-size:.6rem;color:rgba(255,255,255,.35);">12 notas</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;">
-              <span style="width:7px;height:7px;border-radius:50%;background:#10b981;"></span>
-              <span style="font-size:.76rem;color:rgba(255,255,255,.6);flex:1;">Trabalho</span>
-              <span style="font-size:.6rem;color:rgba(255,255,255,.3);">8 notas</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;">
-              <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;"></span>
-              <span style="font-size:.76rem;color:rgba(255,255,255,.6);flex:1;">Estudos</span>
-              <span style="font-size:.6rem;color:rgba(255,255,255,.3);">3 notas</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;border:1px dashed rgba(255,255,255,.14);color:rgba(255,255,255,.35);font-size:.72rem;">+ Novo workspace</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-dash-card">
-        <div class="lp-feat-icon" style="margin-bottom:14px;background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.2);">👥</div>
-        <div class="lp-feat-title" style="font-size:1.05rem;margin-bottom:8px;">Workspace de grupo</div>
-        <div class="lp-feat-desc" style="margin-bottom:20px;">Convide um amigo pra um board 1:1 ou monte um workspace de equipe inteira. Tudo sincronizado em tempo real — quem entra, vê exatamente o mesmo board que você.</div>
-        <div class="lp-toggle-list" style="margin-bottom:20px;">
-          <div class="lp-toggle-row"><span>Convite por @usuário</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Sincronização em tempo real</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Chat embutido no workspace</span><div class="lp-toggle-mini on"></div></div>
-        </div>
-        <div class="lp-mock">
-          <div class="lp-mock-bar"><div class="lp-mock-dot" style="background:#ef4444"></div><div class="lp-mock-dot" style="background:#f59e0b"></div><div class="lp-mock-dot" style="background:#10b981"></div></div>
-          <div style="padding:12px;background:#0a0a0a;">
-            <div class="mock-sp-row"><div class="mock-sp-av" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">A</div><div style="flex:1;"><div class="mock-sp-name">Ana Lima</div><div class="mock-sp-meta">@analima</div></div></div>
-            <div class="mock-sp-row"><div class="mock-sp-av" style="background:linear-gradient(135deg,#10b981,#0d9488)">R</div><div style="flex:1;"><div class="mock-sp-name">Rafael Dev</div><div class="mock-sp-meta">@rafaeldev</div></div></div>
-          </div>
-          <div class="mock-chat-win" style="position:relative;box-shadow:none;border-radius:0;">
-            <div class="mock-chat-hdr"><div class="mock-chat-av">A</div><div class="mock-chat-name">Ana Lima</div></div>
-            <div class="mock-chat-msgs">
-              <div class="mock-msg theirs">Cria um workspace comigo?</div>
-              <div class="mock-msg mine">Claro! Manda o convite</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── SEÇÃO EXTRA: RECURSOS AVANÇADOS ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Recursos</div>
-      <div class="lp-title">Tecnologia avançada para<br><span class="hl">garantir tudo o que você precisa.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Maximize a produtividade da sua equipe com um sistema de gestão amigável, seguro e acessível.</div>
-    </div>
-
-    <div class="lp-dash-grid">
-      <div class="lp-dash-card lp-dash-big">
-        <div class="lp-dash-text">
-          <div class="lp-feat-title" style="font-size:1.1rem;margin-bottom:10px;">Dashboard dinâmico</div>
-          <div class="lp-feat-desc" style="margin-bottom:20px;">O CRM financeiro do MyDesk entrega visibilidade total sobre clientes, recebíveis e vencimentos — com gráficos que se atualizam em tempo real.</div>
-          <button class="lp-dash-cta" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Explorar tudo →</button>
-        </div>
-        <div class="lp-dash-visual">
-          <div class="lp-dash-visual-hdr">
-            <span>Financeiro · Julho</span>
-            <div class="lp-dash-avatars"><span>👤</span><span>👤</span><span>👤</span></div>
-          </div>
-          <div class="lp-chart-bars">
-            <div class="lp-chart-bar" style="--h:38%"></div>
-            <div class="lp-chart-bar" style="--h:62%"></div>
-            <div class="lp-chart-bar" style="--h:48%"></div>
-            <div class="lp-chart-bar" style="--h:30%"></div>
-            <div class="lp-chart-bar active" style="--h:100%"></div>
-            <div class="lp-chart-bar" style="--h:70%"></div>
-            <div class="lp-chart-bar" style="--h:55%"></div>
-            <div class="lp-chart-bar" style="--h:42%"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-dash-card">
-        <div class="lp-feat-title" style="margin-bottom:4px;">Notificações inteligentes</div>
-        <div class="lp-feat-desc" style="margin-bottom:16px;">Acessíveis pela central de eventos, com alertas sonoros e visuais quando um prazo vence.</div>
-        <div class="lp-toggle-list">
-          <div class="lp-toggle-row"><span>Novas mensagens</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Prazos e lembretes</span><div class="lp-toggle-mini on"></div></div>
-          <div class="lp-toggle-row"><span>Convites de chamada</span><div class="lp-toggle-mini"></div></div>
-        </div>
-      </div>
-
-      <div class="lp-dash-card">
-        <div class="lp-feat-title" style="margin-bottom:4px;">Gestão de tarefas</div>
-        <div class="lp-feat-desc" style="margin-bottom:16px;">Discuta prazos, atribua checklists e acompanhe o progresso direto no card da nota.</div>
-        <div class="lp-activity-list">
-          <div class="lp-activity-item"><span class="lp-activity-av">B</span><div><b>Beatriz</b> concluiu 3 itens do checklist<span class="lp-activity-time">2 min atrás</span></div></div>
-          <div class="lp-activity-item"><span class="lp-activity-av" style="background:linear-gradient(135deg,#10b981,#0d9488)">R</span><div><b>Rafael</b> anexou um novo documento<span class="lp-activity-time">14 min atrás</span></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── 2. COMO FUNCIONA ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Como funciona</div>
-      <div class="lp-title">Do zero ao organizado<br><span class="hl">em quatro passos.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Sem curva de aprendizado — comece a usar em minutos.</div>
-    </div>
-    <div class="lpN-steps">
-      <div class="lpN-step">
-        <div class="lpN-step-num">1</div>
-        <div class="lpN-step-title">Crie uma nota</div>
-        <div class="lpN-step-desc">Título, descrição e uma cor entre 19 paletas — em segundos.</div>
-      </div>
-      <div class="lpN-step">
-        <div class="lpN-step-num">2</div>
-        <div class="lpN-step-title">Defina prazos</div>
-        <div class="lpN-step-desc">Datas de início e vencimento com lembretes automáticos.</div>
-      </div>
-      <div class="lpN-step">
-        <div class="lpN-step-num">3</div>
-        <div class="lpN-step-title">Acompanhe o status</div>
-        <div class="lpN-step-desc">Um clique muda entre A fazer, Andamento, Concluído e Encerrado.</div>
-      </div>
-      <div class="lpN-step">
-        <div class="lpN-step-num">4</div>
-        <div class="lpN-step-title">Reorganize</div>
-        <div class="lpN-step-desc">Um botão alinha tudo em grid — pilhas e cards, sem sobreposição.</div>
-      </div>
-    </div>
-    <div class="lp-quote" style="max-width:640px;margin-left:auto;margin-right:auto;">
-      <div class="lp-quote-text">"Tenho tudo visível de uma vez — sem abas, sem listas enterradas. O board é o meu segundo cérebro."</div>
-      <div class="lp-quote-author">— Usuário MyDesk</div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── RECURSOS EM GRADE ── -->
-  <div class="lp-section lp-reveal">
-    <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
-      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Tudo incluído</div>
-      <div class="lp-title">Feito pra times reais,<br><span class="hl">do seu jeito.</span></div>
-      <div class="lp-subtitle" style="margin:0 auto;">Colaboração, personalização e segurança — sem precisar de dez ferramentas diferentes.</div>
-    </div>
-    <div class="lpN-fgrid">
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(99,102,241,.14);">👥</div>
-        <div class="lpN-fcard-title">Amigos e workspaces</div>
-        <div class="lpN-fcard-desc">Adicione qualquer usuário e crie um board compartilhado, sincronizado em tempo real.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(20,184,166,.12);">💬</div>
-        <div class="lpN-fcard-title">Chat em tempo real</div>
-        <div class="lpN-fcard-desc">Janelas de conversa com texto, imagem e arquivos — mensagens offline entregues ao reconectar.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(245,158,11,.12);">🎨</div>
-        <div class="lpN-fcard-title">19 paletas de cor</div>
-        <div class="lpN-fcard-desc">Cada paleta coordena fundo, barra e chip pra um visual consistente em todo o board.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(99,102,241,.14);">📚</div>
-        <div class="lpN-fcard-title">Pilhas inteligentes</div>
-        <div class="lpN-fcard-desc">Arraste notas pra formar pilhas. Renomeie pra "Concluído" e elas se organizam sozinhas.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(239,68,68,.12);">🔐</div>
-        <div class="lpN-fcard-title">Autenticação Firebase</div>
-        <div class="lpN-fcard-desc">Login seguro na nuvem. Senhas nunca em texto puro — só tokens criptografados.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(20,184,166,.12);">🖼️</div>
-        <div class="lpN-fcard-title">Fundo personalizado</div>
-        <div class="lpN-fcard-desc">Cores, gradientes, imagens ou vídeo em loop — cada conta com seu próprio ambiente.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(245,158,11,.12);">📹</div>
-        <div class="lpN-fcard-title">Videochamada com tela</div>
-        <div class="lpN-fcard-desc">1:1 ou em grupo, com compartilhamento de tela e janela redimensionável.</div>
-      </div>
-      <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:rgba(239,68,68,.12);">🛡️</div>
-        <div class="lpN-fcard-title">Validação de arquivos</div>
-        <div class="lpN-fcard-desc">Uploads filtrados por tipo MIME. Executáveis e scripts perigosos são bloqueados.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── FAIXA DE INTEGRAÇÕES ── -->
-  <div class="lp-integrations">
-    <div class="lp-eyebrow" style="justify-content:center;color:rgba(165,180,252,.75)"><div class="lp-eyebrow-dot" style="background:#818cf8"></div>Integrações</div>
-    <div class="lp-int-title">Não substitua. Integre.</div>
-    <div class="lp-int-sub">Sabemos que trocar as ferramentas do seu dia a dia é um problema. Por isso o MyDesk se conecta ao que você já usa.</div>
-    <a class="lp-int-link" href="#lp-pricing">Ver todos os planos →</a>
-    <div class="lp-int-grid">
-      <div class="lp-int-icon">🔥<span>Firebase</span></div>
-      <div class="lp-int-icon">🟦<span>Google Auth</span></div>
-      <div class="lp-int-icon">📅<span>Google Calendar</span></div>
-      <div class="lp-int-icon">Ⓜ️<span>Outlook</span></div>
-      <div class="lp-int-icon">💳<span>AbacatePay</span></div>
-      <div class="lp-int-icon">▲<span>Vercel</span></div>
-      <div class="lp-int-icon">🗓️<span>.ics Calendar</span></div>
-      <div class="lp-int-icon">🔗<span>Firebase Auth</span></div>
-    </div>
-  </div>
-
-  <!-- ── TESTEMUNHO ── -->
-  <div class="lp-section lp-reveal">
-    <div class="lp-testimonial">
-      <div class="lp-testimonial-mark">"</div>
-      <div class="lp-testimonial-quote">O MyDesk nasceu de uma ideia simples: organização não deveria custar caro nem exigir dez ferramentas diferentes. Notas, CRM, chat e chamadas — tudo em um único lugar, sob seu controle.</div>
-      <div class="lp-testimonial-author">— Equipe MyDesk</div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── FAQ ── -->
-  <div class="lp-section lp-reveal" id="lp-faq-section">
-    <div style="max-width:680px;margin:0 auto;width:100%;">
-      <div class="lp-eyebrow" style="justify-content:center;margin-bottom:16px;"><div class="lp-eyebrow-dot"></div>Dúvidas frequentes</div>
-      <div class="lp-title" style="text-align:center;margin-bottom:40px;">Perguntas<br><span class="hl">& Respostas.</span></div>
-
-      <div style="display:flex;flex-direction:column;gap:12px;" id="lp-faq">
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Meus dados ficam salvos se eu fechar o navegador?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. As notas são salvas na nuvem em tempo real. Ao voltar, tudo estará exatamente como você deixou — em qualquer dispositivo.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Posso usar em vários dispositivos ao mesmo tempo?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. Faça login com a mesma conta em qualquer navegador ou dispositivo. As notas sincronizam automaticamente pela nuvem.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">Como funcionam os workspaces compartilhados?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Você pode criar um workspace 1:1 com um amigo ou um workspace de grupo. As notas são sincronizadas em tempo real para todos os participantes.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">É possível anexar arquivos nas notas?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Sim. Cada nota aceita imagens, PDFs, textos e outros arquivos até 5MB. Há um visualizador embutido para PDFs e imagens.</div>
-          </div>
-        </div>
-        <div class="lp-faq-item" onclick="this.classList.toggle('open')" style="border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:rgba(255,255,255,.02);">
-            <span style="font-size:.82rem;font-weight:600;color:#f0f0f0;">O MyDesk funciona offline?</span>
-            <span class="lp-faq-arrow" style="font-size:.7rem;color:rgba(240,240,240,.3);transition:transform .2s;flex-shrink:0;margin-left:12px;">▾</span>
-          </div>
-          <div class="lp-faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;">
-            <div style="padding:0 18px 16px;font-size:.78rem;color:rgba(240,240,240,.5);line-height:1.7;">Parcialmente. O board carrega normalmente, mas sincronização, chat e funcionalidades sociais precisam de conexão com a internet.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-divider"></div>
-
-  <!-- ── PRICING ── -->
-  <div class="lp-section lp-reveal" id="lp-pricing">
-    <div style="max-width:900px;margin:0 auto;">
-      <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Planos</div>
-      <div class="lp-title">Simples e <span class="hl">transparente.</span></div>
-      <div class="lp-subtitle">Comece grátis. Assine quando precisar de mais.</div>
-
-      <div style="display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;">
-
-        <div class="lpN-plan-card">
-          <div class="lpN-plan-eyebrow">Gratuito</div>
-          <div class="lpN-plan-price">R$ 0</div>
-          <div class="lpN-plan-period">para sempre</div>
-          <div class="lpN-plan-feats">
-            <div class="lpN-plan-feat"><span class="ck">✓</span>30 notas por mês</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Workspaces pessoais</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Chat com amigos</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>19 cores de notas</div>
-            <div class="lpN-plan-feat off"><span class="x">✗</span>CRM Financeiro</div>
-            <div class="lpN-plan-feat off"><span class="x">✗</span>Workspaces de grupo</div>
-            <div class="lpN-plan-feat off"><span class="x">✗</span>Suporte prioritário</div>
-          </div>
-          <button class="lpN-plan-btn" onclick="location.href='login.html'">Começar grátis</button>
-        </div>
-
-        <div class="lpN-plan-card premium">
-          <div class="lpN-plan-badge">Mais popular</div>
-          <div class="lpN-plan-eyebrow">Premium</div>
-          <div class="lpN-plan-price">R$ 10</div>
-          <div class="lpN-plan-period">por mês · via Pix</div>
-          <div class="lpN-plan-feats">
-            <div class="lpN-plan-feat"><span class="ck">✓</span><b>Notas ilimitadas</b></div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Workspaces pessoais ilimitados</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Chat com amigos</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>19 cores de notas</div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span><b>CRM Financeiro completo</b></div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span><b>Workspaces de grupo</b></div>
-            <div class="lpN-plan-feat"><span class="ck">✓</span>Suporte prioritário</div>
-          </div>
-          <button class="lpN-plan-btn premium" onclick="location.href='login.html'">Assinar Premium ⭐</button>
-        </div>
-
-      </div>
-
-      <div class="lpN-plan-note">
-        Pix · R$ 0,80 de taxa por transação (AbacatePay) · Sem mensalidade oculta · Cancele quando quiser
-      </div>
-    </div>
-  </div>
-
-  <div class="lp-cta">
-    <div class="lp-eyebrow" style="justify-content:center;margin-bottom:20px;"><div class="lp-eyebrow-dot"></div>Comece agora</div>
-    <div class="lp-cta-title">Comece grátis.<br><span style="background:linear-gradient(135deg,#818cf8,#6366f1,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Evolua quando quiser.</span></div>
-    <div class="lp-cta-desc">Crie sua conta gratuitamente. Nenhum cartão de crédito necessário.<br>Seus dados ficam sincronizados com segurança na nuvem.</div>
-    <button class="lp-cta-btn" onclick="location.href='login.html'">
-      Criar conta grátis
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </button>
-    <button class="lp-cta-btn-outline" onclick="document.getElementById('lp-pricing').scrollIntoView({behavior:'smooth'})">Ver planos</button>
-    <div class="lpN-cta-trust" style="display:flex;gap:24px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Gratuito para sempre</span>
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Sem cartão de crédito</span>
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Multi-dispositivo</span>
-      <span style="font-size:.72rem;display:flex;align-items:center;gap:6px;">✓ Dados na nuvem</span>
-    </div>
-  </div>
-
-  <!-- ── FOOTER ── -->
-  <div class="lp-footer2">
-    <div class="lp-footer2-grid">
-      <div class="lp-footer2-brand">
-        <div class="lp-footer2-brand-name"><span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>MyDesk</div>
-        <div class="lp-footer2-brand-desc">Workspace de notas, CRM financeiro e colaboração em tempo real — tudo em um único lugar, sob seu controle.</div>
-      </div>
-      <div class="lp-footer2-col">
-        <div class="lp-footer2-col-title">Produto</div>
-        <a onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Recursos</a>
-        <a onclick="document.getElementById('lp-pricing').scrollIntoView({behavior:'smooth'})">Preços</a>
-        <a onclick="document.getElementById('lp-faq-section').scrollIntoView({behavior:'smooth'})">Perguntas frequentes</a>
-      </div>
-      <div class="lp-footer2-col">
-        <div class="lp-footer2-col-title">Conta</div>
-        <a onclick="location.href='login.html?mode=signin'">Entrar</a>
-        <a onclick="location.href='login.html'">Criar conta</a>
-      </div>
-      <div class="lp-footer2-col">
-        <div class="lp-footer2-col-title">Integrações</div>
-        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);margin-bottom:10px;">Firebase · Google</span>
-        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);margin-bottom:10px;">Outlook · Vercel</span>
-        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);">AbacatePay (Pix)</span>
-      </div>
-    </div>
-    <div class="lp-footer2-bottom">
-      <span>© 2026 MyDesk · Todos os dados protegidos com autenticação segura na nuvem.</span>
-      <span>Feito com 💜 para equipes e freelancers.</span>
-    </div>
-  </div>
-
 </div>
-<script src="js/landing.js?v=1"></script>
+
+<div class="stats">
+  <div class="stat"><b class="hl">∞</b><span>Notas ilimitadas</span></div>
+  <div class="stat"><b class="hl">19</b><span>Paletas de cor</span></div>
+  <div class="stat"><b class="hl">100%</b><span>Privado e local</span></div>
+  <div class="stat"><b class="hl">1:1</b><span>ou em grupo</span></div>
+</div>
+
+<!-- ══ CATÁLOGO COMPLETO DE RECURSOS ══ -->
+<div class="section lp-reveal" id="recursos">
+  <div class="section-head">
+    <div class="eyebrow"><span class="dot"></span>Recursos</div>
+    <h2>Tudo que o MyDesk faz,<br><span class="hl">em um só lugar.</span></h2>
+    <p>Sem dez ferramentas diferentes. Cada recurso abaixo já vem incluído — veja exatamente o que você leva.</p>
+  </div>
+
+  <div class="cat">
+    <div class="cat-head"><h3>Notas &amp; Organização</h3><span>o board em si</span></div>
+    <div class="fgrid">
+      <div class="fcard"><div class="ic">🗂️</div><h4>Cards de notas livres</h4><p>Arraste, redimensione e posicione cada nota em qualquer lugar do board.</p></div>
+      <div class="fcard"><div class="ic">🎨</div><h4>19 paletas de cor</h4><p>Cada paleta coordena fundo, barra e chip pra um visual consistente.</p></div>
+      <div class="fcard"><div class="ic">📚</div><h4>Pilhas inteligentes</h4><p>Arraste uma nota sobre outra pra empilhar. Renomeie pra "Concluído" e elas se organizam sozinhas.</p></div>
+      <div class="fcard"><div class="ic">⚡</div><h4>Reorganizar com 1 clique</h4><p>Um botão alinha pilhas e cards em grid limpo, sem sobreposição.</p></div>
+      <div class="fcard"><div class="ic">🔔</div><h4>Prazos e lembretes</h4><p>Datas de início e vencimento com alertas automáticos antes de vencer.</p></div>
+      <div class="fcard"><div class="ic">📎</div><h4>Arquivos anexados</h4><p>PDFs e imagens até 5MB, com visualizador embutido — zoom e pan incluídos.</p></div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <div class="cat-head"><h3>Workspaces</h3><span>sozinho ou em equipe</span></div>
+    <div class="fgrid">
+      <div class="fcard"><div class="ic">🧍</div><h4>Workspace pessoal</h4><p>Crie quantos boards privados quiser — Trabalho, Estudos, Projetos.</p></div>
+      <div class="fcard"><div class="ic">👥</div><h4>Workspace de grupo</h4><p>Convide um amigo ou monte um workspace de equipe, sincronizado ao vivo.</p></div>
+      <div class="fcard"><div class="ic">🔀</div><h4>Troca com 1 clique</h4><p>Alterne entre workspaces sem trocar de conta ou perder contexto.</p></div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <div class="cat-head"><h3>Colaboração</h3><span>chat e chamadas</span></div>
+    <div class="fgrid">
+      <div class="fcard"><div class="ic">👋</div><h4>Amigos por @usuário</h4><p>Adicione qualquer pessoa pelo login. Aceite ou recuse pedidos com um clique.</p></div>
+      <div class="fcard"><div class="ic">💬</div><h4>Chat em tempo real</h4><p>Janelas flutuantes com texto, imagem e arquivos — mensagens offline entregues ao reconectar.</p></div>
+      <div class="fcard"><div class="ic">📹</div><h4>Videochamada</h4><p>1:1 ou em grupo, com compartilhamento de tela e janela redimensionável.</p></div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <div class="cat-head"><h3>CRM Financeiro</h3><span>plano Premium</span></div>
+    <div class="fgrid">
+      <div class="fcard"><div class="ic">💰</div><h4>Dashboard de clientes</h4><p>Total esperado, recebido, pendente e atrasado — tudo visível de uma vez.</p></div>
+      <div class="fcard"><div class="ic">📊</div><h4>Gráficos em tempo real</h4><p>Distribuição por status e vencimentos por mês, atualizados automaticamente.</p></div>
+      <div class="fcard"><div class="ic">🔍</div><h4>Busca de clientes</h4><p>Cadastre e encontre qualquer cliente em segundos.</p></div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <div class="cat-head"><h3>Personalização &amp; Segurança</h3><span>seu ambiente, protegido</span></div>
+    <div class="fgrid">
+      <div class="fcard"><div class="ic">🖼️</div><h4>Fundo personalizado</h4><p>Cores, gradientes, imagens ou vídeo em loop — cada conta com seu próprio ambiente.</p></div>
+      <div class="fcard"><div class="ic">🗓️</div><h4>Google &amp; Outlook Calendar</h4><p>Sincronize eventos com Google Agenda, Outlook ou qualquer arquivo .ics.</p></div>
+      <div class="fcard"><div class="ic">🔐</div><h4>Autenticação Firebase</h4><p>Login seguro na nuvem. Senhas nunca em texto puro — só tokens criptografados.</p></div>
+      <div class="fcard"><div class="ic">🔒</div><h4>Dados isolados por conta</h4><p>Suas notas ficam em /users/{uid} — só você acessa.</p></div>
+      <div class="fcard"><div class="ic">🛡️</div><h4>Validação de arquivos</h4><p>Uploads filtrados por tipo MIME. Executáveis e scripts são bloqueados.</p></div>
+      <div class="fcard"><div class="ic">🔔</div><h4>Central de eventos</h4><p>Notificações sonoras e visuais de mensagens, prazos e convites de chamada.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ PESSOAL x GRUPO ══ -->
+<div class="section lp-reveal">
+  <div class="section-head">
+    <div class="eyebrow"><span class="dot"></span>Dois modos, um só board</div>
+    <h2>Sozinho ou em equipe.<br><span class="hl">Você escolhe.</span></h2>
+    <p>O mesmo board por trás — só muda quem enxerga.</p>
+  </div>
+  <div class="split">
+    <div class="split-card">
+      <div class="ic">🧍</div>
+      <h3>Workspace pessoal</h3>
+      <p>Múltiplos boards privados por padrão. Ninguém vê, a não ser que você compartilhe.</p>
+      <div class="split-list">
+        <div><i></i>Notas privadas por padrão</div>
+        <div><i></i>Fundo e cores por conta</div>
+        <div><i></i>CRM financeiro pessoal</div>
+      </div>
+    </div>
+    <div class="split-card">
+      <div class="ic" style="background:rgba(20,184,166,.14);">👥</div>
+      <h3>Workspace de grupo</h3>
+      <p>Convide por @usuário. Todo mundo vê exatamente o mesmo board, ao vivo.</p>
+      <div class="split-list">
+        <div><i></i>Sincronização em tempo real</div>
+        <div><i></i>Chat embutido no workspace</div>
+        <div><i></i>CRM de grupo (Premium)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ COMO FUNCIONA ══ -->
+<div class="section lp-reveal">
+  <div class="section-head">
+    <div class="eyebrow"><span class="dot"></span>Como funciona</div>
+    <h2>Do zero ao organizado<br><span class="hl">em quatro passos.</span></h2>
+    <p>Sem curva de aprendizado — comece a usar em minutos.</p>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h4>Crie uma nota</h4><p>Título, descrição e uma cor entre 19 paletas.</p></div>
+    <div class="step"><div class="step-num">2</div><h4>Defina prazos</h4><p>Datas de início e vencimento com lembretes.</p></div>
+    <div class="step"><div class="step-num">3</div><h4>Acompanhe o status</h4><p>Um clique muda entre A fazer, Andamento, Concluído.</p></div>
+    <div class="step"><div class="step-num">4</div><h4>Reorganize</h4><p>Um botão alinha tudo em grid, sem sobreposição.</p></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ INTEGRAÇÕES ══ -->
+<div class="section lp-reveal" style="text-align:center;">
+  <div class="eyebrow" style="justify-content:center;"><span class="dot"></span>Integrações</div>
+  <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.8rem,3.4vw,2.4rem);letter-spacing:-1px;margin:14px 0;">Não substitua. Integre.</h2>
+  <p style="font-size:.9rem;color:var(--text-dim);max-width:480px;margin:0 auto;line-height:1.7;">O MyDesk se conecta ao que você já usa no dia a dia.</p>
+  <div class="int-grid">
+    <div class="int-icon">🔥<span>Firebase</span></div>
+    <div class="int-icon">🟦<span>Google Auth</span></div>
+    <div class="int-icon">📅<span>Google Calendar</span></div>
+    <div class="int-icon">Ⓜ️<span>Outlook</span></div>
+    <div class="int-icon">💳<span>AbacatePay</span></div>
+    <div class="int-icon">🗓️<span>.ics Calendar</span></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ FAQ ══ -->
+<div class="section lp-reveal" id="faq">
+  <div class="section-head">
+    <div class="eyebrow"><span class="dot"></span>Dúvidas frequentes</div>
+    <h2>Perguntas<br><span class="hl">&amp; Respostas.</span></h2>
+  </div>
+  <div style="max-width:680px;margin:0 auto;">
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q"><span>Meus dados ficam salvos se eu fechar o navegador?</span><span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div>Sim. As notas são salvas na nuvem em tempo real. Ao voltar, tudo estará como você deixou, em qualquer dispositivo.</div></div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q"><span>Posso usar em vários dispositivos ao mesmo tempo?</span><span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div>Sim. Faça login com a mesma conta em qualquer navegador. As notas sincronizam automaticamente.</div></div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q"><span>Como funcionam os workspaces compartilhados?</span><span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div>Você pode criar um workspace 1:1 com um amigo ou um workspace de grupo. As notas sincronizam em tempo real para todos.</div></div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q"><span>É possível anexar arquivos nas notas?</span><span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div>Sim. Cada nota aceita imagens, PDFs e outros arquivos até 5MB, com visualizador embutido.</div></div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q"><span>O MyDesk funciona offline?</span><span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div>Parcialmente. O board carrega normalmente, mas sincronização, chat e chamadas precisam de internet.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ PRICING ══ -->
+<div class="section lp-reveal" id="precos">
+  <div class="section-head">
+    <div class="eyebrow"><span class="dot"></span>Planos</div>
+    <h2>Simples e <span class="hl">transparente.</span></h2>
+    <p>Comece grátis. Assine quando precisar de mais.</p>
+  </div>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-eyebrow">Gratuito</div>
+      <div class="plan-price">R$ 0</div>
+      <div class="plan-period">para sempre</div>
+      <div class="plan-feats">
+        <div><span class="ck">✓</span>30 notas por mês</div>
+        <div><span class="ck">✓</span>Workspaces pessoais</div>
+        <div><span class="ck">✓</span>Chat com amigos</div>
+        <div><span class="ck">✓</span>19 cores de notas</div>
+        <div class="off"><span>✗</span>CRM Financeiro</div>
+        <div class="off"><span>✗</span>Workspaces de grupo</div>
+        <div class="off"><span>✗</span>Suporte prioritário</div>
+      </div>
+      <button class="plan-btn" onclick="location.href='login.html'">Começar grátis</button>
+    </div>
+    <div class="plan premium">
+      <div class="plan-badge">Mais popular</div>
+      <div class="plan-eyebrow">Premium</div>
+      <div class="plan-price">R$ 10</div>
+      <div class="plan-period">por mês · via Pix</div>
+      <div class="plan-feats">
+        <div><span class="ck">✓</span><b>Notas ilimitadas</b></div>
+        <div><span class="ck">✓</span>Workspaces pessoais ilimitados</div>
+        <div><span class="ck">✓</span>Chat com amigos</div>
+        <div><span class="ck">✓</span>19 cores de notas</div>
+        <div><span class="ck">✓</span><b>CRM Financeiro completo</b></div>
+        <div><span class="ck">✓</span><b>Workspaces de grupo</b></div>
+        <div><span class="ck">✓</span>Suporte prioritário</div>
+      </div>
+      <button class="plan-btn premium" onclick="location.href='login.html'">Assinar Premium ⭐</button>
+    </div>
+  </div>
+  <div class="plan-note">Pix · R$ 0,80 de taxa por transação (AbacatePay) · Sem mensalidade oculta · Cancele quando quiser</div>
+</div>
+
+<!-- ══ CTA FINAL ══ -->
+<div class="cta">
+  <div class="eyebrow" style="justify-content:center;margin-bottom:18px;"><span class="dot"></span>Comece agora</div>
+  <h2>Comece grátis.<br><span class="hl">Evolua quando quiser.</span></h2>
+  <p>Nenhum cartão de crédito necessário. Seus dados ficam sincronizados com segurança na nuvem.</p>
+  <button class="btn-fill" onclick="location.href='login.html'">Junte-se a nós</button>
+  <div class="cta-trust">
+    <span>✓ Gratuito para sempre</span>
+    <span>✓ Sem cartão de crédito</span>
+    <span>✓ Multi-dispositivo</span>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<div class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>MyDesk</div>
+      <div class="footer-brand-desc">Workspace de notas, CRM financeiro e colaboração em tempo real — tudo em um único lugar.</div>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Produto</div>
+      <a onclick="document.getElementById('recursos').scrollIntoView({behavior:'smooth'})">Recursos</a>
+      <a onclick="document.getElementById('precos').scrollIntoView({behavior:'smooth'})">Preços</a>
+      <a onclick="document.getElementById('faq').scrollIntoView({behavior:'smooth'})">Perguntas frequentes</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Conta</div>
+      <a onclick="location.href='login.html?mode=signin'">Entrar</a>
+      <a onclick="location.href='login.html'">Criar conta</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Integrações</div>
+      <span style="display:block;font-size:.79rem;color:var(--text-faint);margin-bottom:9px;">Firebase · Google</span>
+      <span style="display:block;font-size:.79rem;color:var(--text-faint);">Outlook · AbacatePay (Pix)</span>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 MyDesk · Todos os dados protegidos com autenticação segura na nuvem.</span>
+    <span>Feito com 💜 para equipes e freelancers.</span>
+  </div>
+</div>
+
+<script src="js/landing.js?v=2"></script>
 </body>
 </html>

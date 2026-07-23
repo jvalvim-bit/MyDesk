@@ -20,12 +20,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // Nav: link ativo conforme a seção visível
-  const navLinks = document.querySelectorAll('.lp-nav-links a');
+  const navLinks = document.querySelectorAll('.nav-links a');
   if (navLinks.length) {
     const sections = Array.from(navLinks).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
     const navIo = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        const link = document.querySelector('.lp-nav-links a[href="#' + entry.target.id + '"]');
+        const link = document.querySelector('.nav-links a[href="#' + entry.target.id + '"]');
         if (link) link.classList.toggle('active', entry.isIntersecting);
       });
     }, { rootMargin: '-40% 0px -55% 0px' });
