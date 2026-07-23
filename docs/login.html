@@ -13,7 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="js/firebase-init.js?v=3"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=18">
+<link rel="stylesheet" href="css/main.css?v=19">
 </head>
 <body>
 <div id="auth-screen" class="landing-scroll">
@@ -27,6 +27,32 @@
     </div>
     <button class="lp-nav-cta" onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</button>
   </nav>
+
+  <!-- ── HERO MARKETING (inspirado no template Clause) ── -->
+  <div class="lp-hero2">
+    <div class="lp-float-avatar fa1"><span>📝</span><div class="lp-float-arrow"></div></div>
+    <div class="lp-float-avatar fa2"><span>💬</span><div class="lp-float-arrow"></div></div>
+    <div class="lp-float-avatar fa3"><span>📊</span><div class="lp-float-arrow"></div></div>
+    <div class="lp-float-avatar fa4"><span>📹</span><div class="lp-float-arrow"></div></div>
+
+    <div class="lp-hero2-badge">⚡ Crie mais rápido</div>
+    <div class="lp-hero2-title">Uma ferramenta para gerenciar<br>suas <span class="hl-mark">notas</span> e sua equipe</div>
+    <div class="lp-hero2-sub">O MyDesk ajuda times e freelancers a trabalhar mais rápido e organizado, entregando visibilidade total sobre tarefas, clientes e prazos — tudo em um só lugar.</div>
+    <div class="lp-hero2-ctas">
+      <button class="lp-hero2-btn-fill" onclick="document.querySelector('.auth-hero').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">Começar grátis</button>
+      <button class="lp-hero2-btn-outline" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Ver como funciona</button>
+    </div>
+    <div class="lp-hero2-trust">
+      <span class="lp-hero2-trust-txt">Integrado com as ferramentas que você já usa</span>
+      <div class="lp-trust-logos">
+        <div class="lp-trust-logo">🔥 Firebase</div>
+        <div class="lp-trust-logo">🟦 Google</div>
+        <div class="lp-trust-logo">Ⓜ️ Outlook</div>
+        <div class="lp-trust-logo">▲ Vercel</div>
+        <div class="lp-trust-logo">💳 AbacatePay</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── HERO (existing auth layout) ── -->
   <div class="auth-hero">
@@ -349,6 +375,62 @@
         <div>
           <div class="lp-feat-title">Arquivos e visualizador embutido</div>
           <div class="lp-feat-desc">Anexe PDFs, imagens e documentos. Abra um visualizador lateral sem sair do board — zoom e pan incluídos.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
+  <!-- ── SEÇÃO EXTRA: RECURSOS AVANÇADOS (dashboard/notificações/tarefas) ── -->
+  <div class="lp-section lp-reveal">
+    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
+      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Recursos</div>
+      <div class="lp-title">Tecnologia avançada para<br><span class="hl">garantir tudo o que você precisa.</span></div>
+      <div class="lp-subtitle" style="margin:0 auto;">Maximize a produtividade da sua equipe com um sistema de gestão amigável, seguro e acessível.</div>
+    </div>
+
+    <div class="lp-dash-grid">
+      <div class="lp-dash-card lp-dash-big">
+        <div class="lp-dash-text">
+          <div class="lp-feat-title" style="font-size:1.1rem;margin-bottom:10px;">Dashboard dinâmico</div>
+          <div class="lp-feat-desc" style="margin-bottom:20px;">O CRM financeiro do MyDesk entrega visibilidade total sobre clientes, recebíveis e vencimentos — com gráficos que se atualizam em tempo real.</div>
+          <button class="lp-dash-cta" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Explorar tudo →</button>
+        </div>
+        <div class="lp-dash-visual">
+          <div class="lp-dash-visual-hdr">
+            <span>Financeiro · Julho</span>
+            <div class="lp-dash-avatars"><span>👤</span><span>👤</span><span>👤</span></div>
+          </div>
+          <div class="lp-chart-bars">
+            <div class="lp-chart-bar" style="--h:38%"></div>
+            <div class="lp-chart-bar" style="--h:62%"></div>
+            <div class="lp-chart-bar" style="--h:48%"></div>
+            <div class="lp-chart-bar" style="--h:30%"></div>
+            <div class="lp-chart-bar active" style="--h:100%"></div>
+            <div class="lp-chart-bar" style="--h:70%"></div>
+            <div class="lp-chart-bar" style="--h:55%"></div>
+            <div class="lp-chart-bar" style="--h:42%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-dash-card">
+        <div class="lp-feat-title" style="margin-bottom:4px;">Notificações inteligentes</div>
+        <div class="lp-feat-desc" style="margin-bottom:16px;">Acessíveis pela central de eventos, com alertas sonoros e visuais quando um prazo vence.</div>
+        <div class="lp-toggle-list">
+          <div class="lp-toggle-row"><span>Novas mensagens</span><div class="lp-toggle-mini on"></div></div>
+          <div class="lp-toggle-row"><span>Prazos e lembretes</span><div class="lp-toggle-mini on"></div></div>
+          <div class="lp-toggle-row"><span>Convites de chamada</span><div class="lp-toggle-mini"></div></div>
+        </div>
+      </div>
+
+      <div class="lp-dash-card">
+        <div class="lp-feat-title" style="margin-bottom:4px;">Gestão de tarefas</div>
+        <div class="lp-feat-desc" style="margin-bottom:16px;">Discuta prazos, atribua checklists e acompanhe o progresso direto no card da nota.</div>
+        <div class="lp-activity-list">
+          <div class="lp-activity-item"><span class="lp-activity-av">B</span><div><b>Beatriz</b> concluiu 3 itens do checklist<span class="lp-activity-time">2 min atrás</span></div></div>
+          <div class="lp-activity-item"><span class="lp-activity-av" style="background:linear-gradient(135deg,#10b981,#0d9488)">R</span><div><b>Rafael</b> anexou um novo documento<span class="lp-activity-time">14 min atrás</span></div></div>
         </div>
       </div>
     </div>
@@ -758,6 +840,35 @@
     </div>
   </div>
 
+  <!-- ── FAIXA DE INTEGRAÇÕES (estilo "Don't replace. Integrate.") ── -->
+  <div class="lp-integrations">
+    <div class="lp-eyebrow" style="justify-content:center;color:rgba(165,180,252,.75)"><div class="lp-eyebrow-dot" style="background:#818cf8"></div>Integrações</div>
+    <div class="lp-int-title">Não substitua. Integre.</div>
+    <div class="lp-int-sub">Sabemos que trocar as ferramentas do seu dia a dia é um problema. Por isso o MyDesk se conecta ao que você já usa.</div>
+    <a class="lp-int-link" href="#lp-pricing">Ver todos os planos →</a>
+    <div class="lp-int-grid">
+      <div class="lp-int-icon">🔥<span>Firebase</span></div>
+      <div class="lp-int-icon">🟦<span>Google Auth</span></div>
+      <div class="lp-int-icon">📅<span>Google Calendar</span></div>
+      <div class="lp-int-icon">Ⓜ️<span>Outlook</span></div>
+      <div class="lp-int-icon">💳<span>AbacatePay</span></div>
+      <div class="lp-int-icon">▲<span>Vercel</span></div>
+      <div class="lp-int-icon">🗓️<span>.ics Calendar</span></div>
+      <div class="lp-int-icon">🔗<span>Firebase Auth</span></div>
+    </div>
+  </div>
+
+  <!-- ── TESTEMUNHO / PROPÓSITO ── -->
+  <div class="lp-section lp-reveal">
+    <div class="lp-testimonial">
+      <div class="lp-testimonial-mark">"</div>
+      <div class="lp-testimonial-quote">O MyDesk nasceu de uma ideia simples: organização não deveria custar caro nem exigir dez ferramentas diferentes. Notas, CRM, chat e chamadas — tudo em um único lugar, sob seu controle.</div>
+      <div class="lp-testimonial-author">— Equipe MyDesk</div>
+    </div>
+  </div>
+
+  <div class="lp-divider"></div>
+
   <!-- ── SEÇÃO 7: FAQ ── -->
   <div class="lp-section lp-reveal" id="lp-faq-section">
     <div style="max-width:680px;margin:0 auto;width:100%;">
@@ -882,6 +993,7 @@
       Criar conta grátis
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </button>
+    <button class="lp-cta-btn-outline" onclick="document.getElementById('lp-pricing').scrollIntoView({behavior:'smooth'})">Ver planos</button>
     <div style="display:flex;gap:24px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
       <span style="font-size:.72rem;color:rgba(240,240,240,.25);display:flex;align-items:center;gap:6px;">✓ Gratuito para sempre</span>
       <span style="font-size:.72rem;color:rgba(240,240,240,.25);display:flex;align-items:center;gap:6px;">✓ Sem cartão de crédito</span>
@@ -891,13 +1003,34 @@
   </div>
 
   <!-- ── FOOTER ── -->
-  <div class="lp-footer" style="display:flex;flex-direction:column;gap:8px;align-items:center;">
-    <div style="display:flex;gap:6px;align-items:center;font-size:.78rem;color:rgba(240,240,240,.4);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.5px;">
-      <span style="width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>
-      MyDesk
+  <div class="lp-footer2">
+    <div class="lp-footer2-grid">
+      <div class="lp-footer2-brand">
+        <div class="lp-footer2-brand-name"><span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>MyDesk</div>
+        <div class="lp-footer2-brand-desc">Workspace de notas, CRM financeiro e colaboração em tempo real — tudo em um único lugar, sob seu controle.</div>
+      </div>
+      <div class="lp-footer2-col">
+        <div class="lp-footer2-col-title">Produto</div>
+        <a onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Recursos</a>
+        <a onclick="document.getElementById('lp-pricing').scrollIntoView({behavior:'smooth'})">Preços</a>
+        <a onclick="document.getElementById('lp-faq-section').scrollIntoView({behavior:'smooth'})">Perguntas frequentes</a>
+      </div>
+      <div class="lp-footer2-col">
+        <div class="lp-footer2-col-title">Conta</div>
+        <a onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</a>
+        <a onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-reg').click();">Criar conta</a>
+      </div>
+      <div class="lp-footer2-col">
+        <div class="lp-footer2-col-title">Integrações</div>
+        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);margin-bottom:10px;">Firebase · Google</span>
+        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);margin-bottom:10px;">Outlook · Vercel</span>
+        <span style="display:block;font-size:.79rem;color:rgba(240,240,240,.5);">AbacatePay (Pix)</span>
+      </div>
     </div>
-    <div style="color:rgba(240,240,240,.18);">Workspace de notas · CRM Financeiro · Colaboração em tempo real · <span onclick="document.getElementById('lp-pricing')?.scrollIntoView({behavior:'smooth'})" style="cursor:pointer;color:rgba(245,158,11,.5);transition:color .15s;" onmouseover="this.style.color='rgba(245,158,11,.9)'" onmouseout="this.style.color='rgba(245,158,11,.5)'">⭐ Ver planos</span></div>
-    <div style="color:rgba(240,240,240,.1);font-size:.65rem;">© 2025 MyDesk · Todos os dados protegidos com autenticação segura na nuvem · <a href="/cdn-cgi/l/email-protection#512224213e232534113c283534223a7f302121" style="color:rgba(240,240,240,.2);text-decoration:none;"><span class="__cf_email__" data-cfemail="82f1f7f2edf0f6e7c2effbe6e7f1e9ace3f2f2">[email&#160;protected]</span></a></div>
+    <div class="lp-footer2-bottom">
+      <span>© 2026 MyDesk · Todos os dados protegidos com autenticação segura na nuvem.</span>
+      <span>Feito com 💜 para equipes e freelancers.</span>
+    </div>
   </div>
 
 </div>
