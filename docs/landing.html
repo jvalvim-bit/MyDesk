@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -6,13 +6,196 @@
 <title>MyDesk — Workspace de Notas Inteligente</title>
 <meta name="description" content="MyDesk é um workspace de notas corporativo com CRM financeiro, workspaces em grupo, chat em tempo real e muito mais. Grátis para começar.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text y='22' x='5' font-size='20'>📋</text></svg>">
-<meta name="theme-color" content="#6366f1">
+<meta name="theme-color" content="#040409">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css?v=27">
+<style>
+/* ══════════════ AURORA (mesma cena do login.html) ══════════════ */
+:root{
+  --band: 88vh;
+  --ring: calc(var(--band) / .375);
+  --cy:   calc(62vh + var(--band));
+}
+body{background:#040409;}
+.scene{position:fixed;inset:0;overflow:hidden;z-index:0;background:
+  radial-gradient(120% 80% at 50% 108%, #0d1030 0%, #06060f 52%, #040409 100%)}
+.circle{position:absolute;left:50%;top:var(--cy);width:var(--ring);height:var(--ring);
+  transform:translate(-50%,-50%);transform-origin:50% 50%;will-change:transform;}
+.aurora{
+  background:conic-gradient(from 168deg,
+    #0a1856  0deg,  #1d3fd6  30deg, #5a35d9  58deg,
+    #a531c4  84deg, #e0603a 106deg,
+    #f2b04a 124deg, #4fdba4 150deg, #1f86dc 180deg,
+    #17246a 214deg, #0a1856 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
+          mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
+  filter:blur(46px) saturate(150%);opacity:.85;
+  animation:flow 22s linear infinite, sway 9s ease-in-out infinite alternate;
+}
+.haze{
+  background:conic-gradient(from 168deg,
+    #16256e 0deg, #2c46c8 40deg, #7b3ad2 78deg, #cf4a8e 104deg,
+    #e07a3c 126deg, #43c8a0 156deg, #1c6fc4 190deg, #16256e 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
+          mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
+  filter:blur(110px) saturate(130%);opacity:.4;
+  animation:flow 22s linear infinite, sway 9s ease-in-out infinite alternate;
+}
+.limb{
+  background:linear-gradient(90deg,transparent 4%,rgba(190,215,255,.55) 26%,
+    #fff 50%,rgba(190,215,255,.5) 74%,transparent 96%);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 78.4%,#000 78.8%,#000 79.4%,transparent 79.8%);
+          mask:radial-gradient(closest-side,transparent 0 78.4%,#000 78.8%,#000 79.4%,transparent 79.8%);
+  filter:blur(.7px) drop-shadow(0 0 14px rgba(150,195,255,.85)) drop-shadow(0 0 40px rgba(90,150,255,.45));
+  animation:sway 9s ease-in-out infinite alternate;
+}
+@keyframes flow{to{--a:1}}
+@keyframes sway{from{transform:translate(-50%,-50%) rotate(-6deg)}to{transform:translate(-50%,-50%) rotate(6deg)}}
+.dust{position:absolute;inset:0;opacity:.4;
+  background-image:
+    radial-gradient(1px 1px at 18% 22%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 73% 14%,rgba(255,255,255,.55),transparent),
+    radial-gradient(1px 1px at 41% 9%, rgba(255,255,255,.5),transparent),
+    radial-gradient(1.4px 1.4px at 88% 31%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 8% 41%, rgba(255,255,255,.45),transparent),
+    radial-gradient(1px 1px at 57% 27%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1.2px 1.2px at 30% 36%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 94% 8%, rgba(255,255,255,.5),transparent);
+  animation:twinkle 7s ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.28}to{opacity:.5}}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 74% 58% at 50% 44%,transparent 0%,rgba(4,4,9,.45) 60%,#040409 100%)}
+.grain{position:absolute;inset:0;opacity:.14;pointer-events:none;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ══════════════ GLASS OVERRIDES — a landing volta a ser escura,
+   com cartões em vidro fosco, por cima da aurora ══════════════ */
+#auth-screen{background:transparent;}
+
+#auth-screen .lp-nav{background:rgba(4,4,9,.75);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+#auth-screen .lp-nav-logo{color:#fff;}
+#auth-screen .lp-nav-links a{color:rgba(255,255,255,.55);}
+#auth-screen .lp-nav-links a:hover,#auth-screen .lp-nav-links a.active{color:#fff;}
+#auth-screen .lp-nav-cta{background:linear-gradient(180deg,#fdfdfd,#dcdce1);color:#101014;}
+#auth-screen .lp-nav-cta:hover{opacity:.85;}
+
+#auth-screen .lpN-avatar{background:rgba(255,255,255,.055);box-shadow:0 6px 18px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+#auth-screen .lpN-title{color:#fff;}
+#auth-screen .lpN-pill{background:rgba(99,102,241,.18);color:#c7d2fe;}
+#auth-screen .lpN-pill::before{background:#818cf8;}
+#auth-screen .lpN-sub{color:rgba(255,255,255,.55);}
+#auth-screen .lpN-btn-fill{background:linear-gradient(180deg,#fdfdfd,#dcdce1);color:#101014;}
+#auth-screen .lpN-btn-fill:hover{opacity:.88;}
+#auth-screen .lpN-btn-outline{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.14);}
+#auth-screen .lpN-btn-outline:hover{background:rgba(255,255,255,.12);}
+#auth-screen .lpN-shot{box-shadow:0 40px 90px rgba(0,0,0,.7),0 4px 14px rgba(0,0,0,.3);border-color:rgba(255,255,255,.1);}
+#auth-screen .lpN-trust-txt{color:rgba(255,255,255,.32);}
+#auth-screen .lpN-trust-logos span{color:rgba(255,255,255,.5);}
+
+#auth-screen .lp-section:nth-child(odd),
+#auth-screen .lp-section:nth-child(even){background:transparent;border-top:1px solid rgba(255,255,255,.07);}
+
+#auth-screen .lp-eyebrow{color:rgba(165,180,252,.75);}
+#auth-screen .lp-subtitle{color:rgba(255,255,255,.5);}
+#auth-screen .lp-feat{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+#auth-screen .lp-feat:hover{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.08);}
+#auth-screen .lp-feat-title{color:#fff;}
+#auth-screen .lp-feat-desc{color:rgba(255,255,255,.45);}
+#auth-screen .lp-bento-item{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+#auth-screen .lp-bento-item:hover{border-color:rgba(99,102,241,.4);}
+#auth-screen .lp-stat-num{color:#fff;}
+#auth-screen .lp-stat-label{color:rgba(255,255,255,.4);}
+#auth-screen .lp-how-num{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.4);color:#c7d2fe;}
+#auth-screen .lp-how-title{color:#fff;}
+#auth-screen .lp-how-desc{color:rgba(255,255,255,.45);}
+#auth-screen .lp-quote{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25);}
+#auth-screen .lp-quote-text{color:rgba(255,255,255,.85);}
+#auth-screen .lp-quote-author{color:rgba(255,255,255,.4);}
+#auth-screen .lp-divider{background:linear-gradient(90deg,transparent,rgba(129,140,248,.4),rgba(20,184,166,.3),transparent);}
+#auth-screen .lp-dash-card{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+#auth-screen .lp-dash-card:hover{border-color:rgba(99,102,241,.4);}
+#auth-screen .lp-toggle-row{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.08);}
+#auth-screen .lp-activity-item{color:rgba(255,255,255,.7);}
+#auth-screen .lp-activity-time{color:rgba(255,255,255,.32);}
+#auth-screen .lp-dash-cta{background:linear-gradient(180deg,#fdfdfd,#dcdce1);border:none;color:#101014;}
+#auth-screen .lp-dash-cta:hover{opacity:.88;}
+
+#auth-screen .lp-integrations{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);border-color:rgba(255,255,255,.07);}
+#auth-screen .lp-int-title{color:#fff;}
+#auth-screen .lp-int-sub{color:rgba(255,255,255,.45);}
+#auth-screen .lp-int-link{color:#a5b4fc;}
+#auth-screen .lp-int-icon{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.09);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+#auth-screen .lp-int-icon span{color:rgba(255,255,255,.4);}
+
+#auth-screen .lp-testimonial-mark{color:rgba(129,140,248,.4);}
+#auth-screen .lp-testimonial-quote{color:#fff;}
+#auth-screen .lp-testimonial-author{color:rgba(255,255,255,.4);}
+
+#auth-screen .lp-faq-item{border-color:rgba(255,255,255,.09)!important;background:rgba(255,255,255,.02);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+#auth-screen .lp-faq-item>div:first-child{background:rgba(255,255,255,.02)!important;}
+#auth-screen .lp-faq-item span:first-of-type{color:#fff!important;}
+#auth-screen .lp-faq-arrow{color:rgba(255,255,255,.35)!important;}
+#auth-screen .lp-faq-body div{color:rgba(255,255,255,.5)!important;}
+
+#auth-screen .lp-cta{background:transparent;border-color:rgba(255,255,255,.07);}
+#auth-screen .lp-cta-title{color:#fff;}
+#auth-screen .lp-cta-desc{color:rgba(255,255,255,.4);}
+#auth-screen .lp-cta-btn{background:linear-gradient(180deg,#fdfdfd,#dcdce1);box-shadow:0 10px 30px rgba(0,0,0,.5);color:#101014;}
+#auth-screen .lp-cta-btn:hover{opacity:.9;transform:translateY(-2px);}
+#auth-screen .lp-cta-btn-outline{border-color:rgba(255,255,255,.16);color:#fff;}
+#auth-screen .lp-cta-btn-outline:hover{background:rgba(255,255,255,.06);}
+#auth-screen .lpN-cta-trust{color:rgba(255,255,255,.35);}
+
+#auth-screen .lp-footer2{background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.07);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
+#auth-screen .lp-footer2-brand-name{color:#fff;}
+#auth-screen .lp-footer2-brand-desc{color:rgba(255,255,255,.4);}
+#auth-screen .lp-footer2-col a{color:rgba(255,255,255,.42)!important;}
+#auth-screen .lp-footer2-col a:hover{color:#fff!important;}
+#auth-screen .lp-footer2-col-title{color:rgba(255,255,255,.5);}
+#auth-screen .lp-footer2-col span[style]{color:rgba(255,255,255,.4)!important;}
+#auth-screen .lp-footer2-bottom{color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.07);}
+
+#auth-screen #lp-pricing{background:transparent;}
+#auth-screen .lpN-plan-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
+#auth-screen .lpN-plan-card.premium{background:linear-gradient(135deg,rgba(99,102,241,.16),rgba(79,70,229,.08));border-color:rgba(99,102,241,.4);}
+#auth-screen .lpN-plan-eyebrow{color:rgba(255,255,255,.4);}
+#auth-screen .lpN-plan-card.premium .lpN-plan-eyebrow{color:#c7d2fe;}
+#auth-screen .lpN-plan-price{color:#fff;}
+#auth-screen .lpN-plan-period{color:rgba(255,255,255,.38);}
+#auth-screen .lpN-plan-feat{color:rgba(255,255,255,.78);}
+#auth-screen .lpN-plan-feat.off{color:rgba(255,255,255,.28);}
+#auth-screen .lpN-plan-feat .ck{color:#34d399;}
+#auth-screen .lpN-plan-card.premium .lpN-plan-feat .ck{color:#a5b4fc;}
+#auth-screen .lpN-plan-feat .x{opacity:.4;}
+#auth-screen .lpN-plan-btn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;}
+#auth-screen .lpN-plan-btn:hover{background:rgba(255,255,255,.1);}
+#auth-screen .lpN-plan-btn.premium{background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;color:#fff;box-shadow:0 8px 24px rgba(99,102,241,.4);}
+#auth-screen .lpN-plan-note{color:rgba(255,255,255,.3);}
+
+#auth-screen .lpN-steps::before{background:rgba(255,255,255,.1);}
+#auth-screen .lpN-step-num{background:rgba(255,255,255,.06);border:2px solid rgba(129,140,248,.5);color:#c7d2fe;backdrop-filter:blur(10px);}
+#auth-screen .lpN-step-title{color:#fff;}
+#auth-screen .lpN-step-desc{color:rgba(255,255,255,.42);}
+
+#auth-screen .lpN-fcard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+#auth-screen .lpN-fcard:hover{border-color:rgba(99,102,241,.4);box-shadow:0 12px 28px rgba(0,0,0,.4);}
+#auth-screen .lpN-fcard-title{color:#fff;}
+#auth-screen .lpN-fcard-desc{color:rgba(255,255,255,.45);}
+</style>
 </head>
 <body>
+
+<div class="scene" aria-hidden="true">
+  <div class="circle haze"></div>
+  <div class="circle aurora"></div>
+  <div class="circle limb"></div>
+  <div class="dust"></div>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+</div>
+
 <div id="auth-screen" class="landing-scroll">
-  <!-- ── NAV — barra fixa no topo, estilo notion.com ── -->
+  <!-- ── NAV — barra fixa no topo ── -->
   <nav class="lp-nav">
     <div class="lp-nav-logo"><div class="logo-dot"></div>MyDesk</div>
     <div class="lp-nav-links">
@@ -23,7 +206,7 @@
     <button class="lp-nav-cta" onclick="location.href='login.html?mode=signin';">Entrar</button>
   </nav>
 
-  <!-- ── HERO (nova identidade visual — clara, estilo Notion) ── -->
+  <!-- ── HERO ── -->
   <div class="lpN-hero">
     <div class="lpN-avatars">
       <span class="lpN-avatar c1" title="Notas">📝</span>
@@ -130,15 +313,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       LANDING SECTIONS
-  ══════════════════════════════════════════ -->
-
   <div class="lp-divider"></div>
-
-  <!-- ═══════════════════════════════════════════════════════
-       LANDING PAGE SECTIONS
-  ════════════════════════════════════════════════════════ -->
 
   <!-- ── 1. O QUE É O MYDESK ── -->
   <div class="lp-section lp-reveal" id="lp-about">
@@ -159,7 +334,6 @@
           </div>
           <div class="lp-mock-body" style="background:radial-gradient(ellipse 80% 60% at 30% 40%,rgba(99,102,241,.07),transparent),#0a0a0a;min-height:290px;overflow:visible;">
             <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:20px 20px;border-radius:0 0 10px 10px;"></div>
-            <!-- Note 1: Indigo — Concluído -->
             <div class="mock-note mock-note-pulse" style="top:14px;left:12px;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
               <div class="mock-note-bar" style="background:#6366f1"></div>
               <div class="mock-note-head">
@@ -182,8 +356,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Note 2: Emerald — Andamento -->
             <div class="mock-note" style="top:20px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.25);">
               <div class="mock-note-bar" style="background:#10b981"></div>
               <div class="mock-note-head">
@@ -206,8 +378,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Note 3: Rose — Urgente -->
             <div class="mock-note" style="top:180px;left:70px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
               <div class="mock-note-bar" style="background:#f43f5e"></div>
               <div class="mock-note-head">
@@ -344,7 +514,7 @@
 
   <div class="lp-divider"></div>
 
-  <!-- ── SEÇÃO EXTRA: RECURSOS AVANÇADOS (dashboard/notificações/tarefas) ── -->
+  <!-- ── SEÇÃO EXTRA: RECURSOS AVANÇADOS ── -->
   <div class="lp-section lp-reveal">
     <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
       <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Recursos</div>
@@ -400,7 +570,7 @@
 
   <div class="lp-divider"></div>
 
-  <!-- ── 2. COMO FUNCIONA (passos horizontais) ── -->
+  <!-- ── 2. COMO FUNCIONA ── -->
   <div class="lp-section lp-reveal">
     <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
       <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Como funciona</div>
@@ -437,7 +607,7 @@
 
   <div class="lp-divider"></div>
 
-  <!-- ── RECURSOS EM GRADE (substitui as 4 seções repetitivas de texto+mock por um grid único) ── -->
+  <!-- ── RECURSOS EM GRADE ── -->
   <div class="lp-section lp-reveal">
     <div style="text-align:center;max-width:640px;margin:0 auto 48px;">
       <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>Tudo incluído</div>
@@ -446,49 +616,49 @@
     </div>
     <div class="lpN-fgrid">
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#eceafd;">👥</div>
+        <div class="lpN-fcard-icon" style="background:rgba(99,102,241,.14);">👥</div>
         <div class="lpN-fcard-title">Amigos e workspaces</div>
         <div class="lpN-fcard-desc">Adicione qualquer usuário e crie um board compartilhado, sincronizado em tempo real.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#e6faf5;">💬</div>
+        <div class="lpN-fcard-icon" style="background:rgba(20,184,166,.12);">💬</div>
         <div class="lpN-fcard-title">Chat em tempo real</div>
         <div class="lpN-fcard-desc">Janelas de conversa com texto, imagem e arquivos — mensagens offline entregues ao reconectar.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fef3e2;">🎨</div>
+        <div class="lpN-fcard-icon" style="background:rgba(245,158,11,.12);">🎨</div>
         <div class="lpN-fcard-title">19 paletas de cor</div>
         <div class="lpN-fcard-desc">Cada paleta coordena fundo, barra e chip pra um visual consistente em todo o board.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#eceafd;">📚</div>
+        <div class="lpN-fcard-icon" style="background:rgba(99,102,241,.14);">📚</div>
         <div class="lpN-fcard-title">Pilhas inteligentes</div>
         <div class="lpN-fcard-desc">Arraste notas pra formar pilhas. Renomeie pra "Concluído" e elas se organizam sozinhas.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fdecec;">🔐</div>
+        <div class="lpN-fcard-icon" style="background:rgba(239,68,68,.12);">🔐</div>
         <div class="lpN-fcard-title">Autenticação Firebase</div>
         <div class="lpN-fcard-desc">Login seguro na nuvem. Senhas nunca em texto puro — só tokens criptografados.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#e6faf5;">🖼️</div>
+        <div class="lpN-fcard-icon" style="background:rgba(20,184,166,.12);">🖼️</div>
         <div class="lpN-fcard-title">Fundo personalizado</div>
         <div class="lpN-fcard-desc">Cores, gradientes, imagens ou vídeo em loop — cada conta com seu próprio ambiente.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fef3e2;">📹</div>
+        <div class="lpN-fcard-icon" style="background:rgba(245,158,11,.12);">📹</div>
         <div class="lpN-fcard-title">Videochamada com tela</div>
         <div class="lpN-fcard-desc">1:1 ou em grupo, com compartilhamento de tela e janela redimensionável.</div>
       </div>
       <div class="lpN-fcard">
-        <div class="lpN-fcard-icon" style="background:#fdecec;">🛡️</div>
+        <div class="lpN-fcard-icon" style="background:rgba(239,68,68,.12);">🛡️</div>
         <div class="lpN-fcard-title">Validação de arquivos</div>
         <div class="lpN-fcard-desc">Uploads filtrados por tipo MIME. Executáveis e scripts perigosos são bloqueados.</div>
       </div>
     </div>
   </div>
 
-  <!-- ── FAIXA DE INTEGRAÇÕES (estilo "Don't replace. Integrate.") ── -->
+  <!-- ── FAIXA DE INTEGRAÇÕES ── -->
   <div class="lp-integrations">
     <div class="lp-eyebrow" style="justify-content:center;color:rgba(165,180,252,.75)"><div class="lp-eyebrow-dot" style="background:#818cf8"></div>Integrações</div>
     <div class="lp-int-title">Não substitua. Integre.</div>
@@ -506,7 +676,7 @@
     </div>
   </div>
 
-  <!-- ── TESTEMUNHO / PROPÓSITO ── -->
+  <!-- ── TESTEMUNHO ── -->
   <div class="lp-section lp-reveal">
     <div class="lp-testimonial">
       <div class="lp-testimonial-mark">"</div>
@@ -517,7 +687,7 @@
 
   <div class="lp-divider"></div>
 
-  <!-- ── SEÇÃO 7: FAQ ── -->
+  <!-- ── FAQ ── -->
   <div class="lp-section lp-reveal" id="lp-faq-section">
     <div style="max-width:680px;margin:0 auto;width:100%;">
       <div class="lp-eyebrow" style="justify-content:center;margin-bottom:16px;"><div class="lp-eyebrow-dot"></div>Dúvidas frequentes</div>
@@ -575,11 +745,7 @@
 
   <div class="lp-divider"></div>
 
-  <!-- ── CTA FINAL ── -->
-
-  <div class="lp-divider"></div>
-
-  <!-- PRICING SECTION -->
+  <!-- ── PRICING ── -->
   <div class="lp-section lp-reveal" id="lp-pricing">
     <div style="max-width:900px;margin:0 auto;">
       <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Planos</div>
@@ -588,7 +754,6 @@
 
       <div style="display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;">
 
-        <!-- FREE PLAN -->
         <div class="lpN-plan-card">
           <div class="lpN-plan-eyebrow">Gratuito</div>
           <div class="lpN-plan-price">R$ 0</div>
@@ -605,7 +770,6 @@
           <button class="lpN-plan-btn" onclick="location.href='login.html'">Começar grátis</button>
         </div>
 
-        <!-- PREMIUM PLAN -->
         <div class="lpN-plan-card premium">
           <div class="lpN-plan-badge">Mais popular</div>
           <div class="lpN-plan-eyebrow">Premium</div>
