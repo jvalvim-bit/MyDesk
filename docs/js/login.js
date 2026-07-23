@@ -379,15 +379,6 @@ function startTypewriter() {
   tick();
 }
 
-/* ── Tema claro/escuro ── */
-function toggleTheme() {
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  const next = isLight ? 'dark' : 'light';
-  if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
-  else document.documentElement.removeAttribute('data-theme');
-  localStorage.setItem('md_theme', next);
-}
-
 /* ── Guard: se já autenticado, ir direto para o app ── */
 window.addEventListener('DOMContentLoaded', () => {
   // Verificar sessão demo

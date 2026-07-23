@@ -574,6 +574,8 @@ async function launchApp() {
   window._appLaunched = true;
 
   _loadIcsEvents();
+  _loadOutlookCache();
+  _handleOutlookRedirect();
 
   // Check if returning from payment confirmation
   if (window.location.search.includes('premium=activated')) {
@@ -2515,6 +2517,16 @@ function _upcomingEvents(days) {
     });
   }
 
+  if (Array.isArray(_outlookEvents)) {
+    _outlookEvents.forEach((ev, i) => {
+      if (!ev.date) return;
+      const due = new Date(ev.date + 'T00:00:00');
+      if (due >= today && due <= limit) {
+        items.push({ kind: 'outlook', id: 'outlook_' + i, title: ev.title || 'Evento', date: due });
+      }
+    });
+  }
+
   items.sort((a, b) => a.date - b.date);
   return items;
 }
@@ -2547,7 +2559,7 @@ function renderEventsList() {
 
   host.innerHTML = items.map(it => `
     <div class="events-item" data-kind="${it.kind}" data-id="${it.id}">
-      <span class="events-item-icon">${it.kind === 'client' ? '💼' : it.kind === 'ics' ? '📅' : '📝'}</span>
+      <span class="events-item-icon">${it.kind === 'client' ? '💼' : it.kind === 'ics' ? '📅' : it.kind === 'outlook' ? '📧' : '📝'}</span>
       <div class="events-item-body">
         <div class="events-item-title">${xe(it.title)}</div>
         <div class="events-item-sub">${it.kind === 'client' && it.value ? xe(fmtBRL(it.value)) + ' · ' : ''}${_relativeDay(it.date)}</div>
@@ -2561,7 +2573,7 @@ function renderEventsList() {
       if (kind === 'client') {
         if (!_crmMode) toggleCRMView();
         setTimeout(() => openEditRecordModal(id), 150);
-      } else if (kind === 'ics') {
+      } else if (kind === 'ics' || kind === 'outlook') {
         // Evento importado do calendário — não tem nota/registro pra abrir
       } else {
         const noteEl = document.querySelector('.note[data-id="' + id + '"]');
@@ -2615,6 +2627,22 @@ document.addEventListener('click', e => {
 function _personalPath(sub) { return 'users/' + CU.uid + '/personal/' + sub; }
 function _curMonth() { return new Date().toISOString().slice(0, 7); }
 
+const EXPENSE_CATEGORIES = [
+  { key: 'alimentacao', label: 'Alimentação', icon: '🍔', color: '#f59e0b' },
+  { key: 'transporte',  label: 'Transporte',  icon: '🚗', color: '#3b82f6' },
+  { key: 'moradia',     label: 'Moradia',     icon: '🏠', color: '#8b5cf6' },
+  { key: 'lazer',       label: 'Lazer',       icon: '🎮', color: '#ec4899' },
+  { key: 'saude',       label: 'Saúde',       icon: '💊', color: '#10b981' },
+  { key: 'assinaturas', label: 'Assinaturas', icon: '📱', color: '#14b8a6' },
+  { key: 'outros',      label: 'Outros',      icon: '📦', color: '#64748b' },
+];
+function _expCat(key) { return EXPENSE_CATEGORIES.find(c => c.key === key) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1]; }
+function _populateExpenseCatSelect() {
+  const sel = document.getElementById('expense-cat-inp');
+  if (!sel || sel.options.length) return;
+  sel.innerHTML = EXPENSE_CATEGORIES.map(c => `<option value="${c.key}">${c.icon} ${c.label}</option>`).join('');
+}
+
 /* ── Orçamento mensal ── */
 let _budgetMonthly = 0;
 async function _loadBudget() {
@@ -2634,24 +2662,55 @@ async function _saveBudgetMonthly(val) {
   else localStorage.setItem('md_budget_' + CU.username, _budgetMonthly);
   renderBudgetSummary();
 }
+function _expensesInMonth(month) {
+  return (_expenses || []).filter(e => (e.date || '').slice(0, 7) === month);
+}
 function renderBudgetSummary() {
   const host = document.getElementById('budget-summary');
   if (!host) return;
   const curMonth = _curMonth();
-  const spent = (_expenses || []).filter(e => (e.date || '').slice(0, 7) === curMonth)
-                                 .reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const spent = _expensesInMonth(curMonth).reduce((s, e) => s + (Number(e.value) || 0), 0);
   const remaining = _budgetMonthly - spent;
   const pct = _budgetMonthly > 0 ? Math.min(100, Math.round((spent / _budgetMonthly) * 100)) : 0;
   const over = spent > _budgetMonthly && _budgetMonthly > 0;
+
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysLeft = Math.max(1, daysInMonth - now.getDate() + 1);
+  const dailyAllowance = _budgetMonthly > 0 ? Math.max(0, remaining) / daysLeft : 0;
+
   host.innerHTML = `
     <div class="budget-row"><span>Orçamento</span><b>${fmtBRL(_budgetMonthly)}</b></div>
     <div class="budget-row"><span>Gasto este mês</span><b>${fmtBRL(spent)}</b></div>
     <div class="budget-bar-track"><div class="budget-bar-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
-    <div class="budget-row"><span>${over ? 'Estourou em' : 'Resta'}</span><b style="color:${over ? 'var(--clr-danger-light)' : '#6ee7b7'}">${fmtBRL(Math.abs(remaining))}</b></div>`;
+    <div class="budget-row"><span>${over ? 'Estourou em' : 'Resta'}</span><b style="color:${over ? 'var(--clr-danger-light)' : '#6ee7b7'}">${fmtBRL(Math.abs(remaining))}</b></div>
+    ${_budgetMonthly > 0 && !over ? `<div class="budget-row"><span>Sugestão/dia (${daysLeft}d restantes)</span><b>${fmtBRL(dailyAllowance)}</b></div>` : ''}`;
+
+  renderBudgetByCategory(curMonth);
+}
+function renderBudgetByCategory(month) {
+  const host = document.getElementById('budget-by-category');
+  if (!host) return;
+  const items = _expensesInMonth(month);
+  if (!items.length) { host.innerHTML = '<div class="expenses-empty">Sem despesas este mês.</div>'; return; }
+  const totals = {};
+  items.forEach(e => { const k = e.category || 'outros'; totals[k] = (totals[k] || 0) + (Number(e.value) || 0); });
+  const max = Math.max(...Object.values(totals));
+  const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  host.innerHTML = sorted.map(([key, val]) => {
+    const c = _expCat(key);
+    return `<div class="budget-cat-row">
+      <span class="budget-cat-icon">${c.icon}</span>
+      <span class="budget-cat-label">${xe(c.label)}</span>
+      <div class="budget-cat-track"><div class="budget-cat-fill" style="width:${Math.round(val/max*100)}%;background:${c.color}"></div></div>
+      <span class="budget-cat-val">${fmtBRL(val)}</span>
+    </div>`;
+  }).join('');
 }
 
-/* ── Despesas ── */
+/* ── Despesas (com categoria, navegação por mês e gráfico) ── */
 let _expenses = [];
+let _expenseViewMonth = _curMonth();
 async function _loadExpenses() {
   if (!CU) return;
   if (_fbReady && CU.uid) {
@@ -2660,16 +2719,18 @@ async function _loadExpenses() {
   } else {
     _expenses = JSON.parse(localStorage.getItem('md_expenses_' + CU.username) || '[]');
   }
+  _populateExpenseCatSelect();
   renderExpensesList();
   renderBudgetSummary();
 }
 async function addExpenseFromForm() {
   const descInp = document.getElementById('expense-desc-inp');
   const valInp  = document.getElementById('expense-value-inp');
+  const catInp  = document.getElementById('expense-cat-inp');
   const desc = descInp.value.trim();
   const value = parseFloat(valInp.value) || 0;
   if (!desc || value <= 0) { toast('⚠', 'Preencha descrição e valor.'); return; }
-  const exp = { desc, value, date: new Date().toISOString().slice(0, 10) };
+  const exp = { desc, value, category: catInp?.value || 'outros', date: new Date().toISOString().slice(0, 10) };
   if (_fbReady && CU?.uid) {
     const ref = await fbPush(_personalPath('expenses'), exp);
     exp.id = ref.key;
@@ -2679,6 +2740,7 @@ async function addExpenseFromForm() {
   _expenses.push(exp);
   if (!_fbReady || !CU?.uid) localStorage.setItem('md_expenses_' + CU.username, JSON.stringify(_expenses));
   descInp.value = ''; valInp.value = '';
+  _expenseViewMonth = _curMonth();
   renderExpensesList();
   renderBudgetSummary();
 }
@@ -2689,22 +2751,63 @@ async function removeExpense(id) {
   renderExpensesList();
   renderBudgetSummary();
 }
+function shiftExpenseMonth(delta) {
+  const [y, m] = _expenseViewMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  _expenseViewMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  renderExpensesList();
+}
 function renderExpensesList() {
-  const host = document.getElementById('expenses-list');
+  const host  = document.getElementById('expenses-list');
+  const label = document.getElementById('expense-month-label');
   if (!host) return;
-  const curMonth = _curMonth();
-  const monthly = [..._expenses].filter(e => (e.date || '').slice(0, 7) === curMonth)
-                                 .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  if (!monthly.length) { host.innerHTML = '<div class="expenses-empty">Nenhuma despesa este mês.</div>'; return; }
-  host.innerHTML = monthly.map(e => `
-    <div class="expense-item">
+  if (label) {
+    const [y, m] = _expenseViewMonth.split('-').map(Number);
+    label.textContent = new Date(y, m - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  }
+  const monthly = _expensesInMonth(_expenseViewMonth).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  _renderExpenseChart(monthly);
+  if (!monthly.length) { host.innerHTML = '<div class="expenses-empty">Nenhuma despesa nesse mês.</div>'; return; }
+  host.innerHTML = monthly.map(e => {
+    const c = _expCat(e.category);
+    return `<div class="expense-item">
+      <span class="expense-item-cat" title="${xe(c.label)}">${c.icon}</span>
       <span class="expense-item-desc">${xe(e.desc)}</span>
       <span class="expense-item-val">${fmtBRL(e.value)}</span>
       <button class="expense-item-del" onclick="removeExpense('${e.id}')">${iX}</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+function _renderExpenseChart(monthly) {
+  const host = document.getElementById('expense-chart-wrap');
+  if (!host) return;
+  if (!monthly.length) { host.innerHTML = ''; return; }
+  const totals = {};
+  monthly.forEach(e => { const k = e.category || 'outros'; totals[k] = (totals[k] || 0) + (Number(e.value) || 0); });
+  const sum = Object.values(totals).reduce((a, b) => a + b, 0);
+  if (!sum) { host.innerHTML = ''; return; }
+
+  const R = 34, C = 2 * Math.PI * R;
+  let offset = 0;
+  const arcs = Object.entries(totals).map(([key, val]) => {
+    const c = _expCat(key);
+    const frac = val / sum;
+    const len  = frac * C;
+    const rot  = (offset / sum) * 360;
+    offset += val;
+    return `<circle cx="40" cy="40" r="${R}" fill="none" stroke="${c.color}" stroke-width="11"
+              data-target="${len} ${C - len}" stroke-dasharray="0 ${C}"
+              transform="rotate(${rot - 90} 40 40)"/>`;
+  }).join('');
+
+  host.innerHTML = `<svg width="80" height="80" viewBox="0 0 80 80" class="crm-donut-svg">${arcs}</svg>
+    <div class="events-panel-sub" style="display:block;">Total do mês<br><b style="color:var(--clr-text);font-family:'JetBrains Mono',monospace;font-size:.9rem;">${fmtBRL(sum)}</b></div>`;
+  requestAnimationFrame(() => {
+    host.querySelectorAll('circle[data-target]').forEach(c => c.setAttribute('stroke-dasharray', c.dataset.target));
+  });
 }
 
-/* ── Tarefas mensais (checklist que reseta todo mês) ── */
+/* ── Tarefas mensais (checklist que reseta todo mês, com dia opcional) ── */
 let _monthlyTasks = [];
 let _monthlyTasksLastReset = '';
 async function _loadMonthlyTasks() {
@@ -2730,7 +2833,7 @@ async function _saveMonthlyTasks() {
   else localStorage.setItem('md_mtasks_' + CU.username, JSON.stringify(payload));
 }
 function addMonthlyTask() {
-  _monthlyTasks.push({ id: 'mt_' + Date.now(), text: '', done: false });
+  _monthlyTasks.push({ id: 'mt_' + Date.now(), text: '', done: false, day: null });
   _saveMonthlyTasks();
   renderMonthlyTasks();
   const inputs = document.querySelectorAll('#mtasks-list .mtask-item input[type=text]');
@@ -2740,22 +2843,32 @@ function renderMonthlyTasks() {
   const host = document.getElementById('mtasks-list');
   if (!host) return;
   if (!_monthlyTasks.length) { host.innerHTML = '<div class="mtasks-empty">Nenhuma tarefa ainda.</div>'; return; }
-  host.innerHTML = _monthlyTasks.map((t, i) => `
-    <div class="mtask-item ${t.done ? 'done' : ''}" data-i="${i}">
+  const today = new Date().getDate();
+  host.innerHTML = _monthlyTasks.map((t, i) => {
+    const late = !t.done && t.day && Number(t.day) < today;
+    return `<div class="mtask-item ${t.done ? 'done' : ''} ${late ? 'mtask-late' : ''}" data-i="${i}">
       <input type="checkbox" ${t.done ? 'checked' : ''}>
       <input type="text" value="${sanitizeAttr(t.text || '')}" placeholder="Tarefa do mês…">
+      <input type="number" class="mtask-item-day" min="1" max="31" placeholder="dia" value="${t.day || ''}" title="Dia do mês (opcional) — alerta se passar sem concluir">
       <button class="mtask-item-del">${iX}</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   host.querySelectorAll('.mtask-item').forEach(row => {
     const idx = Number(row.dataset.i);
     row.querySelector('input[type=checkbox]').addEventListener('change', e => {
       _monthlyTasks[idx].done = e.target.checked;
-      row.classList.toggle('done', e.target.checked);
       _saveMonthlyTasks();
+      renderMonthlyTasks();
     });
     row.querySelector('input[type=text]').addEventListener('input', e => {
       _monthlyTasks[idx].text = e.target.value;
       _saveMonthlyTasks();
+    });
+    row.querySelector('.mtask-item-day').addEventListener('change', e => {
+      const v = parseInt(e.target.value) || null;
+      _monthlyTasks[idx].day = v && v >= 1 && v <= 31 ? v : null;
+      _saveMonthlyTasks();
+      renderMonthlyTasks();
     });
     row.querySelector('.mtask-item-del').addEventListener('click', () => {
       _monthlyTasks.splice(idx, 1);
@@ -2806,6 +2919,148 @@ document.addEventListener('change', e => {
   if (e.target?.id !== 'budget-monthly-inp') return;
   _saveBudgetMonthly(e.target.value);
 });
+
+/* ═══════════════════════════════════════════════════
+   CONEXÃO COM OUTLOOK (Microsoft Graph, OAuth2 + PKCE)
+   Requer um App Registration próprio no Azure AD (client
+   público, sem secret — o usuário cola o Client ID uma vez).
+   Sem isso não tem como funcionar: é a Microsoft quem exige
+   um app registrado pra emitir token, não existe atalho.
+═══════════════════════════════════════════════════ */
+const OUTLOOK_SCOPES = 'openid profile Calendars.Read offline_access';
+
+function _b64url(bytes) {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function _pkcePair() {
+  const verifier = _b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  return { verifier, challenge: _b64url(hash) };
+}
+function _outlookRedirectUri() {
+  return window.location.origin + window.location.pathname;
+}
+
+async function connectOutlook() {
+  let clientId = localStorage.getItem('md_outlook_client_id');
+  if (!clientId) {
+    clientId = (prompt('Cole o Client ID (Application ID) do seu App Registration do Azure AD:\n\nCrie um em portal.azure.com → App registrations → New registration.\nRedirect URI (tipo SPA): ' + _outlookRedirectUri()) || '').trim();
+    if (!clientId) return;
+    localStorage.setItem('md_outlook_client_id', clientId);
+  }
+  const { verifier, challenge } = await _pkcePair();
+  sessionStorage.setItem('md_outlook_verifier', verifier);
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: 'code',
+    redirect_uri: _outlookRedirectUri(),
+    response_mode: 'query',
+    scope: OUTLOOK_SCOPES,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    state: 'md_outlook',
+  });
+  window.location.href = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' + params.toString();
+}
+
+async function _handleOutlookRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('state') !== 'md_outlook' || !params.get('code')) return;
+  const code     = params.get('code');
+  const verifier = sessionStorage.getItem('md_outlook_verifier');
+  const clientId = localStorage.getItem('md_outlook_client_id');
+  window.history.replaceState({}, '', window.location.pathname); // limpa ?code=... da URL
+  if (!verifier || !clientId) return;
+
+  try {
+    const body = new URLSearchParams({
+      client_id: clientId,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: _outlookRedirectUri(),
+      code_verifier: verifier,
+    });
+    const res = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    const data = await res.json();
+    if (!data.access_token) throw new Error(data.error_description || 'sem access_token');
+    localStorage.setItem('md_outlook_token', data.access_token);
+    if (data.refresh_token) localStorage.setItem('md_outlook_refresh', data.refresh_token);
+    toast('📅', 'Outlook conectado!');
+    await _syncOutlookEvents();
+  } catch (e) {
+    console.error('[Outlook] erro no token:', e);
+    toast('⚠', 'Falha ao conectar com o Outlook.');
+  }
+}
+
+async function _refreshOutlookToken() {
+  const refreshToken = localStorage.getItem('md_outlook_refresh');
+  const clientId     = localStorage.getItem('md_outlook_client_id');
+  if (!refreshToken || !clientId) return false;
+  try {
+    const body = new URLSearchParams({
+      client_id: clientId,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      scope: OUTLOOK_SCOPES,
+    });
+    const res = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    const data = await res.json();
+    if (!data.access_token) return false;
+    localStorage.setItem('md_outlook_token', data.access_token);
+    if (data.refresh_token) localStorage.setItem('md_outlook_refresh', data.refresh_token);
+    return true;
+  } catch (_) { return false; }
+}
+
+let _outlookEvents = [];
+async function _syncOutlookEvents(isRetry) {
+  const token = localStorage.getItem('md_outlook_token');
+  if (!token) return;
+  try {
+    const now = new Date();
+    const end = new Date(); end.setDate(end.getDate() + 30);
+    const url = 'https://graph.microsoft.com/v1.0/me/calendarview?startDateTime=' + now.toISOString() +
+                '&endDateTime=' + end.toISOString() + '&$top=50&$select=subject,start';
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+    if (res.status === 401 && !isRetry && await _refreshOutlookToken()) {
+      return _syncOutlookEvents(true);
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    _outlookEvents = (data.value || []).map(ev => ({
+      title: ev.subject || 'Evento',
+      date: (ev.start?.dateTime || '').slice(0, 10),
+    }));
+    if (CU?.username) localStorage.setItem('md_outlook_cache_' + CU.username, JSON.stringify(_outlookEvents));
+    const btn = document.getElementById('outlook-connect-btn');
+    const lbl = document.getElementById('outlook-btn-label');
+    if (btn) btn.classList.add('connected');
+    if (lbl) lbl.textContent = 'Outlook (' + _outlookEvents.length + ')';
+    renderEventsList();
+    updateEventsBadge();
+  } catch (e) {
+    console.error('[Outlook] erro ao buscar eventos:', e);
+  }
+}
+function _loadOutlookCache() {
+  if (!CU?.username) return;
+  _outlookEvents = JSON.parse(localStorage.getItem('md_outlook_cache_' + CU.username) || '[]');
+  if (localStorage.getItem('md_outlook_token')) {
+    const btn = document.getElementById('outlook-connect-btn');
+    const lbl = document.getElementById('outlook-btn-label');
+    if (btn) btn.classList.add('connected');
+    if (lbl) lbl.textContent = 'Outlook (' + _outlookEvents.length + ')';
+  }
+}
 
 function checkCRMOverdueTransitions() {
   if (typeof _records === 'undefined' || !_records.length) return;
@@ -4146,15 +4401,6 @@ function toast(icon,msg){
   $('t-ico').textContent=icon; $('t-msg').textContent=msg;
   const t=$('toast'); t.classList.add('show');
   clearTimeout(toastTmr); toastTmr=setTimeout(()=>t.classList.remove('show'),2800);
-}
-
-/* ── Tema claro/escuro ── */
-function toggleTheme() {
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  const next = isLight ? 'dark' : 'light';
-  if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
-  else document.documentElement.removeAttribute('data-theme');
-  localStorage.setItem('md_theme', next);
 }
 
 /* ═══ INIT ═══════════════════════════════════ */
