@@ -148,33 +148,36 @@
 #btn-crm-view{background:var(--clr-border-faint);border:1px solid rgba(255,255,255,.09);}
 #btn-crm-view.active{background:rgba(20,184,166,.15);color:#2dd4bf;border-color:rgba(20,184,166,.35);}
 
-/* ── Dashboard Summary Bar ── */
-#crm-dashboard{display:none;background:#0d0d0d;border-bottom:1px solid var(--clr-border);padding:0 20px;flex-shrink:0;animation:fadeUp .2s ease both;}
-#crm-dashboard.visible{display:flex;align-items:center;gap:0;}
-.crm-dash-card{display:flex;align-items:center;gap:10px;padding:10px 20px;border-right:1px solid var(--clr-border-soft);flex-shrink:0;}
-.crm-dash-card:last-child{border-right:none;}
-.crm-dash-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
-.crm-dash-label{font-size:.6rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(240,240,240,.3);margin-bottom:1px;}
-.crm-dash-value{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--clr-text);}
-.crm-dash-spacer{flex:1;}
+/* ── Dashboard Summary Bar — cards soltos, minimalistas ── */
+#crm-dashboard{display:none;background:transparent;border-bottom:none;padding:22px 22px 4px;flex-shrink:0;animation:fadeUp .2s ease both;}
+#crm-dashboard.visible{display:flex;align-items:stretch;gap:12px;flex-wrap:wrap;}
+.crm-dash-card{display:flex;align-items:center;gap:12px;padding:15px 18px;border:1px solid var(--clr-border-soft);border-radius:14px;background:var(--clr-bg-card);flex:1;min-width:172px;transition:border-color .2s,transform .2s,background .2s;}
+.crm-dash-card:hover{border-color:rgba(99,102,241,.25);transform:translateY(-1px);background:rgba(255,255,255,.03);}
+.crm-dash-card-action{flex:0 0 auto;min-width:0;border:none;background:none;padding:0;}
+.crm-dash-card-action:hover{transform:none;background:none;}
+.crm-dash-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.92rem;flex-shrink:0;}
+.crm-dash-label{font-size:.6rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(240,240,240,.32);margin-bottom:3px;}
+.crm-dash-value{font-family:'JetBrains Mono',monospace;font-size:1.08rem;font-weight:700;color:var(--clr-text);letter-spacing:-.2px;}
+.crm-dash-spacer{flex:1;min-width:4px;}
+@media(max-width:900px){#crm-dashboard.visible{gap:10px;}.crm-dash-card{min-width:calc(50% - 5px);flex:1 1 calc(50% - 5px);}.crm-dash-spacer{display:none;}.crm-dash-card-action{flex:1 1 100%;}.crm-dash-card-action button{width:100%;justify-content:center;}}
 
-/* ── Table View Container ── */
-#crm-board{display:none;flex:1;overflow:auto;padding:20px;}
+/* ── Table View Container — clean, arejado ── */
+#crm-board{display:none;flex:1;overflow:auto;padding:22px;}
 #crm-board.visible{display:block;}
-.crm-table-wrap{background:rgba(255,255,255,.02);border:1px solid var(--clr-border);border-radius:14px;overflow:hidden;}
+.crm-table-wrap{background:var(--clr-bg-card);border:1px solid var(--clr-border-soft);border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.18);}
 .crm-table{width:100%;border-collapse:collapse;}
-.crm-table thead tr{background:rgba(255,255,255,.04);border-bottom:1px solid var(--clr-border);}
-.crm-table th{padding:10px 14px;text-align:left;font-family:'Inter',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(240,240,240,.3);white-space:nowrap;}
-.crm-table td{padding:12px 14px;border-bottom:1px solid var(--clr-border-faint);font-family:'Inter',sans-serif;font-size:.82rem;color:rgba(240,240,240,.8);vertical-align:middle;}
+.crm-table thead tr{background:rgba(255,255,255,.025);border-bottom:1px solid var(--clr-border-soft);}
+.crm-table th{padding:13px 18px;text-align:left;font-family:'Inter',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:rgba(240,240,240,.28);white-space:nowrap;}
+.crm-table td{padding:15px 18px;border-bottom:1px solid var(--clr-border-faint);font-family:'Inter',sans-serif;font-size:.83rem;color:rgba(240,240,240,.82);vertical-align:middle;}
 .crm-table tbody tr:last-child td{border-bottom:none;}
-.crm-table tbody tr{transition:background .12s;cursor:default;}
-.crm-table tbody tr:hover{background:rgba(255,255,255,.03);}
-.crm-table tbody tr.overdue-row{border-left:3px solid var(--clr-danger);}
-.crm-table tbody tr.overdue-row td:first-child{padding-left:11px;}
+.crm-table tbody tr{transition:background .15s;cursor:default;}
+.crm-table tbody tr:hover{background:rgba(255,255,255,.025);}
+.crm-table tbody tr.overdue-row{border-left:2px solid var(--clr-danger);}
+.crm-table tbody tr.overdue-row td:first-child{padding-left:16px;}
 
 /* ── Record client name cell ── */
-.crm-name-cell{display:flex;align-items:center;gap:8px;}
-.crm-avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--clr-indigo),var(--clr-indigo-dark));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;font-family:'Inter',sans-serif;}
+.crm-name-cell{display:flex;align-items:center;gap:10px;}
+.crm-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--clr-indigo),var(--clr-indigo-dark));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0;font-family:'Inter',sans-serif;box-shadow:0 2px 8px rgba(99,102,241,.25);}
 .crm-client-name{font-weight:600;color:var(--clr-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
 .crm-client-desc{font-size:.68rem;color:rgba(240,240,240,.3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
 
@@ -294,18 +297,21 @@
 .n-client-block{display:block !important;}
 
 /* ── CRM Table toolbar with clear button ── */
-.crm-table-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.crm-table-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.crm-toolbar-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--clr-text);letter-spacing:-.2px;}
+.crm-count-badge{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:rgba(240,240,240,.35);background:var(--clr-border-faint);border-radius:20px;padding:2px 9px;}
 .crm-table-toolbar-spacer{flex:1;}
-.crm-clear-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:7px;border:1px solid rgba(239,68,68,.22);background:rgba(239,68,68,.08);color:var(--clr-danger-light);font-family:'Inter',sans-serif;font-size:.73rem;font-weight:600;cursor:pointer;transition:all .18s;}
-.crm-clear-btn:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.4);}
+.crm-clear-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:9px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:var(--clr-danger-light);font-family:'Inter',sans-serif;font-size:.73rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.crm-clear-btn:hover{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.38);}
 .crm-clear-btn svg{width:12px;height:12px;}
 
 /* ── CRM charts (donut + barras mensais) ─────────────────────────────── */
-#crm-charts-row{display:none;gap:14px;padding:14px 20px;flex-wrap:wrap;}
+#crm-charts-row{display:none;gap:12px;padding:0 22px 22px;flex-wrap:wrap;}
 #crm-charts-row.visible{display:flex;}
-.crm-chart-panel{background:var(--clr-bg-card);border:1px solid var(--clr-border-soft);border-radius:var(--radius-md);padding:14px 16px;flex:1;min-width:220px;}
+.crm-chart-panel{background:var(--clr-bg-card);border:1px solid var(--clr-border-soft);border-radius:16px;padding:16px 18px;flex:1;min-width:220px;transition:border-color .2s;}
+.crm-chart-panel:hover{border-color:rgba(255,255,255,.14);}
 .crm-chart-panel-wide{flex:2;min-width:280px;}
-.crm-chart-title{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--clr-text-dim);margin-bottom:10px;}
+.crm-chart-title{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--clr-text-dim);margin-bottom:12px;letter-spacing:-.1px;}
 .crm-chart-empty{font-size:.75rem;color:var(--clr-text-faint);padding:20px 0;text-align:center;}
 .crm-chart-donut-wrap{display:flex;align-items:center;gap:16px;}
 .crm-donut-svg{flex-shrink:0;}

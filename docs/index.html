@@ -18,7 +18,7 @@
   <script src="js/firebase-init.js?v=5"></script>
   <script src="js/auth-service.js?v=1"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=22">
+  <link rel="stylesheet" href="css/main.css?v=23">
 </head>
 <body>
 
@@ -406,7 +406,7 @@
   <div class="crm-dash-card"><div class="crm-dash-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);">&#9203;</div><div><div class="crm-dash-label">Total Pendente</div><div class="crm-dash-value" id="crm-total-pending" style="color:#fcd34d;">R$ 0</div></div></div>
   <div class="crm-dash-card"><div class="crm-dash-icon" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);">&#128308;</div><div><div class="crm-dash-label">Atrasados</div><div class="crm-dash-value" id="crm-total-overdue" style="color:#fca5a5;">0</div></div></div>
   <div class="crm-dash-spacer"></div>
-  <div class="crm-dash-card"><button class="t-btn primary" onclick="openNewRecordModal()" style="white-space:nowrap;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Cliente</button></div>
+  <div class="crm-dash-card crm-dash-card-action"><button class="t-btn primary" onclick="openNewRecordModal()" style="white-space:nowrap;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Cliente</button></div>
 </div>
 
 <!-- CRM CHARTS -->
@@ -424,8 +424,8 @@
 <!-- CRM BOARD -->
 <div id="crm-board">
   <div class="crm-table-toolbar">
-    <span style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--clr-text);">Clientes</span>
-    <span id="crm-count-badge" style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:rgba(240,240,240,.3);background:var(--clr-border-faint);border-radius:20px;padding:2px 8px;"></span>
+    <span class="crm-toolbar-title">Clientes</span>
+    <span id="crm-count-badge" class="crm-count-badge"></span>
     <div class="crm-table-toolbar-spacer"></div>
     <div class="crm-search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
