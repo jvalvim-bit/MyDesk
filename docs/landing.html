@@ -23,14 +23,14 @@ body.page-ready{opacity:1;}
 @media(prefers-reduced-motion:reduce){body{transition:none;opacity:1;}}
 .hl{background:linear-gradient(135deg,#a5b4fc,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-/* ══ HERO BG — grade de pontos + glow radial indigo, estático ══ */
+/* ══ HERO BG — glow radial indigo + partículas animadas em canvas ══ */
 .hero-wrap{
   position:relative;overflow:hidden;padding-top:20px;
   background:
     radial-gradient(ellipse 65% 55% at 50% 18%, rgba(99,102,241,.22), transparent 70%),
-    radial-gradient(circle at 1px 1px, rgba(255,255,255,.075) 1px, transparent 0) 0 0/24px 24px,
     var(--bg);
 }
+.hero-particles{position:absolute;inset:0;z-index:0;pointer-events:none;}
 .hero-fade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 0%,transparent 55%,var(--bg) 100%);}
 
 /* ══ NAV ══ */
@@ -167,8 +167,6 @@ body.page-ready{opacity:1;}
 .lp-reveal.in-view{opacity:1;transform:none;}
 
 /* ══ MOVIMENTO — parallax no hero + entrada escalonada dos grupos ══ */
-.hero-wrap{will-change:transform;}
-.scene{will-change:transform;transition:transform .05s linear;}
 .hero{will-change:transform,opacity;}
 .nav{transition:background .25s ease,box-shadow .25s ease;}
 .nav.scrolled{background:rgba(4,4,9,.92);box-shadow:0 10px 30px rgba(0,0,0,.35);}
@@ -178,13 +176,13 @@ body.page-ready{opacity:1;}
 
 @media(prefers-reduced-motion:reduce){
   .lp-reveal,.stagger>*{transition:none!important;opacity:1!important;transform:none!important;}
-  .scene{transition:none!important;}
 }
 </style>
 </head>
 <body>
 
 <div class="hero-wrap">
+  <canvas class="hero-particles" id="hero-particles" aria-hidden="true"></canvas>
   <div class="hero-fade"></div>
 
   <nav class="nav">
@@ -468,6 +466,6 @@ body.page-ready{opacity:1;}
   </div>
 </div>
 
-<script src="js/landing.js?v=3"></script>
+<script src="js/landing.js?v=4"></script>
 </body>
 </html>
