@@ -2471,7 +2471,113 @@ function checkReminders() {
   });
 
   checkCRMOverdueTransitions();
+  updateEventsBadge();
 }
+
+/* ═══════════════════════════════════════════════════
+   PRÓXIMOS EVENTOS
+   Painel com notas e vencimentos de clientes que ainda
+   não venceram, dentro dos próximos 14 dias.
+═══════════════════════════════════════════════════ */
+function _upcomingEvents(days) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const limit = new Date(today); limit.setDate(limit.getDate() + days);
+  const items = [];
+
+  notes.forEach(n => {
+    if (!n.end) return;
+    const due = new Date(n.end + 'T00:00:00');
+    if (due >= today && due <= limit) {
+      items.push({ kind: 'note', id: n.id, title: n.title || 'Sem título', date: due });
+    }
+  });
+
+  if (Array.isArray(_records)) {
+    _records.forEach(r => {
+      if (!r.dueDate || r.status === 'paid') return;
+      const due = new Date(r.dueDate + 'T00:00:00');
+      if (due >= today && due <= limit) {
+        items.push({ kind: 'client', id: r.id, title: r.name || 'Cliente', date: due, value: r.value });
+      }
+    });
+  }
+
+  items.sort((a, b) => a.date - b.date);
+  return items;
+}
+
+function _relativeDay(date) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((date - today) / 86400000);
+  if (diff === 0) return 'Hoje';
+  if (diff === 1) return 'Amanhã';
+  return 'em ' + diff + ' dias';
+}
+
+function updateEventsBadge() {
+  const badge = document.getElementById('events-badge');
+  if (!badge) return;
+  const count = _upcomingEvents(7).length; // urgência: próximos 7 dias
+  if (count > 0) { badge.textContent = count; badge.style.display = 'flex'; }
+  else badge.style.display = 'none';
+}
+
+function renderEventsList() {
+  const host = document.getElementById('events-list');
+  if (!host) return;
+  const items = _upcomingEvents(14);
+
+  if (!items.length) {
+    host.innerHTML = '<div class="events-empty">Nenhum evento nos próximos 14 dias 🎉</div>';
+    return;
+  }
+
+  host.innerHTML = items.map(it => `
+    <div class="events-item" data-kind="${it.kind}" data-id="${it.id}">
+      <span class="events-item-icon">${it.kind === 'client' ? '💼' : '📝'}</span>
+      <div class="events-item-body">
+        <div class="events-item-title">${xe(it.title)}</div>
+        <div class="events-item-sub">${it.kind === 'client' && it.value ? xe(fmtBRL(it.value)) + ' · ' : ''}${_relativeDay(it.date)}</div>
+      </div>
+    </div>`).join('');
+
+  host.querySelectorAll('.events-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const { kind, id } = el.dataset;
+      document.getElementById('events-panel').classList.remove('open');
+      if (kind === 'client') {
+        if (!_crmMode) toggleCRMView();
+        setTimeout(() => openEditRecordModal(id), 150);
+      } else {
+        const noteEl = document.querySelector('.note[data-id="' + id + '"]');
+        if (noteEl) {
+          if (_crmMode) toggleCRMView();
+          bringFront(noteEl, notes.find(n => n.id == id));
+          noteEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          noteEl.classList.add('overdue-flash');
+          setTimeout(() => noteEl.classList.remove('overdue-flash'), 1300);
+        }
+      }
+    });
+  });
+}
+
+function toggleEventsPanel() {
+  const panel = document.getElementById('events-panel');
+  if (!panel) return;
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open', opening);
+  if (opening) renderEventsList();
+}
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('events-panel');
+  const btn   = document.getElementById('btn-events');
+  if (!panel || !panel.classList.contains('open')) return;
+  if (!panel.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
 
 function checkCRMOverdueTransitions() {
   if (typeof _records === 'undefined' || !_records.length) return;
