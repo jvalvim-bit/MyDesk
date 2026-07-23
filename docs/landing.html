@@ -61,13 +61,10 @@ body.page-ready{opacity:1;}
 .shot-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);}
 .shot-dot{width:9px;height:9px;border-radius:50%;}
 .shot-tag{margin-left:10px;font-size:.6rem;color:var(--text-faint);font-family:'JetBrains Mono',monospace;}
-.shot-body{position:relative;min-height:300px;background:radial-gradient(ellipse 80% 60% at 30% 30%,rgba(99,102,241,.08),transparent),#0a0a0a;overflow:hidden;}
-.shot-body::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.035) 1px,transparent 0);background-size:20px 20px;}
-.note{position:absolute;width:190px;border-radius:10px;padding:12px 14px;font-size:.72rem;box-shadow:0 10px 26px rgba(0,0,0,.5);}
-.note b{display:block;font-size:.78rem;margin:6px 0 4px;color:#fff;}
-.note .d{color:rgba(255,255,255,.4);font-size:.68rem;}
-.note .tag{display:inline-flex;align-items:center;gap:5px;font-size:.62rem;padding:2px 8px;border-radius:20px;margin-bottom:2px;}
-.note .tag i{width:5px;height:5px;border-radius:50%;}
+.shot-body{position:relative;min-height:300px;background:#0a0a0a;overflow:hidden;}
+.shot-img{display:block;width:100%;height:auto;transform-origin:50% 30%;animation:kenburns 20s ease-in-out infinite alternate;}
+@keyframes kenburns{0%{transform:scale(1) translate(0,0);}100%{transform:scale(1.07) translate(-1.2%,-1%);}}
+@media(prefers-reduced-motion:reduce){.shot-img{animation:none;}}
 
 /* ══ SECTION SHELL ══ */
 .section{max-width:1080px;margin:0 auto;padding:96px 6vw;}
@@ -213,21 +210,7 @@ body.page-ready{opacity:1;}
         <span class="shot-tag">app.mydesk</span>
       </div>
       <div class="shot-body">
-        <div class="note" style="top:16px;left:20px;background:#0f1029;border:1px solid rgba(99,102,241,.28);">
-          <span class="tag" style="background:rgba(99,102,241,.12);color:#a5b4fc;"><i style="background:#6366f1"></i>Indigo</span>
-          <b>Redesign do dashboard</b>
-          <div class="d">Prazo: 15/07</div>
-        </div>
-        <div class="note" style="top:24px;left:260px;background:#071a10;border:1px solid rgba(16,185,129,.25);">
-          <span class="tag" style="background:rgba(16,185,129,.1);color:#6ee7b7;"><i style="background:#10b981"></i>Emerald</span>
-          <b>Reunião com cliente</b>
-          <div class="d">Prazo: 18/07</div>
-        </div>
-        <div class="note" style="top:160px;left:90px;background:#1a0509;border:1px solid rgba(244,63,94,.28);">
-          <span class="tag" style="background:rgba(244,63,94,.1);color:#fda4af;"><i style="background:#f43f5e"></i>Rose</span>
-          <b>Bug crítico #482</b>
-          <div class="d">Vencido há 2d</div>
-        </div>
+        <img class="shot-img" src="screenshots/hero-app.png" alt="MyDesk em uso: board de notas com fundo personalizado, barra de ferramentas e chats abertos" loading="eager">
       </div>
     </div>
   </div>
