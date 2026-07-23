@@ -1,10 +1,20 @@
 'use strict';
 
-/* Landing page — sem autenticação, só scroll reveal e nav ativo.
-   O login/registro real vive em login.html. */
+/* Landing page — sem autenticação: reveal com stagger, parallax no
+   hero e nav que reage ao scroll. O login/registro real vive em
+   login.html. */
 window.addEventListener('DOMContentLoaded', () => {
-  // Scroll reveal — seções da landing entram com fade + slide sutil
-  const revealEls = document.querySelectorAll('.lp-reveal');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Escalona a entrada dos filhos diretos de .stagger (cards, steps, faq...)
+  document.querySelectorAll('.stagger').forEach(group => {
+    Array.from(group.children).forEach((child, i) => {
+      child.style.transitionDelay = (i * 70) + 'ms';
+    });
+  });
+
+  // Scroll reveal — .lp-reveal e .stagger entram com fade + slide sutil
+  const revealEls = document.querySelectorAll('.lp-reveal, .stagger');
   if (revealEls.length && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -30,5 +40,39 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }, { rootMargin: '-40% 0px -55% 0px' });
     sections.forEach(s => navIo.observe(s));
+  }
+
+  // Nav ganha fundo mais forte assim que sai do topo
+  const nav = document.querySelector('.nav');
+  if (nav) {
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 30);
+    }, { passive: true });
+  }
+
+  if (reduceMotion) return;
+
+  // Parallax do hero: a aurora se desloca mais devagar que a rolagem,
+  // e o texto some/encolhe suavemente conforme o hero sai de vista.
+  const heroWrap = document.querySelector('.hero-wrap');
+  const scene    = document.querySelector('.scene');
+  const heroText = document.querySelector('.hero');
+  if (heroWrap && scene && heroText) {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const heroH = heroWrap.offsetHeight || 1;
+        const progress = Math.min(1, y / (heroH * 0.85));
+        scene.style.transform    = 'translateY(' + (y * 0.22) + 'px)';
+        heroText.style.opacity   = String(1 - progress * 0.85);
+        heroText.style.transform = 'translateY(' + (progress * 34) + 'px) scale(' + (1 - progress * 0.04) + ')';
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
   }
 });
