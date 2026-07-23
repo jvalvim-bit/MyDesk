@@ -7029,11 +7029,17 @@ async function sendChatMessage(friend, text, file) {
   const key = chatKey(CU.username, friend);
 
   // 1. Save in shared chat log (both users read history from here)
-  await fbPush('chats/' + key + '/messages', msg);
+  try {
+    await fbPush('chats/' + key + '/messages', msg);
+  } catch (e) {
+    console.error('sendChatMessage:', e && e.message);
+    toast('⚠', 'Não foi possível enviar a mensagem. Tente novamente.');
+    return;
+  }
 
   // 2. Push to recipient inbox — guarantees delivery even if they're offline
   //    The inbox listener fires immediately if online, or on next login if not
-  await fbPush('inbox/' + friend, { type: 'chat_message', from: CU.username, payload: msg, ts: msg.ts });
+  await fbPush('inbox/' + friend, { type: 'chat_message', from: CU.username, payload: msg, ts: msg.ts }).catch(() => {});
 
   // 3. Show in sender's own window
   appendChatMessage(friend, msg);
@@ -7899,8 +7905,18 @@ async function startOrJoinCall(scope, key, title) {
   _addVideoTile(myKey, localStream, true, (CU.name || CU.username) + ' (você)');
 
   const myEntry = { joinedAt: Date.now(), username: CU.username, name: CU.name || CU.username };
-  await fbSet(basePath + '/participants/' + myKey, myEntry);
-  await fbUpdate(basePath, { active: true, startedBy: myKey, startedAt: Date.now() });
+  try {
+    await fbSet(basePath + '/participants/' + myKey, myEntry);
+    await fbUpdate(basePath, { active: true, startedBy: myKey, startedAt: Date.now() });
+  } catch (e) {
+    // Sem registrar presença ninguém nos vê — melhor abortar do que ficar numa sala solitária
+    console.error('startOrJoinCall:', e && e.message);
+    localStream.getTracks().forEach(t => t.stop());
+    closeCallOverlay();
+    _call = null;
+    toast('🚫', 'Não foi possível entrar na chamada. Tente novamente.');
+    return;
+  }
   ref(basePath + '/participants/' + myKey).onDisconnect().remove();
 
   _callOn(basePath + '/participants', 'child_added', snap => {
@@ -8768,15 +8784,60 @@ function removeGroupNote(id) {
 }
 
 /* ── Init social on login ── */
+/* Repara contas cujo cadastro não conseguiu gravar uids/usernames/perfil
+   (as escritas eram negadas quando o socket do RTDB ainda não estava
+   autenticado logo após criar a conta, e os erros eram engolidos).
+   Sem uids/{uid}, as regras negam chat, inbox e sinalização de chamada —
+   o usuário enxerga só o que ele mesmo produz localmente. */
+async function ensureIdentity() {
+  if (!CU || !CU.uid || String(CU.uid).startsWith('demo_') || !_fbReady) return;
+  const retry = async (fn, tries = 5) => {
+    let wait = 300;
+    for (let i = 0; i < tries; i++) {
+      try { return await fn(); }
+      catch (e) {
+        if (i === tries - 1) throw e;
+        await new Promise(r => setTimeout(r, wait));
+        wait = Math.min(wait * 2, 2000);
+      }
+    }
+  };
+  try {
+    let mapped = await retry(() => fbGet('uids/' + CU.uid));
+    if (!mapped) {
+      let username = CU.username;
+      try {
+        const tx = await retry(() => _db.ref('usernames/' + username).transaction(v =>
+          (v === null || v === CU.uid) ? CU.uid : undefined));
+        if (!tx.committed) username = CU.uid; // nome já é de outra conta
+      } catch (_) { username = CU.uid; }
+      await retry(() => fbSet('uids/' + CU.uid, username));
+      mapped = username;
+    }
+    // As regras confiam no mapeamento uids — o app precisa usar o mesmo nome
+    if (mapped !== CU.username) CU.username = mapped;
+    const existing = await fbGet('users/' + mapped + '/profile').catch(() => null);
+    if (!existing || !existing.name) {
+      const profile = { name: CU.name || mapped, role: CU.role || '', email: CU.email || '', uid: CU.uid, username: mapped };
+      await retry(() => fbSet('users/' + CU.uid + '/profile', profile)).catch(() => {});
+      await retry(() => fbSet('users/' + mapped + '/profile', profile)).catch(() => {});
+    }
+  } catch (e) { console.warn('ensureIdentity:', e && e.message); }
+}
+
 async function initSocialChannel() {
   await loadFirebase();
-  // Sync user profile to Firebase so others can find us
-  const localPhoto = await fbGet('users/' + CU.username + '/profile/photo');
-  await fbSet('users/' + CU.username + '/profile', {
-    name: CU.name,
-    role: CU.role || '',
-    photo: localPhoto || null
-  });
+  await ensureIdentity();
+  // Sync user profile to Firebase so others can find us — nunca pode
+  // impedir os listeners de subir, então falha aqui é só logada
+  try {
+    const localPhoto = await fbGet('users/' + CU.username + '/profile/photo');
+    await fbUpdate('users/' + CU.username + '/profile', {
+      name: CU.name,
+      role: CU.role || '',
+      photo: localPhoto || null
+    });
+  } catch (e) { console.warn('profile sync:', e && e.message); }
   initSocialListeners();
 }
 

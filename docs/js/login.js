@@ -96,6 +96,21 @@ function getAuth() { return _auth || window._fbAuth || null; }
 function fbGet(path) { return _db.ref(path).once('value').then(s => s.val()); }
 function fbSet(path, val) { return _db.ref(path).set(val); }
 
+/* Logo após criar a conta, o socket do RTDB pode ainda não estar
+   autenticado — a primeira escrita chega ao servidor como anônima e é
+   negada pelas regras. Retry com backoff dá tempo do token anexar. */
+async function fbRetry(fn, tries = 6) {
+  let wait = 300;
+  for (let i = 0; i < tries; i++) {
+    try { return await fn(); }
+    catch (e) {
+      if (i === tries - 1) throw e;
+      await new Promise(r => setTimeout(r, wait));
+      wait = Math.min(wait * 2, 2000);
+    }
+  }
+}
+
 /* ── Mensagens de erro Firebase, traduzidas ── */
 const AUTH_ERR_MSGS = {
   'auth/email-already-in-use':      'Este e-mail já está cadastrado.',
@@ -208,26 +223,30 @@ async function doRegister() {
 
     let claimed = false;
     try {
-      const tx = await _db.ref('usernames/' + user).transaction(val => {
+      const tx = await fbRetry(() => _db.ref('usernames/' + user).transaction(val => {
         if (val === null) return uid;
         if (val === uid)  return uid;
         return undefined;
-      });
+      }));
       claimed = tx.committed;
     } catch (_) { claimed = false; }
 
-    const profile = { name, role: '', email, uid, username: claimed ? user : uid };
-    await _db.ref().update({
-      ['uids/' + uid]:                          claimed ? user : uid,
-      ['users/' + uid + '/profile']:            profile,
-      ['users/' + (claimed ? user : uid) + '/profile']: profile,
-    }).catch(async () => {
-      await fbSet('uids/' + uid, claimed ? user : uid).catch(() => {});
-      await fbSet('users/' + uid + '/profile', profile).catch(() => {});
-      await fbSet('users/' + (claimed ? user : uid) + '/profile', profile).catch(() => {});
-    });
+    const username = claimed ? user : uid;
+    const profile  = { name, role: '', email, uid, username };
 
-    goToApp({ uid, username: profile.username, name, role: '', email });
+    // Ordem importa: uids/{uid} PRIMEIRO — as regras de chat, inbox,
+    // chamadas e do perfil por username dependem desse mapeamento.
+    // Escritas sequenciais (o update multi-path atômico era negado:
+    // a regra de users/{username} exige o uids que ele mesmo criava).
+    try {
+      await fbRetry(() => fbSet('uids/' + uid, username));
+    } catch (e) {
+      console.error('Registro: falha ao gravar uids/', e);
+    }
+    await fbRetry(() => fbSet('users/' + uid + '/profile', profile)).catch(e => console.error('Registro: perfil(uid)', e));
+    await fbRetry(() => fbSet('users/' + username + '/profile', profile)).catch(e => console.error('Registro: perfil(username)', e));
+
+    goToApp({ uid, username, name, role: '', email });
 
   } catch (e) {
     console.error('Register error:', e);
@@ -322,10 +341,10 @@ async function doGoogleLogin() {
       const displayName = user.displayName || (user.email || '').split('@')[0];
       username = await deriveUsername(user.email || user.uid);
       const profile = { name: displayName, role: '', email: user.email || '', uid: user.uid, username, photo: user.photoURL || null };
-      await fbSet('usernames/' + username, user.uid);
-      await fbSet('uids/' + user.uid, username);
-      await fbSet('users/' + user.uid + '/profile', profile);
-      await fbSet('users/' + username + '/profile', profile);
+      await fbRetry(() => fbSet('usernames/' + username, user.uid));
+      await fbRetry(() => fbSet('uids/' + user.uid, username));
+      await fbRetry(() => fbSet('users/' + user.uid + '/profile', profile));
+      await fbRetry(() => fbSet('users/' + username + '/profile', profile));
       goToApp({ uid: user.uid, username, name: displayName, role: '', email: user.email || '' });
     } else {
       let profile = await fbGet('users/' + user.uid + '/profile').catch(() => null)
