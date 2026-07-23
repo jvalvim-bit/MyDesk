@@ -177,6 +177,19 @@ h1{font-size:26px;font-weight:700;letter-spacing:-.032em;margin-bottom:20px;
 .ctrl input{flex:1;min-width:0;background:transparent;border:0;outline:0;
   font-family:inherit;font-size:14.5px;color:#fff;letter-spacing:-.006em}
 .ctrl input::placeholder{color:rgba(255,255,255,.38)}
+/* o navegador força fundo branco em campos com autofill (e-mail/senha
+   salvos) — sobrescreve pra manter o preto fosco do design */
+.ctrl input:-webkit-autofill,
+.ctrl input:-webkit-autofill:hover,
+.ctrl input:-webkit-autofill:focus,
+.ctrl input:-webkit-autofill:active,
+.ctrl input:autofill{
+  -webkit-text-fill-color:#fff;
+  -webkit-box-shadow:0 0 0 1000px #16161b inset;
+  box-shadow:0 0 0 1000px #16161b inset;
+  caret-color:#fff;
+  transition:background-color 5000s ease-in-out 0s;
+}
 .ctrl>svg{flex:none;color:rgba(255,255,255,.42)}
 .eye{background:none;border:0;cursor:pointer;color:rgba(255,255,255,.4);padding:4px;display:grid;place-items:center}
 .eye:hover{color:#fff}
