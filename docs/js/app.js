@@ -4545,6 +4545,8 @@ function toast(icon,msg){
 
 /* ═══ INIT ═══════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => document.body.classList.add('page-ready'));
+
   // On mobile: scroll auth-screen to top so login is visible
   const authScreen = document.getElementById('auth-screen');
   if (authScreen) authScreen.scrollTop = 0;

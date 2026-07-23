@@ -24,11 +24,10 @@ if (window.CSS && CSS.registerProperty) {
       @keyframes hue{to{--ang:528deg}}
       .aurora,.haze{animation:hue 22s linear infinite, sway 9s ease-in-out infinite alternate!important}
       .aurora{background:conic-gradient(from var(--ang),
-        #0a1856 0deg,#1d3fd6 30deg,#5a35d9 58deg,#a531c4 84deg,#e0603a 106deg,
-        #f2b04a 124deg,#4fdba4 150deg,#1f86dc 180deg,#17246a 214deg,#0a1856 360deg)}
+        #0a1856 0deg,#2c3ea8 60deg,#4f46e5 110deg,#6366f1 150deg,#8b5cf6 200deg,
+        #14b8a6 270deg,#0d3a5f 320deg,#0a1856 360deg)}
       .haze{background:conic-gradient(from var(--ang),
-        #16256e 0deg,#2c46c8 40deg,#7b3ad2 78deg,#cf4a8e 104deg,#e07a3c 126deg,
-        #43c8a0 156deg,#1c6fc4 190deg,#16256e 360deg)}`;
+        #16256e 0deg,#2c46c8 70deg,#6d28d9 150deg,#0d9488 250deg,#16256e 360deg)}`;
     document.head.appendChild(s);
   } catch (e) {}
 }
@@ -146,13 +145,19 @@ async function deriveUsername(email) {
   return candidate;
 }
 
+/* ── Navegação com fade — some a página antes de trocar de URL ── */
+function goTo(url) {
+  document.body.classList.remove('page-ready');
+  setTimeout(() => { window.location.href = url; }, 380);
+}
+
 /* ── Redirecionar para o app após login ── */
 function goToApp(userData) {
   if (userData && userData.uid && userData.uid.startsWith('demo_')) {
     localStorage.setItem('md_sess_demo', JSON.stringify(userData));
   }
   sessionStorage.setItem('_md_just_logged_in', '1');
-  window.location.href = 'index.html';
+  goTo('index.html');
 }
 
 /* ── Registro ── */
@@ -326,11 +331,13 @@ form.addEventListener('submit', e => {
 
 $('btn-google').addEventListener('click', doGoogleLogin);
 $('btn-apple').addEventListener('click', () => fail('Login com Apple em breve por aqui — use e-mail ou Google por enquanto.'));
-$('close').addEventListener('click', () => window.location.assign('landing.html'));
+$('close').addEventListener('click', () => goTo('landing.html'));
 addEventListener('keydown', e => { if (e.key === 'Escape') $('close').click(); });
 
 /* ── Guard: se já autenticado, ir direto para o app ── */
 window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => document.body.classList.add('page-ready'));
+
   const sess = localStorage.getItem('md_sess_demo');
   if (sess) {
     try { const u = JSON.parse(sess); if (u?.username) { window.location.href = 'index.html'; return; } }

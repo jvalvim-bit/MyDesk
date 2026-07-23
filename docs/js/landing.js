@@ -3,7 +3,17 @@
 /* Landing page — sem autenticação: reveal com stagger, parallax no
    hero e nav que reage ao scroll. O login/registro real vive em
    login.html. */
+
+/* Navegação com fade: some a página antes de trocar de URL — usado
+   por todos os botões/links que levam ao login. */
+function goTo(url) {
+  document.body.classList.remove('page-ready');
+  setTimeout(() => { window.location.href = url; }, 380);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => document.body.classList.add('page-ready'));
+
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Escalona a entrada dos filhos diretos de .stagger (cards, steps, faq...)
