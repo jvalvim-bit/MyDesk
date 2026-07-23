@@ -1809,6 +1809,7 @@ function openStatusMenu(noteEl, n, pillEl) {
       e.stopPropagation();
       n.status = opt.key;
       applyNoteStatus(noteEl, opt.key);
+      _handleSmartStackTransition(n, opt.key);
       saveNotes();
       menu.remove(); _openStatusMenu = null;
     });
@@ -1987,7 +1988,73 @@ function removeStackTitle(stackId) {
   if (!CU) return;
   const titles = getStackTitles();
   delete titles[stackId];
+  delete titles[stackId + '_smart'];
   localStorage.setItem('md_stktitles_' + CU.username, JSON.stringify(titles));
+}
+
+/* ── Pilhas inteligentes: renomear uma pilha para "Encerrado" ou
+   "Concluído" transforma ela numa pasta que auto-recebe qualquer nota
+   cujo status mude pra esse mesmo estado, e libera qualquer nota que
+   deixe de estar finalizada — tudo automático, sem precisar arrastar. ── */
+function _smartStackKind(title) {
+  const t = (title || '').trim().toLowerCase();
+  if (!t) return null;
+  // Cobre os 4 idiomas suportados pelo app (pt/en/es/fr), já que o usuário
+  // pode estar em qualquer um deles ao renomear a pilha.
+  if (['concluído','concluido','done','completado','terminé','termine'].includes(t)) return 'done';
+  if (['encerrado','closed','cerrado','clôturé','cloture'].includes(t)) return 'closed';
+  return null;
+}
+function isSmartStack(stackId) {
+  return !!getStackTitles()[stackId + '_smart'];
+}
+function findSmartStackId(kind) {
+  const titles = getStackTitles();
+  for (const k in titles) {
+    if (k.endsWith('_smart') && titles[k] === kind) return k.slice(0, -'_smart'.length);
+  }
+  return null;
+}
+// Move `n` pra dentro da pilha `targetStackId`, saindo de qualquer pilha anterior primeiro.
+function _moveNoteIntoStack(n, targetStackId) {
+  if (n.stackId === targetStackId) return;
+
+  if (n.stackId) {
+    const oldStackId = n.stackId;
+    n.stackId = null; n.stackOrder = null;
+    const remaining = getStackNotes(oldStackId);
+    document.querySelector('.stack-wrap[data-stack="'+oldStackId+'"]')?.remove();
+    if (remaining.length >= 2 || (remaining.length === 1 && isSmartStack(oldStackId))) {
+      renderStack(oldStackId);
+    } else if (remaining.length === 1) {
+      const last = remaining[0]; last.stackId = null; last.stackOrder = null;
+      const lastEl = document.querySelector('.note[data-id="'+last.id+'"]');
+      if (lastEl) { lastEl.style.display=''; lastEl.style.position='absolute'; lastEl.style.left=last.x+'px'; lastEl.style.top=last.y+'px'; document.getElementById('board').appendChild(lastEl); }
+      removeStackTitle(oldStackId);
+    }
+  }
+
+  const targetMembers = getStackNotes(targetStackId);
+  const anchor = targetMembers[0] || n;
+  n.stackId    = targetStackId;
+  n.stackOrder = targetMembers.length;
+  n.x = anchor.x;
+  n.y = anchor.y;
+
+  saveNotes();
+  if (_activeGroupWs) saveGroupNote(n);
+  else if (_activeWs)  saveSharedNote(n);
+  renderStack(targetStackId);
+}
+// Chamado sempre que o usuário muda o status de uma nota manualmente.
+function _handleSmartStackTransition(n, newStatus) {
+  if (newStatus === 'done' || newStatus === 'closed') {
+    const targetStackId = findSmartStackId(newStatus);
+    if (targetStackId && n.stackId !== targetStackId) _moveNoteIntoStack(n, targetStackId);
+  } else if (n.stackId && isSmartStack(n.stackId)) {
+    // Deixou de estar finalizada enquanto estava numa pasta inteligente → sai dela
+    unstackNote(n);
+  }
 }
 
 function openStackHeaderColorPicker(anchor, stackId, barEl) {
@@ -2092,8 +2159,9 @@ function stackNotes(dragN, targetN) {
     dragN.stackId = null; dragN.stackOrder = null;
     const remaining = getStackNotes(oldStackId);
     document.querySelector('.stack-wrap[data-stack="'+oldStackId+'"]')?.remove();
-    if (remaining.length >= 2) renderStack(oldStackId);
-    else if (remaining.length === 1) {
+    if (remaining.length >= 2 || (remaining.length === 1 && isSmartStack(oldStackId))) {
+      renderStack(oldStackId);
+    } else if (remaining.length === 1) {
       const last = remaining[0]; last.stackId = null; last.stackOrder = null;
       const lastEl = document.querySelector('.note[data-id="'+last.id+'"]');
       if (lastEl) { lastEl.style.display=''; lastEl.style.position='absolute'; lastEl.style.left=last.x+'px'; lastEl.style.top=last.y+'px'; document.getElementById('board').appendChild(lastEl); }
@@ -2211,7 +2279,30 @@ function renderStack(stackId) {
   const titleInp = header.querySelector('.stack-header-title');
   titleInp.addEventListener('click',  e => e.stopPropagation());
   titleInp.addEventListener('mousedown', e => e.stopPropagation());
-  titleInp.addEventListener('change', () => saveStackTitle(stackId, titleInp.value.trim()));
+  titleInp.addEventListener('change', () => {
+    const newTitle = titleInp.value.trim();
+    saveStackTitle(stackId, newTitle);
+
+    const kind = _smartStackKind(newTitle);
+    const titles = getStackTitles();
+    if (kind) titles[stackId + '_smart'] = kind; else delete titles[stackId + '_smart'];
+    localStorage.setItem('md_stktitles_' + CU.username, JSON.stringify(titles));
+
+    if (kind) {
+      // Virou pasta inteligente "Encerrado"/"Concluído" — tudo que já está
+      // dentro dela passa a ser finalizado nesse mesmo status.
+      let changed = false;
+      getStackNotes(stackId).forEach(n => {
+        if (n.status !== kind) {
+          n.status = kind;
+          const el = document.querySelector('.note[data-id="'+n.id+'"]');
+          if (el) applyNoteStatus(el, kind);
+          changed = true;
+        }
+      });
+      if (changed) { saveNotes(); renderStack(stackId); }
+    }
+  });
   titleInp.addEventListener('keydown', e => { if (e.key === 'Enter') titleInp.blur(); });
 
   // Make header draggable (moves whole stack)
@@ -2369,7 +2460,7 @@ function unstackNote(n) {
   // Re-render or dissolve remaining stack
   const remaining = getStackNotes(stackId);
   wrap?.remove();
-  if (remaining.length >= 2) {
+  if (remaining.length >= 2 || (remaining.length === 1 && isSmartStack(stackId))) {
     renderStack(stackId);
   } else if (remaining.length === 1) {
     const last = remaining[0];
