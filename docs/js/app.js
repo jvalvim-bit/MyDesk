@@ -4026,6 +4026,11 @@ const WP_GRADS = [
 let wpPanelOpen = false;
 let activeWpKey = null; // tracks which swatch is active
 
+// ── COLEÇÃO — imagens de fundo prontas (bundladas no app, sem upload) ──
+const WP_GALLERY = [
+  { key: 'gallery_city_sunset', label: 'Cidade ao pôr do sol', url: 'screenshots/wp-city-sunset.jpg' },
+];
+
 // ── PIXEL ART THEMES (animated) ──────────────────────────
 let _pixelAnimId = null;
 let _pixelTick = 0;
@@ -4497,6 +4502,17 @@ function buildWpPanel() {
     wrap.addEventListener('click', () => applyWallpaper({ type: 'pixel', value: theme.key, key: theme.key }));
     pixelsEl.appendChild(wrap);
   });
+  // coleção de imagens prontas
+  const galleryEl = document.getElementById('wp-gallery');
+  WP_GALLERY.forEach(item => {
+    const d = document.createElement('div');
+    d.className = 'wp-gallery-swatch';
+    d.style.backgroundImage = 'url(' + item.url + ')';
+    d.dataset.wpKey = item.key;
+    d.title = item.label;
+    d.addEventListener('click', () => applyWallpaper({ type: 'image', value: item.url, key: item.key }));
+    galleryEl.appendChild(d);
+  });
 }
 
 /* ── WALLPAPER — uses IndexedDB for images (no quota limit),
@@ -4594,12 +4610,14 @@ async function applyWallpaper(wp, skipSave) {
   _applyWpVisual(wp);
 
   if (!skipSave && CU) {
-    if (wp.type === 'image') {
-      // ── Store original Blob in IndexedDB — no compression, full quality ──
+    if (wp.type === 'image' && wp.blob) {
+      // ── Custom upload — store original Blob in IndexedDB, no compression ──
       await _wpIdbSave(CU.username, wp.blob);
       // Only tiny metadata goes to localStorage
       localStorage.setItem('md_wp_' + CU.username, JSON.stringify({ type: 'image', key: null }));
     } else {
+      // Solid / gradient / pixel / coleção (imagem pronta bundlada, só a URL) —
+      // nada de Blob aqui, então nunca precisa do IndexedDB.
       await _wpIdbDelete(CU.username);
       localStorage.setItem('md_wp_' + CU.username, JSON.stringify({ type: wp.type, value: wp.value, key: wp.key || null }));
     }
@@ -4613,7 +4631,8 @@ async function loadWallpaper() {
     if (!raw) return;
     const meta = JSON.parse(raw);
 
-    if (meta.type === 'image') {
+    if (meta.type === 'image' && !meta.value) {
+      // Custom upload (sem value = Blob salvo no IndexedDB) —
       // Blob → FileReader dataURL so background-image: url() always works
       // (objectURL expires when tab closes; dataURL is self-contained)
       const db = await _wpIdb();
