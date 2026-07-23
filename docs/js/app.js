@@ -7764,7 +7764,11 @@ async function startOrJoinCall(scope, key, title) {
   const basePath = _callBasePath(scope, key);
   const myKey    = CU.username;
 
-  _call = { basePath, myKey, scope, key, peers: new Map(), localStream, listeners: [], camOn: true, micOn: true };
+  _call = {
+    basePath, myKey, scope, key, peers: new Map(), localStream, listeners: [],
+    camOn: true, micOn: true, sharingScreen: false,
+    camTrack: localStream.getVideoTracks()[0] || null, screenTrack: null,
+  };
 
   openCallOverlay(title);
   _addVideoTile(myKey, localStream, true, (CU.name || CU.username) + ' (você)');
@@ -7802,11 +7806,14 @@ async function startOrJoinCall(scope, key, title) {
 
 async function leaveCall() {
   if (!_call) return;
-  const { basePath, myKey, peers, localStream, listeners } = _call;
+  const { basePath, myKey, peers, localStream, listeners, camTrack, screenTrack } = _call;
 
   listeners.forEach(({ r, event, fn }) => r.off(event, fn));
   peers.forEach(pc => pc.close());
   localStream.getTracks().forEach(t => t.stop());
+  // Se estava compartilhando tela, a câmera original ficou fora do localStream atual — para ela também
+  camTrack?.stop();
+  screenTrack?.stop();
 
   ref(basePath + '/participants/' + myKey).onDisconnect().cancel();
   await fbRemove(basePath + '/participants/' + myKey).catch(() => {});
@@ -7833,6 +7840,58 @@ function toggleCallCam() {
   _call.localStream.getVideoTracks().forEach(t => t.enabled = _call.camOn);
   const btn = document.getElementById('call-btn-cam');
   if (btn) btn.classList.toggle('off', !_call.camOn);
+}
+
+/* Compartilhar/espelhar a tela — troca a track de vídeo enviada a todos
+   os participantes (via RTCRtpSender.replaceTrack, sem renegociar SDP)
+   e volta pra câmera quando desligado ou quando o próprio navegador
+   encerra o compartilhamento (botão nativo "Parar apresentação"). */
+async function toggleCallScreenShare() {
+  if (!_call) return;
+  const btn = document.getElementById('call-btn-screen');
+
+  if (_call.sharingScreen) {
+    _call.screenTrack?.stop();
+    _call.screenTrack = null;
+    _call.sharingScreen = false;
+    if (btn) btn.classList.remove('active');
+
+    const camTrack = _call.camTrack;
+    if (camTrack) {
+      _call.peers.forEach(pc => {
+        const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+        if (sender) sender.replaceTrack(camTrack).catch(() => {});
+      });
+      const newLocal = new MediaStream([camTrack, ..._call.localStream.getAudioTracks()]);
+      _call.localStream = newLocal;
+      _addVideoTile(_call.myKey, newLocal, true, (CU.name || CU.username) + ' (você)');
+    }
+    return;
+  }
+
+  let screenStream;
+  try {
+    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+  } catch (_) {
+    return; // usuário cancelou o seletor de tela/janela
+  }
+
+  const screenTrack = screenStream.getVideoTracks()[0];
+  _call.screenTrack = screenTrack;
+  _call.sharingScreen = true;
+  if (btn) btn.classList.add('active');
+
+  _call.peers.forEach(pc => {
+    const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+    if (sender) sender.replaceTrack(screenTrack).catch(() => {});
+  });
+
+  const newLocal = new MediaStream([screenTrack, ..._call.localStream.getAudioTracks()]);
+  _call.localStream = newLocal;
+  _addVideoTile(_call.myKey, newLocal, true, (CU.name || CU.username) + ' (você) · tela');
+
+  // Encerrou pelo controle nativo do navegador ("Parar apresentação") → volta pra câmera
+  screenTrack.onended = () => { if (_call?.sharingScreen) toggleCallScreenShare(); };
 }
 
 /* ── UI da chamada ── */

@@ -18,7 +18,7 @@
   <script src="js/firebase-init.js?v=5"></script>
   <script src="js/auth-service.js?v=1"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=21">
+  <link rel="stylesheet" href="css/main.css?v=22">
 </head>
 <body>
 
@@ -476,6 +476,7 @@
   <div class="call-controls">
     <button id="call-btn-mic" class="call-ctrl-btn" title="Mudo" onclick="toggleCallMic()">&#127908;&#65039;</button>
     <button id="call-btn-cam" class="call-ctrl-btn" title="Camera" onclick="toggleCallCam()">&#128247;</button>
+    <button id="call-btn-screen" class="call-ctrl-btn" title="Compartilhar tela" onclick="toggleCallScreenShare()">&#128421;&#65039;</button>
     <button id="call-btn-leave" class="call-ctrl-btn leave" title="Sair da chamada" onclick="leaveCall()">&#128222;</button>
   </div>
 </div>
@@ -605,6 +606,6 @@
 <!-- TOAST -->
 <div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
 
-<script src="js/app.js?v=21" defer></script>
+<script src="js/app.js?v=22" defer></script>
 </body>
 </html>
