@@ -52,7 +52,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-
 .hero{position:relative;z-index:2;max-width:760px;margin:0 auto;padding:88px 6vw 64px;text-align:center;}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.68rem;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent-light);margin-bottom:22px;}
 .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
-.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.3rem,5.4vw,3.6rem);line-height:1.1;letter-spacing:-1.5px;margin:0 0 20px;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.1rem,5vw,3.4rem);line-height:1.35;letter-spacing:-1px;margin:0 0 26px;}
 .hero p{font-size:1.02rem;color:var(--text-dim);max-width:520px;margin:0 auto 34px;line-height:1.7;}
 .hero-ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:64px;}
 .btn-fill{background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:13px 26px;font-size:.9rem;font-weight:700;cursor:pointer;}
@@ -87,20 +87,17 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-
 .section-head p{font-size:.95rem;color:var(--text-dim);line-height:1.7;margin:0;}
 .divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);max-width:1080px;margin:0 auto;}
 
-/* ══ FEATURE CATALOG — organizado por categoria, cartão único e consistente ══ */
-.cat{margin-bottom:56px;}
-.cat:last-child{margin-bottom:0;}
-.cat-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
-.cat-head h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin:0;}
-.cat-head span{font-size:.74rem;color:var(--text-faint);}
-.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.fcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s,transform .2s;}
-.fcard:hover{border-color:var(--border-hover);transform:translateY(-2px);}
-.fcard .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;background:rgba(99,102,241,.14);margin-bottom:14px;}
-.fcard h4{font-size:.87rem;font-weight:700;margin:0 0 6px;}
-.fcard p{font-size:.78rem;color:var(--text-dim);line-height:1.6;margin:0;}
-@media(max-width:860px){.fgrid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:560px){.fgrid{grid-template-columns:1fr;}}
+/* ══ RECURSOS — 4 pilares explicados, não uma grade de mini-cards ══ */
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.pillar{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;transition:border-color .2s;}
+.pillar:hover{border-color:var(--border-hover);}
+.pillar .ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:rgba(99,102,241,.14);margin-bottom:16px;}
+.pillar h3{font-size:1.05rem;font-weight:700;margin:0 0 10px;font-family:'Syne',sans-serif;}
+.pillar p{font-size:.85rem;color:var(--text-dim);line-height:1.75;margin:0 0 16px;}
+.pillar-note{color:var(--accent-light);}
+.pillar-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.pillar-tags span{font-size:.7rem;color:var(--text-faint);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:5px 12px;}
+@media(max-width:760px){.pillars{grid-template-columns:1fr;}}
 
 /* ══ STEPS ══ */
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-bottom:8px;}
@@ -243,57 +240,36 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-
   <div class="section-head">
     <div class="eyebrow"><span class="dot"></span>Recursos</div>
     <h2>Tudo que o MyDesk faz,<br><span class="hl">em um só lugar.</span></h2>
-    <p>Sem dez ferramentas diferentes. Cada recurso abaixo já vem incluído — veja exatamente o que você leva.</p>
+    <p>Quatro pilares, sem dez ferramentas diferentes.</p>
   </div>
 
-  <div class="cat">
-    <div class="cat-head"><h3>Notas &amp; Organização</h3><span>o board em si</span></div>
-    <div class="fgrid">
-      <div class="fcard"><div class="ic">🗂️</div><h4>Cards de notas livres</h4><p>Arraste, redimensione e posicione cada nota em qualquer lugar do board.</p></div>
-      <div class="fcard"><div class="ic">🎨</div><h4>19 paletas de cor</h4><p>Cada paleta coordena fundo, barra e chip pra um visual consistente.</p></div>
-      <div class="fcard"><div class="ic">📚</div><h4>Pilhas inteligentes</h4><p>Arraste uma nota sobre outra pra empilhar. Renomeie pra "Concluído" e elas se organizam sozinhas.</p></div>
-      <div class="fcard"><div class="ic">⚡</div><h4>Reorganizar com 1 clique</h4><p>Um botão alinha pilhas e cards em grid limpo, sem sobreposição.</p></div>
-      <div class="fcard"><div class="ic">🔔</div><h4>Prazos e lembretes</h4><p>Datas de início e vencimento com alertas automáticos antes de vencer.</p></div>
-      <div class="fcard"><div class="ic">📎</div><h4>Arquivos anexados</h4><p>PDFs e imagens até 5MB, com visualizador embutido — zoom e pan incluídos.</p></div>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="ic">🗂️</div>
+      <h3>Notas que se organizam sozinhas</h3>
+      <p>Cada nota é um card livre: arraste, redimensione e escolha entre 19 paletas de cor. Empilhe notas relacionadas arrastando uma sobre a outra, defina prazos com lembretes automáticos e, quando o board bagunçar, um botão realinha tudo em grid.</p>
+      <div class="pillar-tags"><span>Pilhas inteligentes</span><span>Reorganizar com 1 clique</span><span>Arquivos anexados</span></div>
     </div>
-  </div>
 
-  <div class="cat">
-    <div class="cat-head"><h3>Workspaces</h3><span>sozinho ou em equipe</span></div>
-    <div class="fgrid">
-      <div class="fcard"><div class="ic">🧍</div><h4>Workspace pessoal</h4><p>Crie quantos boards privados quiser — Trabalho, Estudos, Projetos.</p></div>
-      <div class="fcard"><div class="ic">👥</div><h4>Workspace de grupo</h4><p>Convide um amigo ou monte um workspace de equipe, sincronizado ao vivo.</p></div>
-      <div class="fcard"><div class="ic">🔀</div><h4>Troca com 1 clique</h4><p>Alterne entre workspaces sem trocar de conta ou perder contexto.</p></div>
+    <div class="pillar">
+      <div class="ic" style="background:rgba(20,184,166,.14);">💬</div>
+      <h3>Colabore em tempo real</h3>
+      <p>Adicione qualquer pessoa pelo @usuário e converse por chat com texto, imagem e arquivos — mensagens chegam mesmo se ela estava offline. Quando precisar, inicie uma videochamada 1:1 ou em grupo, com tela compartilhada.</p>
+      <div class="pillar-tags"><span>Chat flutuante</span><span>Vídeo + tela compartilhada</span></div>
     </div>
-  </div>
 
-  <div class="cat">
-    <div class="cat-head"><h3>Colaboração</h3><span>chat e chamadas</span></div>
-    <div class="fgrid">
-      <div class="fcard"><div class="ic">👋</div><h4>Amigos por @usuário</h4><p>Adicione qualquer pessoa pelo login. Aceite ou recuse pedidos com um clique.</p></div>
-      <div class="fcard"><div class="ic">💬</div><h4>Chat em tempo real</h4><p>Janelas flutuantes com texto, imagem e arquivos — mensagens offline entregues ao reconectar.</p></div>
-      <div class="fcard"><div class="ic">📹</div><h4>Videochamada</h4><p>1:1 ou em grupo, com compartilhamento de tela e janela redimensionável.</p></div>
+    <div class="pillar">
+      <div class="ic" style="background:rgba(245,158,11,.14);">💰</div>
+      <h3>CRM financeiro embutido</h3>
+      <p>Cadastre clientes e acompanhe recebíveis num painel só: total esperado, recebido, pendente e atrasado, com gráficos que atualizam sozinhos. Sem precisar de uma planilha ou ferramenta separada. <span class="pillar-note">Plano Premium.</span></p>
+      <div class="pillar-tags"><span>Dashboard ao vivo</span><span>Busca de clientes</span></div>
     </div>
-  </div>
 
-  <div class="cat">
-    <div class="cat-head"><h3>CRM Financeiro</h3><span>plano Premium</span></div>
-    <div class="fgrid">
-      <div class="fcard"><div class="ic">💰</div><h4>Dashboard de clientes</h4><p>Total esperado, recebido, pendente e atrasado — tudo visível de uma vez.</p></div>
-      <div class="fcard"><div class="ic">📊</div><h4>Gráficos em tempo real</h4><p>Distribuição por status e vencimentos por mês, atualizados automaticamente.</p></div>
-      <div class="fcard"><div class="ic">🔍</div><h4>Busca de clientes</h4><p>Cadastre e encontre qualquer cliente em segundos.</p></div>
-    </div>
-  </div>
-
-  <div class="cat">
-    <div class="cat-head"><h3>Personalização &amp; Segurança</h3><span>seu ambiente, protegido</span></div>
-    <div class="fgrid">
-      <div class="fcard"><div class="ic">🖼️</div><h4>Fundo personalizado</h4><p>Cores, gradientes, imagens ou vídeo em loop — cada conta com seu próprio ambiente.</p></div>
-      <div class="fcard"><div class="ic">🗓️</div><h4>Google &amp; Outlook Calendar</h4><p>Sincronize eventos com Google Agenda, Outlook ou qualquer arquivo .ics.</p></div>
-      <div class="fcard"><div class="ic">🔐</div><h4>Autenticação Firebase</h4><p>Login seguro na nuvem. Senhas nunca em texto puro — só tokens criptografados.</p></div>
-      <div class="fcard"><div class="ic">🔒</div><h4>Dados isolados por conta</h4><p>Suas notas ficam em /users/{uid} — só você acessa.</p></div>
-      <div class="fcard"><div class="ic">🛡️</div><h4>Validação de arquivos</h4><p>Uploads filtrados por tipo MIME. Executáveis e scripts são bloqueados.</p></div>
-      <div class="fcard"><div class="ic">🔔</div><h4>Central de eventos</h4><p>Notificações sonoras e visuais de mensagens, prazos e convites de chamada.</p></div>
+    <div class="pillar">
+      <div class="ic" style="background:rgba(239,68,68,.14);">🔒</div>
+      <h3>Seu ambiente, protegido</h3>
+      <p>Personalize o fundo do seu board com cores, gradientes ou vídeo em loop, e sincronize prazos com Google Agenda, Outlook ou um arquivo .ics. Por trás, cada conta tem seus dados isolados no Firebase, com upload de arquivos validado por tipo.</p>
+      <div class="pillar-tags"><span>Autenticação Firebase</span><span>Fundo personalizado</span><span>Integração de calendário</span></div>
     </div>
   </div>
 </div>
