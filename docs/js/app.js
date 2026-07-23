@@ -7199,12 +7199,67 @@ function toggleCallCam() {
 }
 
 /* ── UI da chamada ── */
+// Lembra o tamanho/posição que a pessoa escolheu da última vez (por usuário)
+function _callGeomKey() { return 'md_call_geom_' + (CU?.username || 'anon'); }
+function _saveCallGeom(overlay) {
+  const r = overlay.getBoundingClientRect();
+  localStorage.setItem(_callGeomKey(), JSON.stringify({
+    left: r.left, top: r.top, width: r.width, height: r.height
+  }));
+}
+function _restoreCallGeom(overlay) {
+  try {
+    const g = JSON.parse(localStorage.getItem(_callGeomKey()) || 'null');
+    if (!g) return;
+    overlay.style.left   = Math.max(0, Math.min(window.innerWidth  - 100, g.left)) + 'px';
+    overlay.style.top    = Math.max(0, Math.min(window.innerHeight - 60,  g.top))  + 'px';
+    overlay.style.right  = 'auto';
+    overlay.style.bottom = 'auto';
+    overlay.style.width  = g.width  + 'px';
+    overlay.style.height = g.height + 'px';
+  } catch (_) {}
+}
+
+let _callDragWired = false;
+function _wireCallDrag(overlay) {
+  if (_callDragWired) return;
+  _callDragWired = true;
+
+  const header = overlay.querySelector('.call-header');
+  header.addEventListener('mousedown', e => {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    const rect = overlay.getBoundingClientRect();
+    overlay.style.left = rect.left + 'px';
+    overlay.style.top  = rect.top + 'px';
+    overlay.style.right = 'auto';
+    overlay.style.bottom = 'auto';
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    const onMove = ev => {
+      overlay.style.left = Math.max(0, Math.min(window.innerWidth  - overlay.offsetWidth,  ev.clientX - offX)) + 'px';
+      overlay.style.top  = Math.max(0, Math.min(window.innerHeight - overlay.offsetHeight, ev.clientY - offY)) + 'px';
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      _saveCallGeom(overlay);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+
+  // Resize nativo do navegador (canto inferior direito, via CSS resize:both)
+  new ResizeObserver(() => _saveCallGeom(overlay)).observe(overlay);
+}
+
 function openCallOverlay(title) {
   const overlay = document.getElementById('call-overlay');
   if (!overlay) return;
   document.getElementById('call-title').textContent = title || 'Videochamada';
   document.getElementById('call-grid').innerHTML = '';
   overlay.style.display = 'flex';
+  _restoreCallGeom(overlay);
+  _wireCallDrag(overlay);
 }
 
 function closeCallOverlay() {
