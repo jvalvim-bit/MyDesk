@@ -1365,6 +1365,7 @@ function mountNote(n) {
           <span class="n-status-dot"></span>
           <span class="n-status-label">${statusLabel(n.status||'todo')}</span>
         </div>
+        <span class="n-cl-badge" style="display:none"></span>
         <button class="n-pin-btn" id="np-${n.id}" title="Fixar expandida">${n.pinned ? '📌' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>'}</button>
         <button class="n-del">${iX}</button>
       </div>
@@ -1382,6 +1383,13 @@ function mountNote(n) {
         <div class="n-date-row">${iCal}<span class="n-date-tag">Prazo</span><input class="n-dinput" type="date" value="${n.end||''}"></div>
       </div>
       <div class="n-badge" id="nb-${n.id}" style="display:none">${iBell}<span></span></div>
+      <div class="n-checklist-wrap">
+        <div class="n-checklist-head">
+          <span>Checklist</span>
+          <button class="n-checklist-add" title="Adicionar item">+</button>
+        </div>
+        <div class="n-checklist-list" id="ncl-${n.id}"></div>
+      </div>
       <div class="n-color-wrap" style="padding:0 10px 8px;position:relative;">
         <button class="n-color-btn" id="ncb-${n.id}">
           <span class="n-color-dot" style="background:${p.bar};"></span>
@@ -1437,6 +1445,21 @@ function mountNote(n) {
   const dins = el.querySelectorAll('.n-dinput');
   dins[0].addEventListener('change', () => { n.start = dins[0].value; saveNotes(); updateBadge(n); });
   dins[1].addEventListener('change', () => { n.end   = dins[1].value; saveNotes(); updateBadge(n); });
+
+  // Checklist
+  renderChecklist(n, el);
+  const clAddBtn = el.querySelector('.n-checklist-add');
+  if (clAddBtn) {
+    clAddBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      n.checklist = n.checklist || [];
+      n.checklist.push({ text: '', done: false });
+      saveNotes();
+      renderChecklist(n, el);
+      const inputs = el.querySelectorAll('.n-cl-text');
+      inputs[inputs.length - 1]?.focus();
+    });
+  }
 
   // Color picker button → toggle popover
   const colorBtn = el.querySelector('#ncb-'+n.id);
@@ -1561,6 +1584,61 @@ function mountNote(n) {
 
   $('board').appendChild(el);
   renderFiles(n); updateBadge(n); syncEmpty();
+}
+
+/* ═══════════════════════════════════════════════════
+   CHECKLIST DA NOTA
+═══════════════════════════════════════════════════ */
+function renderChecklist(n, el) {
+  const host = el.querySelector('#ncl-' + n.id);
+  if (!host) return;
+  const items = n.checklist || [];
+
+  host.innerHTML = items.map((it, i) => `
+    <div class="n-cl-item ${it.done ? 'done' : ''}" data-idx="${i}">
+      <input type="checkbox" class="n-cl-check" ${it.done ? 'checked' : ''}>
+      <input type="text" class="n-cl-text" value="${sanitizeAttr(it.text || '')}" placeholder="Item da checklist…">
+      <button class="n-cl-del" title="Remover">${iX}</button>
+    </div>`).join('');
+
+  host.querySelectorAll('.n-cl-item').forEach(row => {
+    const idx = Number(row.dataset.idx);
+    row.querySelector('.n-cl-check').addEventListener('change', e => {
+      n.checklist[idx].done = e.target.checked;
+      row.classList.toggle('done', e.target.checked);
+      saveNotes();
+      _updateChecklistBadge(n, el);
+    });
+    row.querySelector('.n-cl-text').addEventListener('input', e => {
+      n.checklist[idx].text = e.target.value;
+      saveNotes();
+    });
+    row.querySelector('.n-cl-text').addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      el.querySelector('.n-checklist-add')?.click();
+    });
+    row.querySelector('.n-cl-del').addEventListener('click', e => {
+      e.stopPropagation();
+      n.checklist.splice(idx, 1);
+      saveNotes();
+      renderChecklist(n, el);
+      _updateChecklistBadge(n, el);
+    });
+  });
+
+  _updateChecklistBadge(n, el);
+}
+
+function _updateChecklistBadge(n, el) {
+  const badge = el.querySelector('.n-cl-badge');
+  if (!badge) return;
+  const items = n.checklist || [];
+  if (!items.length) { badge.style.display = 'none'; return; }
+  const done = items.filter(i => i.done).length;
+  badge.style.display = 'inline-flex';
+  badge.textContent = `✓ ${done}/${items.length}`;
+  badge.classList.toggle('complete', done === items.length);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2418,7 +2496,7 @@ function _noteToRaw(n) {
   return {
     id:n.id, color:n.color, title:n.title, body:n.body,
     start:n.start||'', end:n.end||'', reminder:n.reminder||false, remDays:n.remDays||3,
-    status:n.status||'todo',
+    status:n.status||'todo', checklist:n.checklist||[],
     titleH:n.titleH||0, bodyH:n.bodyH||0,
     w:n.w||0, h:n.h||0,
     x:n.x, y:n.y, z:n.z,
@@ -7459,7 +7537,7 @@ function saveGroupNote(n) {
   if (!_activeGroupWs || !_fbReady) return;
   fbSet('group_boards/' + _activeGroupWs.groupId + '/notes/' + n.id, {
     id:n.id, color:n.color, title:n.title, body:n.body,
-    start:n.start||'', end:n.end||'', status:n.status||'todo',
+    start:n.start||'', end:n.end||'', status:n.status||'todo', checklist:n.checklist||[],
     titleH:n.titleH||0, bodyH:n.bodyH||0, x:n.x, y:n.y, z:n.z,
     stackId:n.stackId||null, stackOrder:n.stackOrder||0,
     _isClientNote: n._isClientNote || false,
@@ -8052,7 +8130,7 @@ async function saveSharedNote(n) {
   if (!_activeWs || !_fbReady) return;
   await fbSet('shared_boards/'+_activeWs.key+'/notes/'+n.id, {
     id:n.id, color:n.color, title:n.title, body:n.body,
-    start:n.start||'', end:n.end||'', status:n.status||'todo',
+    start:n.start||'', end:n.end||'', status:n.status||'todo', checklist:n.checklist||[],
     titleH:n.titleH||0, bodyH:n.bodyH||0, x:n.x, y:n.y, z:n.z,
     files:(n.files||[]).map(f=>({name:f.name,size:f.size,type:f.type,dataUrl:f.dataUrl})),
     _isClientNote: n._isClientNote || false,
@@ -8760,6 +8838,53 @@ function _crmFmtDate(iso) {
   return `${d} ${months[Number(m) - 1]} ${y}`;
 }
 
+/* ─────────────────────────────────────────────
+   EXPORTAR CARD DO CLIENTE (Word)
+   Gera um .rtf — formato de texto que o Word abre
+   nativamente, sem depender de nenhuma lib externa.
+───────────────────────────────────────────── */
+function _rtfEscape(str) {
+  return String(str || '').split('').map(ch => {
+    if (ch === '\\' || ch === '{' || ch === '}') return '\\' + ch;
+    if (ch === '\n') return '\\par ';
+    const code = ch.charCodeAt(0);
+    return code > 127 ? '\\u' + code + '?' : ch;
+  }).join('');
+}
+
+function exportClientCard(id) {
+  const rec = _records.find(r => r.id === id);
+  if (!rec) return;
+
+  const ds         = getRecordDisplayStatus(rec);
+  const statusText = { paid: 'Pago', pending: 'Pendente', overdue: 'Atrasado' }[ds];
+  const dueText    = _crmFmtDate(rec.dueDate) || 'Sem data definida';
+  const esc        = _rtfEscape;
+
+  const rtf = '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Calibri;}}\\f0\n' +
+    '{\\fs40\\b\\cf0 MyDesk \\u8212? Ficha de Cliente\\b0\\fs22\\par}\\par\n' +
+    `{\\b Cliente:\\b0  ${esc(rec.name)}\\par}\n` +
+    (rec.description ? `{\\b Descri\\u231?\\u227?o:\\b0  ${esc(rec.description)}\\par}\n` : '') +
+    `{\\b Valor:\\b0  ${esc(fmtBRL(rec.value))}\\par}\n` +
+    `{\\b Status:\\b0  ${esc(statusText)}\\par}\n` +
+    `{\\b Vencimento:\\b0  ${esc(dueText)}\\par}\n` +
+    '\\par\n' +
+    `{\\fs16\\i Exportado do MyDesk em ${esc(new Date().toLocaleDateString('pt-BR'))}\\i0\\par}\n` +
+    '}';
+
+  const blob = new Blob([rtf], { type: 'application/rtf' });
+  const url  = URL.createObjectURL(blob);
+  const safeName = (rec.name || 'cliente').replace(/[^\p{L}\p{N}\s-]/gu, '').trim() || 'cliente';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Cliente - ${safeName}.rtf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('📄', 'Ficha exportada! Abre com o Word.');
+}
+
 function renderRecordsTable() {
   const tbody  = document.getElementById('crm-table-body');
   const empty  = document.getElementById('crm-empty-state');
@@ -8840,6 +8965,9 @@ function renderRecordsTable() {
       </td>
       <td>
         <div class="crm-row-actions">
+          <button class="crm-act-btn" title="Exportar para Word" onclick="exportClientCard('${rec.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="18" x2="12" y2="18"/></svg>
+          </button>
           <button class="crm-act-btn" title="Editar" onclick="openEditRecordModal('${rec.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
