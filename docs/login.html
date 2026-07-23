@@ -13,10 +13,21 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="js/firebase-init.js?v=3"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=15">
+<link rel="stylesheet" href="css/main.css?v=16">
 </head>
 <body>
 <div id="auth-screen" class="landing-scroll">
+  <!-- ── NAV — barra fixa no topo, estilo notion.com ── -->
+  <nav class="lp-nav">
+    <div class="lp-nav-logo"><div class="logo-dot"></div>MyDesk</div>
+    <div class="lp-nav-links">
+      <a href="#lp-about">Recursos</a>
+      <a href="#lp-pricing">Preços</a>
+      <a href="#lp-faq-section">FAQ</a>
+    </div>
+    <button class="lp-nav-cta" onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</button>
+  </nav>
+
   <!-- ── HERO (existing auth layout) ── -->
   <div class="auth-hero">
   <div class="auth-left">
@@ -211,7 +222,7 @@
   ════════════════════════════════════════════════════════ -->
 
   <!-- ── 1. O QUE É O MYDESK ── -->
-  <div class="lp-section" id="lp-about">
+  <div class="lp-section lp-reveal" id="lp-about">
     <div class="lp-cols">
       <div class="lp-col-text">
         <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>O que é o MyDesk</div>
@@ -352,7 +363,7 @@
   <div class="lp-divider"></div>
 
   <!-- ── 2. COMO FUNCIONA ── -->
-  <div class="lp-section">
+  <div class="lp-section lp-reveal">
     <div class="lp-cols reverse">
       <div class="lp-col-text">
         <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Como funciona</div>
@@ -439,7 +450,7 @@
   <div class="lp-divider"></div>
 
   <!-- ── 3. SOCIAL ── -->
-  <div class="lp-section">
+  <div class="lp-section lp-reveal">
     <div class="lp-cols">
       <div class="lp-col-text">
         <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Social</div>
@@ -530,7 +541,7 @@
   <div class="lp-divider"></div>
 
   <!-- ── 4. PERSONALIZAÇÃO ── -->
-  <div class="lp-section">
+  <div class="lp-section lp-reveal">
     <div class="lp-cols reverse">
       <div class="lp-col-text">
         <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Personalização</div>
@@ -603,7 +614,7 @@
   <div class="lp-divider"></div>
 
   <!-- ── SEÇÃO 5: PILHAS & ORGANIZAÇÃO ── -->
-  <div class="lp-section">
+  <div class="lp-section lp-reveal">
     <div class="lp-cols">
       <div class="lp-col-text">
         <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Organização inteligente</div>
@@ -686,7 +697,7 @@
   </div>
 
   <!-- ── SEÇÃO 6: SEGURANÇA ── -->
-  <div class="lp-section">
+  <div class="lp-section lp-reveal">
     <div class="lp-cols reverse">
       <div class="lp-col-text">
         <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Segurança</div>
@@ -754,7 +765,7 @@
   </div>
 
   <!-- ── SEÇÃO 7: FAQ ── -->
-  <div class="lp-section">
+  <div class="lp-section lp-reveal" id="lp-faq-section">
     <div style="max-width:680px;margin:0 auto;width:100%;">
       <div class="lp-eyebrow" style="justify-content:center;margin-bottom:16px;"><div class="lp-eyebrow-dot"></div>Dúvidas frequentes</div>
       <div class="lp-title" style="text-align:center;margin-bottom:40px;">Perguntas<br><span class="hl">& Respostas.</span></div>
@@ -816,7 +827,7 @@
   <div class="lp-divider"></div>
 
   <!-- PRICING SECTION -->
-  <div class="lp-section" id="lp-pricing">
+  <div class="lp-section lp-reveal" id="lp-pricing">
     <div style="max-width:900px;margin:0 auto;">
       <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>Planos</div>
       <div class="lp-title">Simples e <span class="hl">transparente.</span></div>
@@ -901,6 +912,6 @@
 
 </div>
 <div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
-<script src="js/login.js?v=9"></script>
+<script src="js/login.js?v=10"></script>
 </body>
 </html>
