@@ -23,21 +23,15 @@ body.page-ready{opacity:1;}
 @media(prefers-reduced-motion:reduce){body{transition:none;opacity:1;}}
 .hl{background:linear-gradient(135deg,#a5b4fc,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-/* ══ AURORA — só no hero, contida, some antes do resto da página ══ */
-.hero-wrap{position:relative;overflow:hidden;padding-top:20px;}
-.scene{position:absolute;inset:0;z-index:0;pointer-events:none;}
-:root{--band:70vh;--ring:calc(var(--band)/.375);--cy:calc(46vh + var(--band));}
-.circle{position:absolute;left:50%;top:var(--cy);width:var(--ring);height:var(--ring);transform:translate(-50%,-50%);transform-origin:50% 50%;will-change:transform;}
-.aurora{background:conic-gradient(from 168deg,#0a1856 0deg,#2c3ea8 60deg,#4f46e5 110deg,#6366f1 150deg,#8b5cf6 200deg,#14b8a6 270deg,#0d3a5f 320deg,#0a1856 360deg);
-  -webkit-mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);mask:radial-gradient(closest-side,transparent 0 69%,#000 73%,#000 78%,transparent 82%);
-  filter:blur(50px) saturate(120%);opacity:.5;animation:flow 22s linear infinite,sway 9s ease-in-out infinite alternate;}
-.haze{background:conic-gradient(from 168deg,#16256e 0deg,#2c46c8 70deg,#6d28d9 150deg,#0d9488 250deg,#16256e 360deg);
-  -webkit-mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);mask:radial-gradient(closest-side,transparent 0 56%,#000 74%,transparent 92%);
-  filter:blur(120px) saturate(120%);opacity:.28;animation:flow 22s linear infinite,sway 9s ease-in-out infinite alternate;}
-@keyframes flow{to{--a:1}}
-@keyframes sway{from{transform:translate(-50%,-50%) rotate(-6deg)}to{transform:translate(-50%,-50%) rotate(6deg)}}
+/* ══ HERO BG — grade de pontos + glow radial indigo, estático ══ */
+.hero-wrap{
+  position:relative;overflow:hidden;padding-top:20px;
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 18%, rgba(99,102,241,.22), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.075) 1px, transparent 0) 0 0/24px 24px,
+    var(--bg);
+}
 .hero-fade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 0%,transparent 55%,var(--bg) 100%);}
-@media(prefers-reduced-motion:reduce){.aurora,.haze{animation:none!important;}}
 
 /* ══ NAV ══ */
 .nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:28px;padding:16px 6vw;background:rgba(4,4,9,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
@@ -191,10 +185,6 @@ body.page-ready{opacity:1;}
 <body>
 
 <div class="hero-wrap">
-  <div class="scene" aria-hidden="true">
-    <div class="circle haze"></div>
-    <div class="circle aurora"></div>
-  </div>
   <div class="hero-fade"></div>
 
   <nav class="nav">

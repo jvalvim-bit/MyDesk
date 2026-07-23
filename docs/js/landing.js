@@ -62,12 +62,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (reduceMotion) return;
 
-  // Parallax do hero: a aurora se desloca mais devagar que a rolagem,
-  // e o texto some/encolhe suavemente conforme o hero sai de vista.
+  // O texto do hero some/encolhe suavemente conforme ele sai de vista
+  // (o fundo agora é estático — grade de pontos + glow, sem parallax).
   const heroWrap = document.querySelector('.hero-wrap');
-  const scene    = document.querySelector('.scene');
   const heroText = document.querySelector('.hero');
-  if (heroWrap && scene && heroText) {
+  if (heroWrap && heroText) {
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -76,7 +75,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const y = window.scrollY;
         const heroH = heroWrap.offsetHeight || 1;
         const progress = Math.min(1, y / (heroH * 0.85));
-        scene.style.transform    = 'translateY(' + (y * 0.22) + 'px)';
         heroText.style.opacity   = String(1 - progress * 0.85);
         heroText.style.transform = 'translateY(' + (progress * 34) + 'px) scale(' + (1 - progress * 0.04) + ')';
         ticking = false;
