@@ -22,7 +22,7 @@ if (window.CSS && CSS.registerProperty) {
     const s = document.createElement('style');
     s.textContent = `
       @keyframes hue{to{--ang:528deg}}
-      .aurora,.haze{animation:hue 96s linear infinite, sway 34s ease-in-out infinite alternate!important}
+      .aurora,.haze{animation:hue 22s linear infinite, sway 9s ease-in-out infinite alternate!important}
       .aurora{background:conic-gradient(from var(--ang),
         #0a1856 0deg,#1d3fd6 30deg,#5a35d9 58deg,#a531c4 84deg,#e0603a 106deg,
         #f2b04a 124deg,#4fdba4 150deg,#1f86dc 180deg,#17246a 214deg,#0a1856 360deg)}
