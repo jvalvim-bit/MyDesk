@@ -13,7 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="js/firebase-init.js?v=3"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=19">
+<link rel="stylesheet" href="css/main.css?v=20">
 </head>
 <body>
 <div id="auth-screen" class="landing-scroll">
@@ -28,124 +28,29 @@
     <button class="lp-nav-cta" onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</button>
   </nav>
 
-  <!-- ── HERO MARKETING (inspirado no template Clause) ── -->
-  <div class="lp-hero2">
-    <div class="lp-float-avatar fa1"><span>📝</span><div class="lp-float-arrow"></div></div>
-    <div class="lp-float-avatar fa2"><span>💬</span><div class="lp-float-arrow"></div></div>
-    <div class="lp-float-avatar fa3"><span>📊</span><div class="lp-float-arrow"></div></div>
-    <div class="lp-float-avatar fa4"><span>📹</span><div class="lp-float-arrow"></div></div>
-
-    <div class="lp-hero2-badge">⚡ Crie mais rápido</div>
-    <div class="lp-hero2-title">Uma ferramenta para gerenciar<br>suas <span class="hl-mark">notas</span> e sua equipe</div>
-    <div class="lp-hero2-sub">O MyDesk ajuda times e freelancers a trabalhar mais rápido e organizado, entregando visibilidade total sobre tarefas, clientes e prazos — tudo em um só lugar.</div>
-    <div class="lp-hero2-ctas">
-      <button class="lp-hero2-btn-fill" onclick="document.querySelector('.auth-hero').scrollIntoView({behavior:'smooth'});document.getElementById('tab-reg').click();">Começar grátis</button>
-      <button class="lp-hero2-btn-outline" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Ver como funciona</button>
-    </div>
-    <div class="lp-hero2-trust">
-      <span class="lp-hero2-trust-txt">Integrado com as ferramentas que você já usa</span>
-      <div class="lp-trust-logos">
-        <div class="lp-trust-logo">🔥 Firebase</div>
-        <div class="lp-trust-logo">🟦 Google</div>
-        <div class="lp-trust-logo">Ⓜ️ Outlook</div>
-        <div class="lp-trust-logo">▲ Vercel</div>
-        <div class="lp-trust-logo">💳 AbacatePay</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── HERO (existing auth layout) ── -->
+  <!-- ── HERO (estilo Clause: badges flutuantes, headline com marcador, CTA, trust bar) ── -->
   <div class="auth-hero">
   <div class="auth-left">
     <div class="auth-grid"></div>
     <canvas id="pixel-canvas"></canvas>
     <div class="auth-shape sh1"></div><div class="auth-shape sh2"></div><div class="auth-shape sh3"></div>
-    <div class="auth-brand-wrap">
-      <div class="lp-announce">✨ Novo: CRM financeiro, videochamada e checklist</div>
-      <div class="auth-brand-logo"><div class="logo-dot"></div>MyDesk</div>
-      <div class="auth-brand-sub">workspace de notas corporativo</div>
-    </div>
+    <div class="lp-float-avatar fa1" style="top:6%;right:8%;"><span>💬</span><div class="lp-float-arrow"></div></div>
+    <div class="lp-float-avatar fa2" style="bottom:34%;left:5%;"><span>📊</span><div class="lp-float-arrow"></div></div>
 
-    <!-- Mock notes board -->
-    <div style="position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;">
-      <div style="position:relative;width:420px;height:320px;">
-
-        <!-- Note 1: Indigo — Concluído -->
-        <div class="mock-note mock-note-pulse" style="top:10px;left:0;z-index:3;background:#0f1029;border:1px solid rgba(99,102,241,.3);">
-          <div class="mock-note-bar" style="background:#6366f1;"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.28);color:#a5b4fc;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#6366f1;display:inline-block;"></span>Indigo
-              </div>
-              <div class="mock-note-status" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.22);color:#6ee7b7;">
-                <span class="mock-note-status-dot" style="background:#10b981;"></span>Concluído
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Redesign do dashboard</div>
-          <div class="mock-note-body">Atualizar componentes e revisar tipografia do sistema.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Prazo: 15/07/2025
-            </div>
-          </div>
-        </div>
-
-        <!-- Note 2: Emerald — Andamento -->
-        <div class="mock-note" style="top:18px;left:218px;z-index:2;background:#071a10;border:1px solid rgba(16,185,129,.28);">
-          <div class="mock-note-bar" style="background:#10b981;"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Emerald
-              </div>
-              <div class="mock-note-status" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.22);color:#a5b4fc;">
-                <span class="mock-note-status-dot" style="background:#6366f1;box-shadow:0 0 4px rgba(99,102,241,.6);"></span>Andamento
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Reunião com cliente</div>
-          <div class="mock-note-body">Apresentar protótipo e coletar feedback.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Prazo: 18/07/2025
-            </div>
-          </div>
-        </div>
-
-        <!-- Note 3: Rose — Encerrado -->
-        <div class="mock-note" style="top:190px;left:100px;z-index:4;background:#1a0509;border:1px solid rgba(244,63,94,.3);">
-          <div class="mock-note-bar" style="background:#f43f5e;"></div>
-          <div class="mock-note-head">
-            <div class="mock-note-chip-row">
-              <div class="mock-note-chip" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.25);color:#fda4af;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>Rose
-              </div>
-              <div class="mock-note-status" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;">
-                <span class="mock-note-status-dot" style="background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);"></span>Encerrado
-              </div>
-            </div>
-          </div>
-          <div class="mock-note-title">Bug crítico #482</div>
-          <div class="mock-note-body">Corrigir falha em produção no módulo de pagamentos.</div>
-          <div class="mock-note-sep"></div>
-          <div class="mock-note-dates">
-            <div class="mock-note-date-row">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Vencido há 2d
-            </div>
-          </div>
-        </div>
-
-        <!-- Float badge -->
-        <div class="mock-badge-float" style="bottom:10px;right:0;">
-          <div class="mock-badge-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6)"></div>
-          3 notas ativas
+    <div class="auth-hero-content">
+      <div class="auth-hero-badge">⚡ Crie mais rápido</div>
+      <div class="auth-hero-title">Uma ferramenta para gerenciar<br>suas <span class="hl-mark">notas</span> e sua equipe</div>
+      <div class="auth-hero-sub">Notas, CRM financeiro, chat e chamadas — tudo em um só lugar, sob seu controle.</div>
+      <div class="auth-hero-ctas">
+        <button class="lp-hero2-btn-fill" onclick="document.getElementById('tab-reg').click();document.getElementById('r-name').focus();">Começar grátis</button>
+        <button class="lp-hero2-btn-outline" onclick="document.getElementById('lp-about').scrollIntoView({behavior:'smooth'})">Ver como funciona</button>
+      </div>
+      <div class="auth-hero-trust">
+        <span class="auth-hero-trust-txt">Integrado com:</span>
+        <div class="lp-trust-logos">
+          <div class="lp-trust-logo">🔥 Firebase</div>
+          <div class="lp-trust-logo">Ⓜ️ Outlook</div>
+          <div class="lp-trust-logo">💳 AbacatePay</div>
         </div>
       </div>
     </div>

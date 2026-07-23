@@ -598,6 +598,21 @@
 .lp-trust-logo:hover{color:rgba(240,240,240,.72);}
 @media(max-width:768px){.lp-hero2{padding:64px 22px 40px;}.lp-hero2-title{font-size:1.9rem;letter-spacing:-1px;}.lp-hero2-sub{font-size:.87rem;}.lp-trust-logos{gap:14px 20px;}}
 
+/* ── Hero real (dentro de .auth-left) — badges flutuantes + headline com marcador ── */
+.auth-hero-content{position:relative;z-index:2;animation:heroIn2 .8s cubic-bezier(.16,1,.3,1) both;}
+.auth-hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.28);border-radius:20px;padding:5px 14px;font-family:'Inter',sans-serif;font-size:.68rem;font-weight:600;color:var(--clr-indigo-light);margin-bottom:18px;width:fit-content;animation:announcePulse 2.4s ease-in-out infinite;}
+.auth-hero-title{font-family:'Syne',sans-serif;font-size:2.15rem;font-weight:800;letter-spacing:-1.3px;line-height:1.16;color:var(--clr-text);margin-bottom:14px;}
+.auth-hero-title .hl-mark{position:relative;white-space:nowrap;color:var(--clr-text);}
+.auth-hero-title .hl-mark::after{content:'';position:absolute;left:-3%;right:-3%;bottom:2px;height:.3em;background:rgba(245,158,11,.32);z-index:-1;border-radius:2px;}
+.auth-hero-sub{font-size:.86rem;color:rgba(240,240,240,.45);line-height:1.7;max-width:380px;margin-bottom:26px;}
+.auth-hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px;}
+.auth-hero-ctas .lp-hero2-btn-fill,.auth-hero-ctas .lp-hero2-btn-outline{padding:11px 20px;font-size:.82rem;}
+.auth-hero-trust{display:flex;flex-direction:column;gap:10px;}
+.auth-hero-trust-txt{font-size:.62rem;letter-spacing:.5px;color:rgba(240,240,240,.25);text-transform:uppercase;font-weight:600;}
+.auth-hero-trust .lp-trust-logos{gap:16px;justify-content:flex-start;}
+.auth-hero-trust .lp-trust-logo{font-size:.74rem;}
+@media(max-width:768px){.auth-hero-title{font-size:1.6rem;}.auth-hero-sub{max-width:100%;}}
+
 /* ── Dashboard dinâmico + notificações + tarefas (bloco estilo "features") ── */
 .lp-dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .lp-dash-card{background:var(--clr-bg-card);border:1px solid var(--clr-border);border-radius:16px;padding:26px;transition:border-color .25s,transform .25s;}
