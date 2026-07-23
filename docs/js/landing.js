@@ -16,6 +16,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Título do hero: cada palavra entra com leve movimento e depois fica
+  // flutuando em onda continuamente (cada uma com uma fase diferente)
+  const heroTitle = document.querySelector('.hero h1');
+  if (heroTitle) {
+    heroTitle.querySelectorAll('.word-in').forEach((w, i) => {
+      w.style.transitionDelay = (i * 55) + 'ms';
+    });
+    heroTitle.querySelectorAll('.word-bob').forEach((w, i) => {
+      w.style.animationDelay = (i * 55 + 850) + 'ms';
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => heroTitle.classList.add('words-in')));
+  }
+
   // Escalona a entrada dos filhos diretos de .stagger (cards, steps, faq...)
   document.querySelectorAll('.stagger').forEach(group => {
     Array.from(group.children).forEach((child, i) => {
