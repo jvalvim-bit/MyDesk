@@ -33,7 +33,7 @@ Built entirely with HTML, CSS, and vanilla JavaScript — no frameworks — usin
 
 ## Screenshots
 
-### Landing Page & Login
+### Landing Page 
 
 <img width="963" height="1605" alt="image" src="https://github.com/user-attachments/assets/95bdc339-be0b-4e84-97db-1a7dad91a23f" />
 
