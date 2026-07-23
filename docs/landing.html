@@ -56,12 +56,12 @@ body.page-ready{opacity:1;}
 .hero h1 .word-mask{display:inline-block;overflow:hidden;vertical-align:top;}
 .hero h1 .word-in{display:inline-block;transform:translateY(120%);opacity:0;}
 .hero h1.words-in .word-in{transition:transform .85s cubic-bezier(.16,1,.3,1),opacity .7s ease;transform:translateY(0);opacity:1;}
-.hero h1.words-in .word-bob{animation:heroBob 2.2s ease-in-out infinite;}
-@keyframes heroBob{0%,100%{transform:translateY(0) rotate(0deg);}25%{transform:translateY(-15px) rotate(-3deg);}75%{transform:translateY(6px) rotate(2deg);}}
+.hero h1.words-in .word-bob{animation:heroWave 2.6s ease-in-out infinite;}
+@keyframes heroWave{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
 .hero h1 .hl{display:inline-block;background-size:200% 200%;animation:heroShine 3s ease-in-out infinite;}
 @keyframes heroShine{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
-.hero h1.words-in .word-bob-hl{animation:heroBobBig 2.2s ease-in-out infinite;}
-@keyframes heroBobBig{0%,100%{transform:translateY(0) scale(1) rotate(0deg);}25%{transform:translateY(-20px) scale(1.06) rotate(-2deg);}75%{transform:translateY(8px) scale(1) rotate(2deg);}}
+.hero h1.words-in .word-bob-hl{animation:heroWaveBig 2.6s ease-in-out infinite;}
+@keyframes heroWaveBig{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-17px) scale(1.06);}}
 .hero p{font-size:1.02rem;color:var(--text-dim);max-width:520px;margin:0 auto 34px;line-height:1.7;}
 .hero-ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:64px;}
 .btn-fill{background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:13px 26px;font-size:.9rem;font-weight:700;cursor:pointer;}
@@ -498,6 +498,6 @@ body.page-ready{opacity:1;}
   </div>
 </div>
 
-<script src="js/landing.js?v=7"></script>
+<script src="js/landing.js?v=8"></script>
 </body>
 </html>
