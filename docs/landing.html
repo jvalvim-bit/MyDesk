@@ -35,8 +35,8 @@ body.page-ready{opacity:1;}
 
 /* ══ NAV ══ */
 .nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:28px;padding:16px 6vw;background:rgba(4,4,9,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
-.nav-logo{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;}
-.nav-logo .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#14b8a6);}
+.nav-logo{display:flex;align-items:center;}
+.brand-logo{height:24px;width:auto;display:block;}
 .nav-links{display:flex;gap:26px;margin-left:8px;}
 .nav-links a{font-size:.82rem;color:var(--text-dim);text-decoration:none;}
 .nav-links a:hover,.nav-links a.active{color:var(--text);}
@@ -46,6 +46,7 @@ body.page-ready{opacity:1;}
 
 /* ══ HERO CONTENT ══ */
 .hero{position:relative;z-index:2;max-width:760px;margin:0 auto;padding:88px 6vw 64px;text-align:center;}
+.hero-logo{height:48px;width:auto;margin:0 auto 28px;display:block;}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.68rem;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent-light);margin-bottom:22px;}
 .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
 .hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.1rem,5vw,3.4rem);line-height:1.35;letter-spacing:-1px;margin:0 0 26px;}
@@ -153,7 +154,7 @@ body.page-ready{opacity:1;}
 /* ══ FOOTER ══ */
 .footer{border-top:1px solid var(--border);padding:56px 6vw 28px;}
 .footer-grid{display:flex;gap:56px;flex-wrap:wrap;justify-content:space-between;max-width:1080px;margin:0 auto 32px;}
-.footer-brand-name{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;margin-bottom:10px;}
+.footer-brand-name{display:flex;align-items:center;margin-bottom:10px;}
 .footer-brand-desc{font-size:.79rem;color:var(--text-faint);max-width:280px;line-height:1.6;}
 .footer-col-title{font-size:.7rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;}
 .footer-col a{display:block;font-size:.79rem;color:var(--text-faint);text-decoration:none;margin-bottom:9px;cursor:pointer;}
@@ -183,7 +184,7 @@ body.page-ready{opacity:1;}
   <div class="hero-fade"></div>
 
   <nav class="nav">
-    <div class="nav-logo"><span class="dot"></span>MyDesk</div>
+    <div class="nav-logo"><img src="img/logo-mydesk.png" alt="MyDesk" class="brand-logo"></div>
     <div class="nav-links">
       <a href="#recursos">Recursos</a>
       <a href="#precos">Preços</a>
@@ -194,6 +195,7 @@ body.page-ready{opacity:1;}
   </nav>
 
   <div class="hero">
+    <img src="img/logo-mydesk.png" alt="MyDesk" class="hero-logo">
     <div class="eyebrow"><span class="dot"></span>Workspace corporativo</div>
     <h1>Onde suas notas<br>e seu time <span class="hl">pensam</span> juntos.</h1>
     <p>Capture ideias, organize clientes e nunca mais perca um prazo — um workspace completo pra você e sua equipe.</p>
@@ -455,7 +457,7 @@ body.page-ready{opacity:1;}
 <div class="footer">
   <div class="footer-grid">
     <div>
-      <div class="footer-brand-name"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#14b8a6);display:inline-block;"></span>MyDesk</div>
+      <div class="footer-brand-name"><img src="img/logo-mydesk.png" alt="MyDesk" class="brand-logo"></div>
       <div class="footer-brand-desc">Workspace de notas, CRM financeiro e colaboração em tempo real — tudo em um único lugar.</div>
     </div>
     <div class="footer-col">
