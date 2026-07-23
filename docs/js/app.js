@@ -573,6 +573,8 @@ async function launchApp() {
   if (window._appLaunched) return; // prevent double-launch (onAuthStateChanged + doLogin)
   window._appLaunched = true;
 
+  _loadIcsEvents();
+
   // Check if returning from payment confirmation
   if (window.location.search.includes('premium=activated')) {
     setTimeout(() => {
@@ -2502,6 +2504,16 @@ function _upcomingEvents(days) {
     });
   }
 
+  if (Array.isArray(_icsEvents)) {
+    _icsEvents.forEach((ev, i) => {
+      if (!ev.date) return;
+      const due = new Date(ev.date + 'T00:00:00');
+      if (due >= today && due <= limit) {
+        items.push({ kind: 'ics', id: 'ics_' + i, title: ev.title || 'Evento', date: due });
+      }
+    });
+  }
+
   items.sort((a, b) => a.date - b.date);
   return items;
 }
@@ -2534,7 +2546,7 @@ function renderEventsList() {
 
   host.innerHTML = items.map(it => `
     <div class="events-item" data-kind="${it.kind}" data-id="${it.id}">
-      <span class="events-item-icon">${it.kind === 'client' ? '💼' : '📝'}</span>
+      <span class="events-item-icon">${it.kind === 'client' ? '💼' : it.kind === 'ics' ? '📅' : '📝'}</span>
       <div class="events-item-body">
         <div class="events-item-title">${xe(it.title)}</div>
         <div class="events-item-sub">${it.kind === 'client' && it.value ? xe(fmtBRL(it.value)) + ' · ' : ''}${_relativeDay(it.date)}</div>
@@ -2548,6 +2560,8 @@ function renderEventsList() {
       if (kind === 'client') {
         if (!_crmMode) toggleCRMView();
         setTimeout(() => openEditRecordModal(id), 150);
+      } else if (kind === 'ics') {
+        // Evento importado do calendário — não tem nota/registro pra abrir
       } else {
         const noteEl = document.querySelector('.note[data-id="' + id + '"]');
         if (noteEl) {
@@ -2562,12 +2576,24 @@ function renderEventsList() {
   });
 }
 
+let _eventsPanelLoaded = false;
 function toggleEventsPanel() {
   const panel = document.getElementById('events-panel');
   if (!panel) return;
   const opening = !panel.classList.contains('open');
   panel.classList.toggle('open', opening);
-  if (opening) renderEventsList();
+  if (opening) {
+    renderEventsList();
+    if (!_eventsPanelLoaded) {
+      _eventsPanelLoaded = true;
+      _loadBudget(); _loadExpenses(); _loadMonthlyTasks();
+    }
+  }
+}
+
+function switchEventsTab(tab) {
+  document.querySelectorAll('.events-tab').forEach(b => b.classList.toggle('active', b.dataset.etab === tab));
+  document.querySelectorAll('.events-tab-body').forEach(b => b.classList.toggle('active', b.id === 'etab-' + tab));
 }
 
 document.addEventListener('click', e => {
@@ -2577,6 +2603,207 @@ document.addEventListener('click', e => {
   if (!panel.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
     panel.classList.remove('open');
   }
+});
+
+/* ═══════════════════════════════════════════════════
+   PAINEL PESSOAL — Orçamento, Despesas, Tarefas mensais
+   Recurso 100% gratuito (sem gate de Premium).
+   Persistido em users/{uid}/personal/* no Firebase, com
+   fallback em localStorage no modo demo.
+═══════════════════════════════════════════════════ */
+function _personalPath(sub) { return 'users/' + CU.uid + '/personal/' + sub; }
+function _curMonth() { return new Date().toISOString().slice(0, 7); }
+
+/* ── Orçamento mensal ── */
+let _budgetMonthly = 0;
+async function _loadBudget() {
+  if (!CU) return;
+  if (_fbReady && CU.uid) {
+    _budgetMonthly = Number(await fbGet(_personalPath('budgetMonthly'))) || 0;
+  } else {
+    _budgetMonthly = Number(localStorage.getItem('md_budget_' + CU.username)) || 0;
+  }
+  const inp = document.getElementById('budget-monthly-inp');
+  if (inp) inp.value = _budgetMonthly || '';
+  renderBudgetSummary();
+}
+async function _saveBudgetMonthly(val) {
+  _budgetMonthly = Number(val) || 0;
+  if (_fbReady && CU?.uid) await fbSet(_personalPath('budgetMonthly'), _budgetMonthly);
+  else localStorage.setItem('md_budget_' + CU.username, _budgetMonthly);
+  renderBudgetSummary();
+}
+function renderBudgetSummary() {
+  const host = document.getElementById('budget-summary');
+  if (!host) return;
+  const curMonth = _curMonth();
+  const spent = (_expenses || []).filter(e => (e.date || '').slice(0, 7) === curMonth)
+                                 .reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const remaining = _budgetMonthly - spent;
+  const pct = _budgetMonthly > 0 ? Math.min(100, Math.round((spent / _budgetMonthly) * 100)) : 0;
+  const over = spent > _budgetMonthly && _budgetMonthly > 0;
+  host.innerHTML = `
+    <div class="budget-row"><span>Orçamento</span><b>${fmtBRL(_budgetMonthly)}</b></div>
+    <div class="budget-row"><span>Gasto este mês</span><b>${fmtBRL(spent)}</b></div>
+    <div class="budget-bar-track"><div class="budget-bar-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
+    <div class="budget-row"><span>${over ? 'Estourou em' : 'Resta'}</span><b style="color:${over ? 'var(--clr-danger-light)' : '#6ee7b7'}">${fmtBRL(Math.abs(remaining))}</b></div>`;
+}
+
+/* ── Despesas ── */
+let _expenses = [];
+async function _loadExpenses() {
+  if (!CU) return;
+  if (_fbReady && CU.uid) {
+    const snap = await fbGet(_personalPath('expenses'));
+    _expenses = snap ? Object.entries(snap).map(([id, v]) => ({ id, ...v })) : [];
+  } else {
+    _expenses = JSON.parse(localStorage.getItem('md_expenses_' + CU.username) || '[]');
+  }
+  renderExpensesList();
+  renderBudgetSummary();
+}
+async function addExpenseFromForm() {
+  const descInp = document.getElementById('expense-desc-inp');
+  const valInp  = document.getElementById('expense-value-inp');
+  const desc = descInp.value.trim();
+  const value = parseFloat(valInp.value) || 0;
+  if (!desc || value <= 0) { toast('⚠', 'Preencha descrição e valor.'); return; }
+  const exp = { desc, value, date: new Date().toISOString().slice(0, 10) };
+  if (_fbReady && CU?.uid) {
+    const ref = await fbPush(_personalPath('expenses'), exp);
+    exp.id = ref.key;
+  } else {
+    exp.id = 'exp_' + Date.now();
+  }
+  _expenses.push(exp);
+  if (!_fbReady || !CU?.uid) localStorage.setItem('md_expenses_' + CU.username, JSON.stringify(_expenses));
+  descInp.value = ''; valInp.value = '';
+  renderExpensesList();
+  renderBudgetSummary();
+}
+async function removeExpense(id) {
+  _expenses = _expenses.filter(e => e.id !== id);
+  if (_fbReady && CU?.uid) await fbRemove(_personalPath('expenses/' + id));
+  else localStorage.setItem('md_expenses_' + CU.username, JSON.stringify(_expenses));
+  renderExpensesList();
+  renderBudgetSummary();
+}
+function renderExpensesList() {
+  const host = document.getElementById('expenses-list');
+  if (!host) return;
+  const curMonth = _curMonth();
+  const monthly = [..._expenses].filter(e => (e.date || '').slice(0, 7) === curMonth)
+                                 .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (!monthly.length) { host.innerHTML = '<div class="expenses-empty">Nenhuma despesa este mês.</div>'; return; }
+  host.innerHTML = monthly.map(e => `
+    <div class="expense-item">
+      <span class="expense-item-desc">${xe(e.desc)}</span>
+      <span class="expense-item-val">${fmtBRL(e.value)}</span>
+      <button class="expense-item-del" onclick="removeExpense('${e.id}')">${iX}</button>
+    </div>`).join('');
+}
+
+/* ── Tarefas mensais (checklist que reseta todo mês) ── */
+let _monthlyTasks = [];
+let _monthlyTasksLastReset = '';
+async function _loadMonthlyTasks() {
+  if (!CU) return;
+  let data;
+  if (_fbReady && CU.uid) data = await fbGet(_personalPath('monthlyTasks'));
+  else data = JSON.parse(localStorage.getItem('md_mtasks_' + CU.username) || 'null');
+  data = data || { items: [], lastReset: '' };
+  _monthlyTasks = Array.isArray(data.items) ? data.items : Object.values(data.items || {});
+  _monthlyTasksLastReset = data.lastReset || '';
+
+  const curMonth = _curMonth();
+  if (_monthlyTasksLastReset !== curMonth) {
+    _monthlyTasks.forEach(t => t.done = false);
+    _monthlyTasksLastReset = curMonth;
+    await _saveMonthlyTasks();
+  }
+  renderMonthlyTasks();
+}
+async function _saveMonthlyTasks() {
+  const payload = { items: _monthlyTasks, lastReset: _monthlyTasksLastReset };
+  if (_fbReady && CU?.uid) await fbSet(_personalPath('monthlyTasks'), payload);
+  else localStorage.setItem('md_mtasks_' + CU.username, JSON.stringify(payload));
+}
+function addMonthlyTask() {
+  _monthlyTasks.push({ id: 'mt_' + Date.now(), text: '', done: false });
+  _saveMonthlyTasks();
+  renderMonthlyTasks();
+  const inputs = document.querySelectorAll('#mtasks-list .mtask-item input[type=text]');
+  inputs[inputs.length - 1]?.focus();
+}
+function renderMonthlyTasks() {
+  const host = document.getElementById('mtasks-list');
+  if (!host) return;
+  if (!_monthlyTasks.length) { host.innerHTML = '<div class="mtasks-empty">Nenhuma tarefa ainda.</div>'; return; }
+  host.innerHTML = _monthlyTasks.map((t, i) => `
+    <div class="mtask-item ${t.done ? 'done' : ''}" data-i="${i}">
+      <input type="checkbox" ${t.done ? 'checked' : ''}>
+      <input type="text" value="${sanitizeAttr(t.text || '')}" placeholder="Tarefa do mês…">
+      <button class="mtask-item-del">${iX}</button>
+    </div>`).join('');
+  host.querySelectorAll('.mtask-item').forEach(row => {
+    const idx = Number(row.dataset.i);
+    row.querySelector('input[type=checkbox]').addEventListener('change', e => {
+      _monthlyTasks[idx].done = e.target.checked;
+      row.classList.toggle('done', e.target.checked);
+      _saveMonthlyTasks();
+    });
+    row.querySelector('input[type=text]').addEventListener('input', e => {
+      _monthlyTasks[idx].text = e.target.value;
+      _saveMonthlyTasks();
+    });
+    row.querySelector('.mtask-item-del').addEventListener('click', () => {
+      _monthlyTasks.splice(idx, 1);
+      _saveMonthlyTasks();
+      renderMonthlyTasks();
+    });
+  });
+}
+
+/* ── Importar calendário (.ics) na aba Eventos ── */
+let _icsEvents = [];
+function _loadIcsEvents() {
+  if (!CU) return;
+  _icsEvents = JSON.parse(localStorage.getItem('md_ics_' + CU.username) || '[]');
+}
+function _parseIcs(text) {
+  const events = [];
+  const blocks = text.split('BEGIN:VEVENT').slice(1);
+  blocks.forEach(block => {
+    const summaryMatch = block.match(/SUMMARY:(.*)/);
+    const dtMatch      = block.match(/DTSTART[^:]*:(\d{8})/);
+    if (!summaryMatch || !dtMatch) return;
+    const raw = dtMatch[1]; // YYYYMMDD
+    const iso = raw.slice(0, 4) + '-' + raw.slice(4, 6) + '-' + raw.slice(6, 8);
+    events.push({ title: summaryMatch[1].trim().replace(/\\,/g, ','), date: iso });
+  });
+  return events;
+}
+document.addEventListener('change', e => {
+  if (e.target?.id !== 'ics-file-inp') return;
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const parsed = _parseIcs(String(reader.result || ''));
+    if (!parsed.length) { toast('⚠', 'Nenhum evento encontrado no arquivo.'); return; }
+    _icsEvents = _icsEvents.concat(parsed);
+    localStorage.setItem('md_ics_' + CU.username, JSON.stringify(_icsEvents));
+    toast('📅', parsed.length + ' evento(s) importado(s)!');
+    renderEventsList();
+    updateEventsBadge();
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.addEventListener('change', e => {
+  if (e.target?.id !== 'budget-monthly-inp') return;
+  _saveBudgetMonthly(e.target.value);
 });
 
 function checkCRMOverdueTransitions() {
@@ -3918,6 +4145,15 @@ function toast(icon,msg){
   $('t-ico').textContent=icon; $('t-msg').textContent=msg;
   const t=$('toast'); t.classList.add('show');
   clearTimeout(toastTmr); toastTmr=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ── Tema claro/escuro ── */
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const next = isLight ? 'dark' : 'light';
+  if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  localStorage.setItem('md_theme', next);
 }
 
 /* ═══ INIT ═══════════════════════════════════ */

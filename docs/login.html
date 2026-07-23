@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('md_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MyDesk — Login</title>
 <meta name="description" content="Entre na sua conta MyDesk ou crie uma nova.">
@@ -13,7 +14,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="js/firebase-init.js?v=3"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css?v=16">
+<link rel="stylesheet" href="css/main.css?v=17">
 </head>
 <body>
 <div id="auth-screen" class="landing-scroll">
@@ -25,6 +26,10 @@
       <a href="#lp-pricing">Preços</a>
       <a href="#lp-faq-section">FAQ</a>
     </div>
+    <button class="theme-toggle-btn lp-nav-theme-btn" id="btn-theme" title="Alternar tema claro/escuro" onclick="toggleTheme()">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
     <button class="lp-nav-cta" onclick="document.getElementById('auth-screen').scrollTo({top:0,behavior:'smooth'});document.getElementById('tab-login').click();">Entrar</button>
   </nav>
 
@@ -35,6 +40,7 @@
     <canvas id="pixel-canvas"></canvas>
     <div class="auth-shape sh1"></div><div class="auth-shape sh2"></div><div class="auth-shape sh3"></div>
     <div class="auth-brand-wrap">
+      <div class="lp-announce">✨ Novo: CRM financeiro, videochamada e checklist</div>
       <div class="auth-brand-logo"><div class="logo-dot"></div>MyDesk</div>
       <div class="auth-brand-sub">workspace de notas corporativo</div>
     </div>
@@ -223,54 +229,15 @@
 
   <!-- ── 1. O QUE É O MYDESK ── -->
   <div class="lp-section lp-reveal" id="lp-about">
-    <div class="lp-cols">
-      <div class="lp-col-text">
-        <div class="lp-eyebrow"><div class="lp-eyebrow-dot"></div>O que é o MyDesk</div>
-        <div class="lp-title">Seu workspace.<br><span class="hl">Redefinido.</span></div>
-        <div class="lp-subtitle">Um ambiente onde organização e clareza se encontram. O MyDesk centraliza tudo o que importa — ideias, tarefas e projetos — em uma experiência fluida, elegante e sem distrações.</div>
+    <div style="text-align:center;max-width:640px;margin:0 auto 44px;">
+      <div class="lp-eyebrow" style="justify-content:center;"><div class="lp-eyebrow-dot"></div>O que é o MyDesk</div>
+      <div class="lp-title">Seu workspace.<br><span class="hl">Redefinido.</span></div>
+      <div class="lp-subtitle" style="margin:0 auto;">Um ambiente onde organização e clareza se encontram. O MyDesk centraliza tudo o que importa — ideias, tarefas e projetos — em uma experiência fluida, elegante e sem distrações.</div>
+    </div>
 
-        <div class="lp-stats-row">
-          <div class="lp-stat-box">
-            <div class="lp-stat-num"><span class="hl">∞</span></div>
-            <div class="lp-stat-label">Notas ilimitadas</div>
-          </div>
-          <div class="lp-stat-box">
-            <div class="lp-stat-num"><span class="hl">19</span></div>
-            <div class="lp-stat-label">Paletas de cor</div>
-          </div>
-          <div class="lp-stat-box">
-            <div class="lp-stat-num"><span class="hl">100%</span></div>
-            <div class="lp-stat-label">Privado e local</div>
-          </div>
-        </div>
-
-        <div class="lp-feats">
-          <div class="lp-feat">
-            <div class="lp-feat-icon fi1">🗂️</div>
-            <div>
-              <div class="lp-feat-title">Cards de notas livres</div>
-              <div class="lp-feat-desc">Arraste, redimensione e posicione suas notas em qualquer lugar. Cada card tem título, descrição, datas, cor e arquivos.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon fi3">🔔</div>
-            <div>
-              <div class="lp-feat-title">Alertas automáticos de prazo</div>
-              <div class="lp-feat-desc">Configure lembretes antes do vencimento e receba avisos visuais diretamente nos cards — nunca perca um prazo.</div>
-            </div>
-          </div>
-          <div class="lp-feat">
-            <div class="lp-feat-icon fi2">📎</div>
-            <div>
-              <div class="lp-feat-title">Arquivos e visualizador embutido</div>
-              <div class="lp-feat-desc">Anexe PDFs, imagens e documentos. Abra um visualizador lateral sem sair do board — zoom e pan incluídos.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-col-visual">
-        <div class="lp-mock" style="position:relative;">
+    <div class="lp-bento">
+      <div class="lp-bento-item lp-bento-visual">
+        <div class="lp-mock" style="position:relative;height:100%;border:none;border-radius:0;box-shadow:none;">
           <div class="lp-mock-bar">
             <div class="lp-mock-dot" style="background:#ef4444"></div>
             <div class="lp-mock-dot" style="background:#f59e0b"></div>
@@ -355,6 +322,38 @@
               3 notas ativas
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="lp-bento-item lp-bento-feat">
+        <div class="lp-feat-icon fi1">🗂️</div>
+        <div class="lp-feat-title">Cards de notas livres</div>
+        <div class="lp-feat-desc">Arraste, redimensione e posicione suas notas em qualquer lugar do board.</div>
+      </div>
+      <div class="lp-bento-item lp-bento-feat">
+        <div class="lp-feat-icon fi3">🔔</div>
+        <div class="lp-feat-title">Alertas automáticos de prazo</div>
+        <div class="lp-feat-desc">Lembretes antes do vencimento, direto no card — nunca perca um prazo.</div>
+      </div>
+
+      <div class="lp-bento-item lp-bento-stat">
+        <div class="lp-stat-num"><span class="hl">∞</span></div>
+        <div class="lp-stat-label">Notas ilimitadas</div>
+      </div>
+      <div class="lp-bento-item lp-bento-stat">
+        <div class="lp-stat-num"><span class="hl">19</span></div>
+        <div class="lp-stat-label">Paletas de cor</div>
+      </div>
+      <div class="lp-bento-item lp-bento-stat">
+        <div class="lp-stat-num"><span class="hl">100%</span></div>
+        <div class="lp-stat-label">Privado e local</div>
+      </div>
+
+      <div class="lp-bento-item lp-bento-wide">
+        <div class="lp-feat-icon fi2">📎</div>
+        <div>
+          <div class="lp-feat-title">Arquivos e visualizador embutido</div>
+          <div class="lp-feat-desc">Anexe PDFs, imagens e documentos. Abra um visualizador lateral sem sair do board — zoom e pan incluídos.</div>
         </div>
       </div>
     </div>
@@ -912,6 +911,6 @@
 
 </div>
 <div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
-<script src="js/login.js?v=10"></script>
+<script src="js/login.js?v=11"></script>
 </body>
 </html>
