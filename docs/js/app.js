@@ -8413,6 +8413,8 @@ async function createRecord(data) {
     value:        Number(data.value)  || 0,
     status:       data.status         || 'pending',
     dueDate:      data.dueDate        || '',
+    cpf:          (data.cpf           || '').trim(),
+    documents:    data.documents      || [],
     createdAt:    now,
     updatedAt:    now,
     color:        data.color          || 'indigo',
@@ -8831,6 +8833,20 @@ function _crmVisibleRecords() {
   return list;
 }
 
+// Formata enquanto digita: CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00)
+function _formatCpfCnpj(v) {
+  const d = (v || '').replace(/\D/g, '').slice(0, 14);
+  if (d.length <= 11) {
+    return d.replace(/(\d{3})(\d)/, '$1.$2')
+             .replace(/(\d{3})(\d)/, '$1.$2')
+             .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+  return d.replace(/(\d{2})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d)/, '$1/$2')
+           .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
 function _crmFmtDate(iso) {
   if (!iso) return null;
   const [y, m, d] = iso.split('-');
@@ -8861,13 +8877,17 @@ function exportClientCard(id) {
   const dueText    = _crmFmtDate(rec.dueDate) || 'Sem data definida';
   const esc        = _rtfEscape;
 
+  const docCount = (rec.documents || []).length;
+
   const rtf = '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Calibri;}}\\f0\n' +
     '{\\fs40\\b\\cf0 MyDesk \\u8212? Ficha de Cliente\\b0\\fs22\\par}\\par\n' +
     `{\\b Cliente:\\b0  ${esc(rec.name)}\\par}\n` +
     (rec.description ? `{\\b Descri\\u231?\\u227?o:\\b0  ${esc(rec.description)}\\par}\n` : '') +
+    (rec.cpf ? `{\\b CPF/CNPJ:\\b0  ${esc(rec.cpf)}\\par}\n` : '') +
     `{\\b Valor:\\b0  ${esc(fmtBRL(rec.value))}\\par}\n` +
     `{\\b Status:\\b0  ${esc(statusText)}\\par}\n` +
     `{\\b Vencimento:\\b0  ${esc(dueText)}\\par}\n` +
+    (docCount ? `{\\b Documentos anexados:\\b0  ${docCount}\\par}\n` : '') +
     '\\par\n' +
     `{\\fs16\\i Exportado do MyDesk em ${esc(new Date().toLocaleDateString('pt-BR'))}\\i0\\par}\n` +
     '}';
@@ -8943,7 +8963,7 @@ function renderRecordsTable() {
         <div class="crm-name-cell">
           <div class="crm-avatar" style="background:linear-gradient(135deg,${pal.bar},${pal.dot});">${xe(initial)}</div>
           <div>
-            <div class="crm-client-name">${xe(rec.name)}</div>
+            <div class="crm-client-name">${xe(rec.name)}${(rec.documents||[]).length ? ` <span class="crm-doc-count" title="${(rec.documents||[]).length} documento(s) anexado(s)">📎${(rec.documents||[]).length}</span>` : ''}</div>
             ${rec.description ? `<div class="crm-client-desc">${xe(rec.description.slice(0,50))}${rec.description.length>50?'…':''}</div>` : ''}
           </div>
         </div>
@@ -9128,6 +9148,16 @@ function _openRecordModal(rec, prefill) {
         </div>
       </div>
 
+      <div class="crm-modal-lbl">CPF/CNPJ (opcional)</div>
+      <input class="m-inp" id="crm-m-cpf" placeholder="000.000.000-00" maxlength="18" value="${xe(data.cpf||'')}">
+
+      <div class="crm-modal-lbl">Documentos (opcional)</div>
+      <div class="crm-doc-list" id="crm-m-doc-list"></div>
+      <label class="crm-doc-add">
+        <input type="file" id="crm-m-doc-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx">
+        📎 Anexar documento (CPF, contrato, etc.)
+      </label>
+
       <div class="crm-modal-lbl">Status do Pagamento</div>
       <div class="crm-status-select" id="crm-m-status-row">
         <div class="crm-status-opt ${initStatus==='pending'?'sel-pending':''}"
@@ -9145,6 +9175,46 @@ function _openRecordModal(rec, prefill) {
 
   document.body.appendChild(bg);
 
+  // ── CPF/CNPJ: formata enquanto digita ──
+  const cpfInp = bg.querySelector('#crm-m-cpf');
+  cpfInp.addEventListener('input', () => { cpfInp.value = _formatCpfCnpj(cpfInp.value); });
+
+  // ── Documentos anexados (em memória até salvar) ──
+  let pendingDocs = (data.documents || []).slice();
+  const docListEl = bg.querySelector('#crm-m-doc-list');
+  const renderDocList = () => {
+    docListEl.innerHTML = pendingDocs.map((d, i) => `
+      <div class="crm-doc-item" data-i="${i}">
+        <span class="crm-doc-name">📄 ${xe(d.name)}</span>
+        <span class="crm-doc-size">${((d.size||0)/1024).toFixed(0)}KB</span>
+        <button type="button" class="crm-doc-del" title="Remover">${iX}</button>
+      </div>`).join('');
+    docListEl.querySelectorAll('.crm-doc-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pendingDocs.splice(Number(btn.closest('.crm-doc-item').dataset.i), 1);
+        renderDocList();
+      });
+    });
+  };
+  renderDocList();
+
+  bg.querySelector('#crm-m-doc-file').addEventListener('change', async function() {
+    const MAX = 5 * 1024 * 1024;
+    for (const f of Array.from(this.files)) {
+      if (f.size > MAX) { toast('⚠', '"' + f.name + '" excede 5MB'); continue; }
+      if (!safeFileType(f)) { toast('⚠', '"' + f.name + '" — tipo de arquivo não permitido.'); continue; }
+      const dataUrl = await new Promise((ok, fail) => {
+        const fr = new FileReader();
+        fr.onload = () => ok(fr.result);
+        fr.onerror = fail;
+        fr.readAsDataURL(f);
+      });
+      pendingDocs.push({ name: f.name, size: f.size, type: f.type, dataUrl });
+    }
+    this.value = '';
+    renderDocList();
+  });
+
   bg.querySelector('#crm-m-cancel').onclick = () => bg.remove();
   bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
 
@@ -9153,6 +9223,7 @@ function _openRecordModal(rec, prefill) {
     const desc  = bg.querySelector('#crm-m-desc').value.trim();
     const value = parseFloat(bg.querySelector('#crm-m-value').value) || 0;
     const due   = bg.querySelector('#crm-m-due').value;
+    const cpf   = cpfInp.value.trim();
     const statusEl = bg.querySelector('.crm-status-opt.sel-paid, .crm-status-opt.sel-pending');
     const status = statusEl ? statusEl.dataset.status : 'pending';
 
@@ -9166,10 +9237,10 @@ function _openRecordModal(rec, prefill) {
     btn.textContent = 'Salvando…'; btn.disabled = true;
 
     if (isEdit) {
-      await updateRecord(rec.id, { name, description: desc, value, dueDate: due, status });
+      await updateRecord(rec.id, { name, description: desc, value, dueDate: due, status, cpf, documents: pendingDocs });
       toast('✅', 'Cliente atualizado!');
     } else {
-      await createRecord({ name, description: desc, value, status, dueDate: due });
+      await createRecord({ name, description: desc, value, status, dueDate: due, cpf, documents: pendingDocs });
     }
     bg.remove();
   };
