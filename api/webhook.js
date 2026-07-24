@@ -51,20 +51,13 @@ const handler = async (req, res) => {
   const secret = process.env.WEBHOOK_SECRET;
 
   if (!token || !secret || !timingSafeEqual(token, secret)) {
-    console.warn('Webhook auth falhou:', JSON.stringify({
-      temQuery: !!req.query?.webhookSecret,
-      temHeader: !!req.headers['x-webhook-secret'],
-      tokenLen: token ? String(token).length : 0,
-      secretLen: secret ? String(secret).length : 0,
-      match: (token && secret) ? String(token) === String(secret) : false,
-    }));
+    console.warn('Webhook: segredo inválido ou ausente');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const event = req.body;
   const eventType = event?.event || event?.data?.status || 'unknown';
-  console.log('Webhook recebido:', eventType, 'id:', event?.data?.id || 'N/A');
-  console.log('PAYLOAD:', JSON.stringify(event).slice(0, 1200));
+  console.log('Webhook recebido:', eventType, 'id:', event?.data?.pixQrCode?.id || event?.data?.id || 'N/A');
 
   const isPaid = (
     event?.event === 'billing.paid' ||
