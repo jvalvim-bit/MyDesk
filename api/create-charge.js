@@ -62,11 +62,13 @@ const handler = async (req, res) => {
   const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!idToken) return res.status(401).json({ error: 'Não autenticado' });
 
-  let uid;
+  let uid, email, name;
   try {
     ensureFirebase();
     const decoded = await getAuth().verifyIdToken(idToken);
     uid = decoded.uid;
+    email = decoded.email || `user-${uid}@mydesk.app`;
+    name  = decoded.name || (decoded.email ? decoded.email.split('@')[0] : null) || 'Assinante MyDesk';
   } catch (e) {
     return res.status(401).json({ error: 'Token inválido' });
   }
@@ -81,16 +83,26 @@ const handler = async (req, res) => {
   };
 
   try {
-    // Usa pixQrCode/create (PIX direto): o customer é OPCIONAL — não precisa de
-    // CPF/telefone, que o app não coleta. Quando pago, dispara billing.paid (o
-    // mesmo evento que o webhook v1 já escuta). A correlação com o uid é feita
-    // pelo mapa chargeId -> uid gravado no Realtime DB (abaixo), lido no webhook.
-    const chargeRes = await fetch(`${BASE}/pixQrCode/create`, {
+    // Usa billing/create (checkout) para a cobrança APARECER no painel do
+    // AbacatePay ("Cobranças") e poder ser simulada/gerida por lá. Exige um
+    // customer (os dados reais do pagador são coletados na página de checkout).
+    // Quando pago, dispara billing.paid. A correlação com o uid é feita pelo
+    // mapa chargeId -> uid gravado no Realtime DB (abaixo), lido no webhook.
+    const chargeRes = await fetch(`${BASE}/billing/create`, {
       method: 'POST', headers,
       body: JSON.stringify({
-        amount: 1000,
-        expiresIn: 3600,
-        description: 'MyDesk Premium — 1 mês',
+        frequency: 'ONE_TIME',
+        methods: ['PIX'],
+        products: [{
+          externalId: 'mydesk-premium-monthly',
+          name: 'MyDesk Premium — 1 mês',
+          description: 'Notas ilimitadas por 30 dias',
+          quantity: 1,
+          price: 1000,
+        }],
+        customer: { name, email, cellphone: '', taxId: '' },
+        returnUrl: 'https://jvalvim-bit.github.io/MyDesk/',
+        completionUrl: 'https://jvalvim-bit.github.io/MyDesk/?premium=activated',
       }),
     });
     const chargeData = await chargeRes.json();
@@ -98,25 +110,20 @@ const handler = async (req, res) => {
       return res.status(500).json({ error: 'Erro cobrança', details: chargeData });
     }
 
-    const pix = chargeData.data;
-    console.log('PIX charge created:', pix?.id);
+    const bill = chargeData.data;
+    console.log('Billing created:', bill?.id);
 
     // Guarda o mapeamento chargeId -> uid para o webhook saber qual usuário pagou.
-    if (pix?.id) {
+    if (bill?.id) {
       try {
-        await dbRest('PUT', `pendingCharges/${pix.id}`, { uid, createdAt: Date.now() });
-        console.log('pendingCharges gravado:', pix.id);
+        await dbRest('PUT', `pendingCharges/${bill.id}`, { uid, createdAt: Date.now() });
+        console.log('pendingCharges gravado:', bill.id);
       } catch (e) {
         console.error('Falha ao gravar pendingCharges:', e.message);
       }
     }
 
-    return res.status(200).json({
-      ok: true,
-      id: pix?.id,
-      brCode: pix?.brCode,
-      brCodeBase64: pix?.brCodeBase64,
-    });
+    return res.status(200).json({ ok: true, id: bill?.id, url: bill?.url });
 
   } catch (err) {
     console.error('Error creating charge:', err.message);

@@ -57,7 +57,8 @@ const handler = async (req, res) => {
 
   const event = req.body;
   const eventType = event?.event || event?.data?.status || 'unknown';
-  console.log('Webhook recebido:', eventType, 'id:', event?.data?.pixQrCode?.id || event?.data?.id || 'N/A');
+  console.log('Webhook recebido:', eventType);
+  console.log('PAYLOAD:', JSON.stringify(event).slice(0, 1200));
 
   const isPaid = (
     event?.event === 'billing.paid' ||
@@ -67,8 +68,9 @@ const handler = async (req, res) => {
 
   if (!isPaid) return res.status(200).json({ ok: true, ignored: true });
 
-  // Em pagamentos pixQrCode o id vem em data.pixQrCode.id; billing usa data.id.
-  const chargeId = event?.data?.pixQrCode?.id || event?.data?.id || null;
+  // O id da cobrança pode vir em vários formatos conforme o tipo de pagamento.
+  const chargeId = event?.data?.billing?.id || event?.data?.pixQrCode?.id
+    || event?.data?.id || null;
 
   try {
     ensureFirebase();

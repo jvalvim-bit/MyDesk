@@ -692,6 +692,19 @@ async function launchApp() {
       if (n.z > zTop) zTop = n.z;
       notes.push(n); mountNote(n); syncCount();
     });
+
+    // ── Listener do plano em tempo real: celebra assim que o webhook ativa ──
+    let _planInit = true;
+    _db.ref('users/' + CU.uid + '/plan').on('value', snap => {
+      const p = snap.val();
+      if (!p) { _planInit = false; return; }
+      const wasPremium = isPremium();
+      _userPlan = p;
+      const nowPremium = isPremium();
+      _updatePremiumBadge();
+      if (nowPremium && !wasPremium && !_planInit) celebratePremium();
+      _planInit = false;
+    });
   }
 }
 
@@ -1262,12 +1275,30 @@ async function showPremiumModal() {
       const payWrap  = bg.querySelector('#pm-pay-wrap');
       const pixLabel = bg.querySelector('#pm-pix-label');
 
-      // pixQrCode/create devolve o copia-e-cola (brCode) e o QR em base64.
+      // billing/create devolve uma URL de checkout; pixQrCode devolve brCode/QR.
+      const safeUrl = (data.ok && typeof data.url === 'string' && /^https:\/\//.test(data.url)) ? data.url : null;
       const brCode = (data.ok && typeof data.brCode === 'string') ? data.brCode : null;
       let qrSrc = (data.ok && typeof data.brCodeBase64 === 'string') ? data.brCodeBase64 : null;
       if (qrSrc && !/^data:/.test(qrSrc)) qrSrc = 'data:image/png;base64,' + qrSrc;
 
-      if (brCode || qrSrc) {
+      if (safeUrl) {
+        if (pixLabel) pixLabel.textContent = 'Cobrança gerada! Finalize o pagamento no Pix:';
+        if (payWrap) {
+          payWrap.innerHTML = '';
+          payWrap.style.flexDirection = 'column';
+          payWrap.style.alignItems = 'center';
+          payWrap.style.gap = '10px';
+          const a = document.createElement('a');
+          a.href = safeUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
+          a.style.cssText = 'display:block;width:100%;text-align:center;padding:13px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:10px;font-family:Inter,sans-serif;font-size:.9rem;font-weight:600;color:#fff;text-decoration:none;box-shadow:0 4px 18px rgba(99,102,241,.35);';
+          a.textContent = 'Pagar com Pix →';
+          payWrap.appendChild(a);
+          const hint = document.createElement('div');
+          hint.style.cssText = 'font-size:.72rem;color:#94a3b8;text-align:center;line-height:1.4;';
+          hint.textContent = 'O plano é ativado automaticamente após o pagamento ser confirmado.';
+          payWrap.appendChild(hint);
+        }
+      } else if (brCode || qrSrc) {
         if (pixLabel) pixLabel.textContent = 'Escaneie o QR Code ou copie o código Pix:';
         if (payWrap) {
           payWrap.innerHTML = '';
@@ -1298,7 +1329,7 @@ async function showPremiumModal() {
           }
         }
       } else {
-        throw new Error('Resposta sem QR Pix');
+        throw new Error('Resposta sem cobrança');
       }
     } catch(err) {
       console.warn('[Premium] API indisponível:', err.message || err);
@@ -1307,6 +1338,70 @@ async function showPremiumModal() {
       if (pixLabel) pixLabel.textContent = 'Serviço de pagamento temporariamente indisponível. Tente novamente em instantes.';
     }
   }
+}
+
+// ── Celebração de Premium ativado (animação + som + mensagem) ──
+function celebratePremium() {
+  // Fanfarra ascendente
+  try {
+    playTone(523,  'triangle', 0.18, 0.14, 0.00);
+    playTone(659,  'triangle', 0.18, 0.14, 0.12);
+    playTone(784,  'triangle', 0.18, 0.14, 0.24);
+    playTone(1047, 'triangle', 0.45, 0.16, 0.36);
+    playTone(1319, 'sine',     0.55, 0.10, 0.42);
+  } catch(_) {}
+
+  // Fecha o modal de pagamento (QR) e evita duplicar a celebração
+  document.querySelector('.premium-modal-bg')?.remove();
+  document.getElementById('premium-celebrate')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'premium-celebrate';
+  overlay.innerHTML = `
+    <div class="pc-confetti"></div>
+    <div class="pc-card">
+      <div class="pc-emoji">🎉</div>
+      <div class="pc-title">Premium Ativado!</div>
+      <div class="pc-sub">Seu pagamento foi confirmado. Agora você tem <b>notas ilimitadas</b> e acesso completo a todos os recursos. ⭐</div>
+      <button class="pc-btn" id="pc-close">Vamos lá!</button>
+    </div>`;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #premium-celebrate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,10,20,.72);backdrop-filter:blur(6px);opacity:0;transition:opacity .35s;}
+    #premium-celebrate.show{opacity:1;}
+    #premium-celebrate .pc-card{position:relative;background:linear-gradient(160deg,#1e1b2e,#141221);border:1px solid rgba(245,158,11,.35);border-radius:20px;padding:34px 30px;max-width:360px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.5),0 0 60px rgba(245,158,11,.15);transform:scale(.8);transition:transform .4s cubic-bezier(.2,1.4,.4,1);z-index:2;}
+    #premium-celebrate.show .pc-card{transform:scale(1);}
+    #premium-celebrate .pc-emoji{font-size:3.6rem;animation:pcpop .6s cubic-bezier(.2,1.6,.4,1);}
+    #premium-celebrate .pc-title{font-family:Inter,sans-serif;font-size:1.55rem;font-weight:800;color:#fbbf24;margin:6px 0 8px;}
+    #premium-celebrate .pc-sub{font-family:Inter,sans-serif;font-size:.9rem;color:#cbd5e1;line-height:1.5;margin-bottom:18px;}
+    #premium-celebrate .pc-btn{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#3b2606;font-weight:700;border:none;border-radius:10px;padding:11px 28px;font-size:.92rem;cursor:pointer;font-family:Inter,sans-serif;box-shadow:0 6px 20px rgba(245,158,11,.4);}
+    #premium-celebrate .pc-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;}
+    #premium-celebrate .pc-confetti i{position:absolute;top:-14px;width:9px;height:15px;border-radius:2px;animation:pcfall linear forwards;}
+    @keyframes pcfall{0%{transform:translateY(-20px) rotate(0);opacity:1;}100%{transform:translateY(103vh) rotate(var(--rot));opacity:.9;}}
+    @keyframes pcpop{0%{transform:scale(0);}100%{transform:scale(1);}}`;
+  overlay.appendChild(style);
+
+  const conf = overlay.querySelector('.pc-confetti');
+  const colors = ['#f59e0b','#fbbf24','#6366f1','#34d399','#f472b6','#60a5fa'];
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('i');
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay = (Math.random() * 0.7) + 's';
+    p.style.animationDuration = (2.2 + Math.random() * 1.8) + 's';
+    p.style.setProperty('--rot', (180 + Math.random() * 540) + 'deg');
+    conf.appendChild(p);
+  }
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
+  const close = () => { overlay.classList.remove('show'); setTimeout(() => overlay.remove(), 400); };
+  overlay.querySelector('#pc-close').addEventListener('click', close);
+  setTimeout(close, 9000);
+
+  _updatePremiumBadge();
+  toast('⭐', 'Premium ativado com sucesso!');
 }
 
 async function createNote() {
