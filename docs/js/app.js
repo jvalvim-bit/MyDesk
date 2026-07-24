@@ -1272,6 +1272,7 @@ async function showPremiumModal() {
         if (payWrap) {
           payWrap.innerHTML = '';
           payWrap.style.flexDirection = 'column';
+          payWrap.style.alignItems = 'center';
           payWrap.style.gap = '12px';
 
           if (qrSrc) {
