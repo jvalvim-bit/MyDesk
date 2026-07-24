@@ -74,7 +74,8 @@ const handler = async (req, res) => {
 
   if (!isPaid) return res.status(200).json({ ok: true, ignored: true });
 
-  const chargeId = event?.data?.id || null;
+  // Em pagamentos pixQrCode o id vem em data.pixQrCode.id; billing usa data.id.
+  const chargeId = event?.data?.pixQrCode?.id || event?.data?.id || null;
 
   try {
     ensureFirebase();
