@@ -50,14 +50,15 @@ const handler = async (req, res) => {
   const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!idToken) return res.status(401).json({ error: 'Não autenticado' });
 
-  let uid, email;
+  let uid, email, name;
   try {
     ensureFirebase();
     const decoded = await getAuth().verifyIdToken(idToken);
     uid = decoded.uid;
-    // O billing/create exige um customer, cujo único campo obrigatório é o
-    // email. Usa o email do token; se não houver, gera um placeholder válido.
+    // O billing/create exige um customer com name e email. Usa os dados do
+    // token; se não houver, deriva do email / usa placeholders válidos.
     email = decoded.email || `user-${uid}@mydesk.app`;
+    name  = decoded.name || (decoded.email ? decoded.email.split('@')[0] : null) || 'Assinante MyDesk';
   } catch (e) {
     return res.status(401).json({ error: 'Token inválido' });
   }
@@ -87,7 +88,7 @@ const handler = async (req, res) => {
           quantity: 1,
           price: 1000,
         }],
-        customer: { email },
+        customer: { name, email },
         returnUrl: 'https://jvalvim-bit.github.io/mydesk/',
         completionUrl: 'https://jvalvim-bit.github.io/mydesk/?premium=activated',
       }),
