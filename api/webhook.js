@@ -64,6 +64,7 @@ const handler = async (req, res) => {
   const event = req.body;
   const eventType = event?.event || event?.data?.status || 'unknown';
   console.log('Webhook recebido:', eventType, 'id:', event?.data?.id || 'N/A');
+  console.log('PAYLOAD:', JSON.stringify(event).slice(0, 1200));
 
   const isPaid = (
     event?.event === 'billing.paid' ||
