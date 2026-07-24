@@ -50,15 +50,11 @@ const handler = async (req, res) => {
   const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!idToken) return res.status(401).json({ error: 'Não autenticado' });
 
-  let uid, email, name;
+  let uid;
   try {
     ensureFirebase();
     const decoded = await getAuth().verifyIdToken(idToken);
     uid = decoded.uid;
-    // O billing/create exige um customer com name e email. Usa os dados do
-    // token; se não houver, deriva do email / usa placeholders válidos.
-    email = decoded.email || `user-${uid}@mydesk.app`;
-    name  = decoded.name || (decoded.email ? decoded.email.split('@')[0] : null) || 'Assinante MyDesk';
   } catch (e) {
     return res.status(401).json({ error: 'Token inválido' });
   }
@@ -73,24 +69,16 @@ const handler = async (req, res) => {
   };
 
   try {
-    // O /billing/create EXIGE um customer (só o email é obrigatório). Não há
-    // externalId no nível raiz — a correlação com o uid do Firebase é feita
-    // gravando o mapa chargeId -> uid no Realtime DB (abaixo), lido no webhook.
-    const chargeRes = await fetch(`${BASE}/billing/create`, {
+    // Usa pixQrCode/create (PIX direto): o customer é OPCIONAL — não precisa de
+    // CPF/telefone, que o app não coleta. Quando pago, dispara billing.paid (o
+    // mesmo evento que o webhook v1 já escuta). A correlação com o uid é feita
+    // pelo mapa chargeId -> uid gravado no Realtime DB (abaixo), lido no webhook.
+    const chargeRes = await fetch(`${BASE}/pixQrCode/create`, {
       method: 'POST', headers,
       body: JSON.stringify({
-        frequency: 'ONE_TIME',
-        methods: ['PIX'],
-        products: [{
-          externalId: 'mydesk-premium-monthly',
-          name: 'MyDesk Premium — 1 mês',
-          description: 'Notas ilimitadas por 30 dias',
-          quantity: 1,
-          price: 1000,
-        }],
-        customer: { name, email },
-        returnUrl: 'https://jvalvim-bit.github.io/mydesk/',
-        completionUrl: 'https://jvalvim-bit.github.io/mydesk/?premium=activated',
+        amount: 1000,
+        expiresIn: 3600,
+        description: 'MyDesk Premium — 1 mês',
       }),
     });
     const chargeData = await chargeRes.json();
@@ -98,20 +86,24 @@ const handler = async (req, res) => {
       return res.status(500).json({ error: 'Erro cobrança', details: chargeData });
     }
 
-    const bill = chargeData.data;
-    console.log('Charge created:', bill?.id);
+    const pix = chargeData.data;
+    console.log('PIX charge created:', pix?.id);
 
-    // Guarda o mapeamento chargeId -> uid para o webhook saber qual usuário
-    // pagou (o billing/create não devolve metadata custom no evento).
-    if (bill?.id) {
+    // Guarda o mapeamento chargeId -> uid para o webhook saber qual usuário pagou.
+    if (pix?.id) {
       try {
-        await getDatabase().ref(`pendingCharges/${bill.id}`).set({ uid, createdAt: Date.now() });
+        await getDatabase().ref(`pendingCharges/${pix.id}`).set({ uid, createdAt: Date.now() });
       } catch (e) {
         console.error('Falha ao gravar pendingCharges:', e.message);
       }
     }
 
-    return res.status(200).json({ ok: true, url: bill?.url, chargeId: bill?.id });
+    return res.status(200).json({
+      ok: true,
+      id: pix?.id,
+      brCode: pix?.brCode,
+      brCodeBase64: pix?.brCodeBase64,
+    });
 
   } catch (err) {
     console.error('Error creating charge:', err.message);

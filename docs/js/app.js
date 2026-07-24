@@ -1261,26 +1261,44 @@ async function showPremiumModal() {
 
       const payWrap  = bg.querySelector('#pm-pay-wrap');
       const pixLabel = bg.querySelector('#pm-pix-label');
-      const safeUrl  = (data.ok && typeof data.url === 'string' && /^https:\/\//.test(data.url)) ? data.url : null;
 
-      if (safeUrl) {
-        if (pixLabel) pixLabel.textContent = 'Cobrança gerada — finalize o pagamento:';
+      // pixQrCode/create devolve o copia-e-cola (brCode) e o QR em base64.
+      const brCode = (data.ok && typeof data.brCode === 'string') ? data.brCode : null;
+      let qrSrc = (data.ok && typeof data.brCodeBase64 === 'string') ? data.brCodeBase64 : null;
+      if (qrSrc && !/^data:/.test(qrSrc)) qrSrc = 'data:image/png;base64,' + qrSrc;
+
+      if (brCode || qrSrc) {
+        if (pixLabel) pixLabel.textContent = 'Escaneie o QR Code ou copie o código Pix:';
         if (payWrap) {
           payWrap.innerHTML = '';
-          const anchor = document.createElement('a');
-          anchor.href = safeUrl;
-          anchor.target = '_blank';
-          anchor.rel = 'noopener noreferrer';
-          anchor.style.cssText = 'display:inline-block;width:100%;text-align:center;padding:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:10px;font-family:Inter,sans-serif;font-size:.86rem;font-weight:600;color:#fff;text-decoration:none;box-shadow:0 4px 18px rgba(99,102,241,.35);';
-          anchor.textContent = 'Pagar com Pix →';
-          payWrap.appendChild(anchor);
-          // Abre automaticamente a página de pagamento hospedada pela AbacatePay
-          // (QR Code + copia-e-cola são exibidos lá — mais confiável do que
-          // tentar renderizar isso dentro do nosso próprio modal).
-          window.open(safeUrl, '_blank', 'noopener,noreferrer');
+          payWrap.style.flexDirection = 'column';
+          payWrap.style.gap = '12px';
+
+          if (qrSrc) {
+            const img = document.createElement('img');
+            img.src = qrSrc;
+            img.alt = 'QR Code Pix';
+            img.style.cssText = 'width:200px;height:200px;background:#fff;padding:8px;border-radius:10px;';
+            payWrap.appendChild(img);
+          }
+
+          if (brCode) {
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.textContent = '📋 Copiar código Pix';
+            copyBtn.style.cssText = 'width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;border-radius:10px;font-family:Inter,sans-serif;font-size:.86rem;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 18px rgba(99,102,241,.35);';
+            copyBtn.addEventListener('click', () => {
+              navigator.clipboard.writeText(brCode).then(() => {
+                copyBtn.textContent = '✓ Código copiado!';
+                setTimeout(() => { copyBtn.textContent = '📋 Copiar código Pix'; }, 2000);
+              }).catch(() => { copyBtn.textContent = brCode; });
+            });
+            payWrap.appendChild(copyBtn);
+          }
         }
+      } else {
+        throw new Error('Resposta sem QR Pix');
       }
-      // se não veio url válida, cai pro fallback abaixo
     } catch(err) {
       console.warn('[Premium] API indisponível:', err.message || err);
       // Exibe mensagem de erro ao usuário em vez de fallback com dados sensíveis
