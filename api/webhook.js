@@ -51,7 +51,13 @@ const handler = async (req, res) => {
   const secret = process.env.WEBHOOK_SECRET;
 
   if (!token || !secret || !timingSafeEqual(token, secret)) {
-    console.warn('Webhook: token inválido ou ausente');
+    console.warn('Webhook auth falhou:', JSON.stringify({
+      temQuery: !!req.query?.webhookSecret,
+      temHeader: !!req.headers['x-webhook-secret'],
+      tokenLen: token ? String(token).length : 0,
+      secretLen: secret ? String(secret).length : 0,
+      match: (token && secret) ? String(token) === String(secret) : false,
+    }));
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
