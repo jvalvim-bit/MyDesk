@@ -92,9 +92,13 @@ const handler = async (req, res) => {
     // Guarda o mapeamento chargeId -> uid para o webhook saber qual usuário pagou.
     if (pix?.id) {
       try {
-        await getDatabase().ref(`pendingCharges/${pix.id}`).set({ uid, createdAt: Date.now() });
+        // Timeout defensivo: não deixa uma gravação lenta travar a resposta.
+        await Promise.race([
+          getDatabase().ref(`pendingCharges/${pix.id}`).set({ uid, createdAt: Date.now() }),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('db write timeout')), 4000)),
+        ]);
       } catch (e) {
-        console.error('Falha ao gravar pendingCharges:', e.message);
+        console.error('Falha/timeout ao gravar pendingCharges:', e.message);
       }
     }
 

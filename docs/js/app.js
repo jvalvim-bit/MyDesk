@@ -1239,7 +1239,7 @@ async function showPremiumModal() {
       const idToken = await fbUser.getIdToken();
 
       const _ctrl = new AbortController();
-      const _timer = setTimeout(() => _ctrl.abort(), 8000);
+      const _timer = setTimeout(() => _ctrl.abort(), 15000);
       const resp = await fetch(VERCEL_API + '/api/create-charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
