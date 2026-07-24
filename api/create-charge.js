@@ -1,6 +1,7 @@
 // api/create-charge.js
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
+const { getDatabase } = require('firebase-admin/database');
 
 const ALLOWED_ORIGINS = [
   'https://jvalvim-bit.github.io',
@@ -17,7 +18,7 @@ function setCors(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
-function getFirebaseAdmin() {
+function ensureFirebase() {
   if (getApps().length === 0) {
     initializeApp({
       credential: cert({
@@ -25,9 +26,9 @@ function getFirebaseAdmin() {
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       }),
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
     });
   }
-  return getAuth();
 }
 
 const handler = async (req, res) => {
@@ -51,7 +52,8 @@ const handler = async (req, res) => {
 
   let uid;
   try {
-    const decoded = await getFirebaseAdmin().verifyIdToken(idToken);
+    ensureFirebase();
+    const decoded = await getAuth().verifyIdToken(idToken);
     uid = decoded.uid;
   } catch (e) {
     return res.status(401).json({ error: 'Token inválido' });
@@ -67,16 +69,15 @@ const handler = async (req, res) => {
   };
 
   try {
-    // Cria a cobrança diretamente — sem etapa de cliente (customer é opcional
-    // no /billing/create, e exigiria cellphone/taxId que o app não coleta).
-    // externalId + metadata carregam o uid do Firebase pra correlacionar
-    // com o evento billing.paid recebido no webhook.
+    // Cria a cobrança. O /billing/create NÃO aceita externalId no nível raiz
+    // (isso é interpretado como referência a um customer e gera "Customer not
+    // found"). A correlação com o uid do Firebase é feita gravando o mapa
+    // chargeId -> uid no Realtime DB (ver abaixo), consultado no webhook.
     const chargeRes = await fetch(`${BASE}/billing/create`, {
       method: 'POST', headers,
       body: JSON.stringify({
         frequency: 'ONE_TIME',
         methods: ['PIX'],
-        externalId: uid,
         products: [{
           externalId: 'mydesk-premium-monthly',
           name: 'MyDesk Premium — 1 mês',
@@ -84,7 +85,6 @@ const handler = async (req, res) => {
           quantity: 1,
           price: 1000,
         }],
-        metadata: { firebaseUid: uid },
         returnUrl: 'https://jvalvim-bit.github.io/mydesk/',
         completionUrl: 'https://jvalvim-bit.github.io/mydesk/?premium=activated',
       }),
@@ -96,6 +96,16 @@ const handler = async (req, res) => {
 
     const bill = chargeData.data;
     console.log('Charge created:', bill?.id);
+
+    // Guarda o mapeamento chargeId -> uid para o webhook saber qual usuário
+    // pagou (o billing/create não devolve metadata custom no evento).
+    if (bill?.id) {
+      try {
+        await getDatabase().ref(`pendingCharges/${bill.id}`).set({ uid, createdAt: Date.now() });
+      } catch (e) {
+        console.error('Falha ao gravar pendingCharges:', e.message);
+      }
+    }
 
     return res.status(200).json({ ok: true, url: bill?.url, chargeId: bill?.id });
 

@@ -56,13 +56,20 @@ const handler = async (req, res) => {
 
   if (!isPaid) return res.status(200).json({ ok: true, ignored: true });
 
-  // metadata nem sempre é ecoada de volta pelo webhook — externalId é o
-  // campo garantido pela AbacatePay no payload, então serve de fallback.
-  const uid = event?.data?.metadata?.firebaseUid || event?.data?.externalId;
-  if (!uid) return res.status(400).json({ error: 'firebaseUid não encontrado' });
+  const chargeId = event?.data?.id || null;
 
   try {
     const db = getFirebase();
+
+    // Descobre o uid: primeiro via metadata/externalId (se a AbacatePay ecoar),
+    // senão pelo mapa chargeId -> uid gravado no create-charge (fonte confiável).
+    let uid = event?.data?.metadata?.firebaseUid || event?.data?.externalId;
+    if (!uid && chargeId) {
+      const snap = await db.ref(`pendingCharges/${chargeId}`).once('value');
+      uid = snap.val()?.uid;
+    }
+    if (!uid) return res.status(400).json({ error: 'firebaseUid não encontrado' });
+
     const now = Date.now();
     const planExpiresAt = now + (30 * 24 * 60 * 60 * 1000);
     const currentYM = new Date().toISOString().slice(0, 7);
@@ -71,10 +78,13 @@ const handler = async (req, res) => {
       plan: 'premium',
       planExpiresAt,
       planActivatedAt: now,
-      lastChargeId: event?.data?.id || null,
+      lastChargeId: chargeId,
       notesCreatedThisMonth: 0,
       lastReset: currentYM,
     });
+
+    // Remove o mapa temporário depois de ativar.
+    if (chargeId) db.ref(`pendingCharges/${chargeId}`).remove().catch(() => {});
 
     console.log('Premium ativado para uid:', uid.slice(0, 8) + '...');
     return res.status(200).json({ ok: true, planExpiresAt });
