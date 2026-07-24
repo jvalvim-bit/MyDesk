@@ -34,8 +34,9 @@ const handler = async (req, res) => {
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Secret apenas via header, nunca via query string (evita vazamento em logs)
-  const token = req.headers['x-webhook-secret'];
+  // AbacatePay envia o segredo como query string: ?webhookSecret=... (não em header).
+  // Mantém fallback para o header caso a origem envie por lá.
+  const token = req.query?.webhookSecret || req.headers['x-webhook-secret'];
   const secret = process.env.WEBHOOK_SECRET;
 
   if (!token || !secret || !timingSafeEqual(token, secret)) {
