@@ -1,7 +1,19 @@
 // api/create-charge.js
-const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
-const { getDatabase } = require('firebase-admin/database');
+
+// Grava/le no Realtime DB via API REST. O SDK admin usa websocket, que é lento
+// e instável em funções serverless (causava "FIREBASE WARNING" + timeout).
+async function dbRest(method, path, value) {
+  const token = (await getApp().options.credential.getAccessToken()).access_token;
+  const url = `${process.env.FIREBASE_DATABASE_URL}/${path}.json?access_token=${token}`;
+  const opts = { method };
+  if (value !== undefined) opts.body = JSON.stringify(value);
+  const r = await fetch(url, opts);
+  const text = await r.text();
+  if (!r.ok) throw new Error(`DB ${method} ${r.status}: ${text}`);
+  return text ? JSON.parse(text) : null;
+}
 
 const ALLOWED_ORIGINS = [
   'https://jvalvim-bit.github.io',
@@ -92,13 +104,10 @@ const handler = async (req, res) => {
     // Guarda o mapeamento chargeId -> uid para o webhook saber qual usuário pagou.
     if (pix?.id) {
       try {
-        // Timeout defensivo: não deixa uma gravação lenta travar a resposta.
-        await Promise.race([
-          getDatabase().ref(`pendingCharges/${pix.id}`).set({ uid, createdAt: Date.now() }),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('db write timeout')), 4000)),
-        ]);
+        await dbRest('PUT', `pendingCharges/${pix.id}`, { uid, createdAt: Date.now() });
+        console.log('pendingCharges gravado:', pix.id);
       } catch (e) {
-        console.error('Falha/timeout ao gravar pendingCharges:', e.message);
+        console.error('Falha ao gravar pendingCharges:', e.message);
       }
     }
 

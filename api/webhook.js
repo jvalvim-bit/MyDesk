@@ -1,9 +1,8 @@
 // api/webhook.js
 const crypto = require('crypto');
-const { initializeApp, cert, getApps } = require('firebase-admin/app');
-const { getDatabase } = require('firebase-admin/database');
+const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
 
-function getFirebase() {
+function ensureFirebase() {
   if (getApps().length === 0) {
     initializeApp({
       credential: cert({
@@ -14,7 +13,19 @@ function getFirebase() {
       databaseURL: process.env.FIREBASE_DATABASE_URL,
     });
   }
-  return getDatabase();
+}
+
+// Grava/le no Realtime DB via API REST (evita o websocket do SDK admin, que é
+// lento/instável no serverless).
+async function dbRest(method, path, value) {
+  const token = (await getApp().options.credential.getAccessToken()).access_token;
+  const url = `${process.env.FIREBASE_DATABASE_URL}/${path}.json?access_token=${token}`;
+  const opts = { method };
+  if (value !== undefined) opts.body = JSON.stringify(value);
+  const r = await fetch(url, opts);
+  const text = await r.text();
+  if (!r.ok) throw new Error(`DB ${method} ${r.status}: ${text}`);
+  return text ? JSON.parse(text) : null;
 }
 
 function timingSafeEqual(a, b) {
@@ -59,14 +70,14 @@ const handler = async (req, res) => {
   const chargeId = event?.data?.id || null;
 
   try {
-    const db = getFirebase();
+    ensureFirebase();
 
     // Descobre o uid: primeiro via metadata/externalId (se a AbacatePay ecoar),
     // senão pelo mapa chargeId -> uid gravado no create-charge (fonte confiável).
     let uid = event?.data?.metadata?.firebaseUid || event?.data?.externalId;
     if (!uid && chargeId) {
-      const snap = await db.ref(`pendingCharges/${chargeId}`).once('value');
-      uid = snap.val()?.uid;
+      const pc = await dbRest('GET', `pendingCharges/${chargeId}`);
+      uid = pc?.uid;
     }
     if (!uid) return res.status(400).json({ error: 'firebaseUid não encontrado' });
 
@@ -74,7 +85,7 @@ const handler = async (req, res) => {
     const planExpiresAt = now + (30 * 24 * 60 * 60 * 1000);
     const currentYM = new Date().toISOString().slice(0, 7);
 
-    await db.ref(`users/${uid}/plan`).update({
+    await dbRest('PATCH', `users/${uid}/plan`, {
       plan: 'premium',
       planExpiresAt,
       planActivatedAt: now,
@@ -84,7 +95,7 @@ const handler = async (req, res) => {
     });
 
     // Remove o mapa temporário depois de ativar.
-    if (chargeId) db.ref(`pendingCharges/${chargeId}`).remove().catch(() => {});
+    if (chargeId) dbRest('DELETE', `pendingCharges/${chargeId}`).catch(() => {});
 
     console.log('Premium ativado para uid:', uid.slice(0, 8) + '...');
     return res.status(200).json({ ok: true, planExpiresAt });
