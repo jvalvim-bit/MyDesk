@@ -94,7 +94,12 @@
     "groups": {
       "$groupId": {
         ".read":  "auth != null",
-        ".write": "auth != null && (!data.exists() || data.child('owner').val() === root.child('uids').child(auth.uid).val() || data.child('members').child(root.child('uids').child(auth.uid).val()).exists())"
+        ".write": "auth != null && (!data.exists() || data.child('owner').val() === root.child('uids').child(auth.uid).val() || data.child('members').child(root.child('uids').child(auth.uid).val()).exists())",
+        "members": {
+          "$member": {
+            ".write": "auth != null && $member === root.child('uids').child(auth.uid).val()"
+          }
+        }
       }
     },
 

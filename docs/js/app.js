@@ -3402,6 +3402,24 @@ function saveNotes() {
   }, 500);
 }
 
+/* Salva o board PESSOAL atual (padrão OU workspace nomeado) no SEU
+   próprio path, de forma síncrona. Usado antes de entrar num workspace
+   de grupo/1:1 para que notas pessoais nunca vazem pro board errado.
+   Regra crítica: workspace pessoal nunca se mistura com grupo/1:1. */
+function _savePersonalNotesNow() {
+  if (!CU) return;
+  const arr = notes.map(n => _noteToRaw(n));
+  if (_activePersonalWs && _activePersonalWs.id && _fbReady) {
+    const obj = {};
+    arr.forEach(n => { obj[n.id] = n; });
+    // preserva registros CRM do workspace nomeado (não apagar ao salvar vazio)
+    if (typeof _records !== 'undefined') _records.forEach(r => { obj[r.id] = r; });
+    fbSet(_pwPath(_activePersonalWs.id), Object.keys(obj).length ? obj : null).catch(() => {});
+  } else {
+    saveNotesRaw(CU.username, arr);
+  }
+}
+
 /* ═══════════════════════════════════════════════════
    REMOÇÃO DE NOTA
    Apaga do DOM, do estado e do Firebase
@@ -6317,7 +6335,14 @@ function setBtnTxt(id, text) {
     "groups": {
       "$groupId": {
         ".read":  "auth != null",
-        ".write": "auth != null && (!data.exists() || data.child('owner').val() === root.child('uids').child(auth.uid).val() || data.child('members').child(root.child('uids').child(auth.uid).val()).exists())"
+        ".write": "auth != null && (!data.exists() || data.child('owner').val() === root.child('uids').child(auth.uid).val() || data.child('members').child(root.child('uids').child(auth.uid).val()).exists())",
+        // Cada usuário pode adicionar/remover APENAS a si mesmo em members
+        // (permite aceitar convite de grupo e sair sem ser dono/membro prévio)
+        "members": {
+          "$member": {
+            ".write": "auth != null && $member === root.child('uids').child(auth.uid).val()"
+          }
+        }
       }
     },
     // ── Chat de grupo ──
@@ -7823,12 +7848,17 @@ function showGroupInviteNotif(item) {
 
   el.querySelector('.ws-invite-accept').addEventListener('click', async e => {
     e.stopPropagation();
-    await fbSet('groups/' + item.groupId + '/members/' + CU.username, true);
-    // Add to personal group index
-    if (CU.uid) await fbSet('users/' + CU.uid + '/groups/' + item.groupId, true);
-    toast('✓', 'Você entrou no grupo "' + item.groupName + '"!');
-    dismiss();
-    _renderingSocial = false; renderSocialPanel();
+    try {
+      await fbSet('groups/' + item.groupId + '/members/' + CU.username, true);
+      // Add to personal group index
+      if (CU.uid) await fbSet('users/' + CU.uid + '/groups/' + item.groupId, true);
+      toast('✓', 'Você entrou no grupo "' + item.groupName + '"!');
+      dismiss();
+      _renderingSocial = false; renderSocialPanel();
+    } catch (err) {
+      console.error('[group-invite] falha ao entrar no grupo:', err);
+      toast('⚠', 'Não foi possível entrar no grupo. Tente novamente.');
+    }
   });
   el.querySelector('.ws-invite-reject').addEventListener('click', e => {
     e.stopPropagation();
@@ -8518,11 +8548,12 @@ function switchToGroupWorkspace(groupId, groupName, isNew = false) {
   if (_activeWs) switchToPersonal();
   if (_activeGroupWs) leaveGroupWorkspace(false);
 
-  // Save personal notes IMMEDIATELY (cancel any pending debounced save first)
+  // Save personal notes IMMEDIATELY (cancel any pending debounced save first).
+  // Salva no path pessoal CORRETO (board padrão OU workspace nomeado) —
+  // nunca força o board padrão, senão o workspace pessoal se mistura.
   clearTimeout(_saveNotesTmr);
   if (CU && !_activeGroupWs && !_activeWs) {
-    const arr = notes.map(n => _noteToRaw(n));
-    saveNotesRaw(CU.username, arr);
+    _savePersonalNotesNow();
   }
 
   // Clear board BEFORE setting _activeGroupWs
@@ -8602,7 +8633,18 @@ async function _restorePersonalBoard() {
   notes = []; zTop = 10;
   document.querySelectorAll('.note').forEach(e => e.remove());
   document.querySelectorAll('.stack-wrap').forEach(e => e.remove());
-  const rawNotes = await loadNotesRaw(CU.username);
+
+  // Restaura o board pessoal CORRETO: se havia um workspace pessoal nomeado
+  // ativo antes de entrar no grupo/1:1, volta pra ele; senão, board padrão.
+  // (_activePersonalWs é mantido durante o grupo/1:1 pois saveNotes/_recBasePath
+  //  dão prioridade a grupo/1:1 — então não há mistura durante a sessão.)
+  let rawNotes;
+  if (_activePersonalWs && _activePersonalWs.id && _fbReady) {
+    try { const snap = await fbGet(_pwPath(_activePersonalWs.id)); rawNotes = snap ? Object.values(snap) : []; }
+    catch { rawNotes = []; }
+  } else {
+    rawNotes = await loadNotesRaw(CU.username);
+  }
   rawNotes.forEach(r => {
     if (r.type === 'client' || String(r.id || '').startsWith('crm_')) return; // skip CRM records
     const n = { id:r.id, color:r.color, title:r.title, body:r.body,
@@ -8618,8 +8660,9 @@ async function _restorePersonalBoard() {
   const stackIds = [...new Set(notes.filter(n => n.stackId).map(n => n.stackId))];
   setTimeout(() => stackIds.forEach(sid => renderStack(sid)), 0);
   syncCount();
-  toast('📋', 'Workspace pessoal restaurado.');
-  // Recarregar clientes do board pessoal
+  _pwUpdatePillLabel();
+  toast('📋', _activePersonalWs ? ('Workspace "' + _activePersonalWs.name + '" restaurado.') : 'Workspace pessoal restaurado.');
+  // Recarregar clientes do board pessoal correto
   _crmReloadForWorkspace();
 }
 
@@ -9040,11 +9083,12 @@ function showWsInviteModal(from, key) {
 }
 
 function switchToWorkspace(key, friend) {
-  // Save personal notes IMMEDIATELY before switching (cancel pending debounce)
+  // Save personal notes IMMEDIATELY before switching (cancel pending debounce).
+  // Usa o path pessoal CORRETO (padrão OU workspace nomeado) para não
+  // misturar o workspace pessoal com o 1:1.
   clearTimeout(_saveNotesTmr);
   if (CU && !_activeWs && !_activeGroupWs) {
-    const arr = notes.map(n => _noteToRaw(n));
-    saveNotesRaw(CU.username, arr);
+    _savePersonalNotesNow();
   }
 
   // Clear board BEFORE setting _activeWs
@@ -9254,6 +9298,13 @@ async function _pwCreate(name) {
 
 // ── Switch to workspace ──
 async function _pwSwitchTo(ws) {
+  // Workspace pessoal nunca se mistura com grupo/1:1: bloqueia a troca
+  // enquanto um workspace de grupo ou compartilhado estiver ativo.
+  if (_activeWs || _activeGroupWs) {
+    toast('⚠', 'Saia do workspace atual antes de trocar de workspace pessoal.');
+    togglePwPanel();
+    return;
+  }
   if (ws && _activePersonalWs?.id === ws.id) {
     // Already active — just close panel
     togglePwPanel();
