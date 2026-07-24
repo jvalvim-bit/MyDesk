@@ -50,11 +50,14 @@ const handler = async (req, res) => {
   const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!idToken) return res.status(401).json({ error: 'Não autenticado' });
 
-  let uid;
+  let uid, email;
   try {
     ensureFirebase();
     const decoded = await getAuth().verifyIdToken(idToken);
     uid = decoded.uid;
+    // O billing/create exige um customer, cujo único campo obrigatório é o
+    // email. Usa o email do token; se não houver, gera um placeholder válido.
+    email = decoded.email || `user-${uid}@mydesk.app`;
   } catch (e) {
     return res.status(401).json({ error: 'Token inválido' });
   }
@@ -69,10 +72,9 @@ const handler = async (req, res) => {
   };
 
   try {
-    // Cria a cobrança. O /billing/create NÃO aceita externalId no nível raiz
-    // (isso é interpretado como referência a um customer e gera "Customer not
-    // found"). A correlação com o uid do Firebase é feita gravando o mapa
-    // chargeId -> uid no Realtime DB (ver abaixo), consultado no webhook.
+    // O /billing/create EXIGE um customer (só o email é obrigatório). Não há
+    // externalId no nível raiz — a correlação com o uid do Firebase é feita
+    // gravando o mapa chargeId -> uid no Realtime DB (abaixo), lido no webhook.
     const chargeRes = await fetch(`${BASE}/billing/create`, {
       method: 'POST', headers,
       body: JSON.stringify({
@@ -85,6 +87,7 @@ const handler = async (req, res) => {
           quantity: 1,
           price: 1000,
         }],
+        customer: { email },
         returnUrl: 'https://jvalvim-bit.github.io/mydesk/',
         completionUrl: 'https://jvalvim-bit.github.io/mydesk/?premium=activated',
       }),
