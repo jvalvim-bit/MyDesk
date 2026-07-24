@@ -1246,8 +1246,12 @@ async function showPremiumModal() {
         signal: _ctrl.signal,
       }).finally(() => clearTimeout(_timer));
 
-      // Se não for 2xx, vai para o fallback
-      if (!resp || !resp.ok) throw new Error('HTTP ' + (resp?.status || 0));
+      // Se não for 2xx, vai para o fallback (inclui o corpo do erro p/ diagnóstico)
+      if (!resp || !resp.ok) {
+        let _errBody = '';
+        try { _errBody = await resp.text(); } catch (_) {}
+        throw new Error('HTTP ' + (resp?.status || 0) + ' :: ' + _errBody);
+      }
 
       // Verificar se a resposta é JSON válido antes de parsear
       const contentType = resp.headers.get('content-type') || '';
